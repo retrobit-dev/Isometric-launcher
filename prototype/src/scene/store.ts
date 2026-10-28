@@ -1,23 +1,34 @@
 import { EMPTY_SCENE, type Scene, type SceneObject } from './types'
 
-const KEY = 'isola-scene-v1'
+const DRAFT_KEY = 'isola-draft-v2'
+const LOCKED_KEY = 'isola-locked-v2'
 
-export function loadScene(): Scene {
+export function loadDraft(): Scene {
+  return read(DRAFT_KEY) ?? structuredClone(EMPTY_SCENE)
+}
+export function saveDraft(scene: Scene) { write(DRAFT_KEY, scene) }
+
+export function loadLocked(): Scene | null {
+  const s = read(LOCKED_KEY)
+  return s && s.meta?.locked ? s : null
+}
+export function saveLocked(scene: Scene) { write(LOCKED_KEY, scene) }
+
+function read(key: string): Scene | null {
   try {
-    const raw = localStorage.getItem(KEY)
-    if (!raw) return structuredClone(EMPTY_SCENE)
-    const parsed = validateScene(JSON.parse(raw))
-    return parsed ?? structuredClone(EMPTY_SCENE)
+    const raw = localStorage.getItem(key)
+    if (!raw) return null
+    return validateScene(JSON.parse(raw))
   } catch {
-    return structuredClone(EMPTY_SCENE)
+    return null
   }
 }
 
-export function saveScene(scene: Scene) {
+function write(key: string, scene: Scene) {
   try {
-    localStorage.setItem(KEY, JSON.stringify(scene))
+    localStorage.setItem(key, JSON.stringify(scene))
   } catch {
-    /* storage penuh/private — abaikan, editor tetap jalan di memori */
+    /* storage penuh/private — editor tetap jalan di memori */
   }
 }
 
@@ -33,9 +44,7 @@ export function validateScene(data: unknown): Scene | null {
     objects.push({
       id: ob.id,
       label: typeof ob.label === 'string' ? ob.label : ob.id,
-      pos: {
-        e: num(ob.pos.e), w: num(ob.pos.w), z: num(ob.pos.z),
-      },
+      pos: { e: num(ob.pos.e), w: num(ob.pos.w), z: num(ob.pos.z) },
       size: {
         e: Math.max(0.5, num(ob.size.e)),
         w: Math.max(0.5, num(ob.size.w)),
@@ -47,10 +56,15 @@ export function validateScene(data: unknown): Scene | null {
       app: typeof ob.app === 'string' ? ob.app : null,
     })
   }
+  const m = d.meta as Partial<Scene['meta']> | undefined
   return {
     version: 1,
     room: d.room ?? structuredClone(EMPTY_SCENE.room),
     objects,
+    meta: {
+      locked: Boolean(m?.locked),
+      savedAt: typeof m?.savedAt === 'string' ? m.savedAt : null,
+    },
   }
 }
 

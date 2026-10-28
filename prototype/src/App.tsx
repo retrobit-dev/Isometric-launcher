@@ -1,9 +1,12 @@
 import { useEffect, useRef, useState } from 'react'
-import { IH, IW, ROOM, unpx, zoneName } from './iso/space'
+import {
+  CAM, DEFAULT_ZOOM_IDX, IH, IW, ROOM, ZOOM_LEVELS,
+  resetView, setCenter, setZoom, unpx, zoneName,
+} from './iso/space'
 import { drawScene } from './iso/room'
 import { bboxOf, sortedObjects } from './iso/box'
 import { MATERIAL_KEYS } from './iso/palette'
-import { loadScene, saveScene, validateScene } from './scene/store'
+import { loadDraft, loadLocked, saveDraft, saveLocked, validateScene } from './scene/store'
 import type { Scene, SceneObject } from './scene/types'
 import EditPanel from './ui/EditPanel'
 
@@ -25,29 +28,29 @@ const clamp = (v: number, lo: number, hi: number) => Math.min(hi, Math.max(lo, v
 
 export default function App() {
   const canvasRef = useRef<HTMLCanvasElement>(null)
-  const [scene, setScene] = useState<Scene>(() => loadScene())
+  const [scene, setScene] = useState<Scene>(() => loadDraft())
+  const [locked, setLocked] = useState<boolean>(() => loadLocked() !== null)
   const [mode, setMode] = useState<'lihat' | 'edit'>('lihat')
   const [grid, setGrid] = useState(false)
   const [dev, setDev] = useState(true)
   const [rot, setRot] = useState<Rot>('auto')
+  const [zoomIdx, setZoomIdx] = useState(DEFAULT_ZOOM_IDX)
   const [selectedId, setSelectedId] = useState<string | null>(null)
   const [modal, setModal] = useState<'export' | 'import' | null>(null)
   const [importText, setImportText] = useState('')
   const [vp, setVp] = useState({ w: window.innerWidth, h: window.innerHeight })
   const [hover, setHover] = useState<{ e: number; w: number } | null>(null)
 
-  const sceneRef = useRef(scene)
-  sceneRef.current = scene
-  const modeRef = useRef(mode)
-  modeRef.current = mode
-  const selRef = useRef(selectedId)
-  selRef.current = selectedId
-  const gridRef = useRef(grid)
-  gridRef.current = grid
+  const sceneRef = useRef(scene); sceneRef.current = scene
+  const modeRef = useRef(mode); modeRef.current = mode
+  const lockedRef = useRef(locked); lockedRef.current = locked
+  const selRef = useRef(selectedId); selRef.current = selectedId
+  const gridRef = useRef(grid); gridRef.current = grid
   const dragRef = useRef<{ id: string; e0: number; w0: number; ge: number; gw: number; moved: boolean } | null>(null)
+  const panRef = useRef<{ ce: number; cw: number; ge: number; gw: number; moved: boolean } | null>(null)
 
-  // simpan setiap perubahan scene (persistensi localStorage, docs/03 §4)
-  useEffect(() => { saveScene(scene) }, [scene])
+  useEffect(() => { saveDraft(scene) }, [scene])
+  useEffect(() => { setZoom(ZOOM_LEVELS[zoomIdx]) }, [zoomIdx])
 
   useEffect(() => {
     const onResize = () => setVp({ w: window.innerWidth, h: window.innerHeight })
@@ -64,7 +67,7 @@ export default function App() {
     const loop = () => {
       drawScene(ctx, {
         grid: gridRef.current,
-        edit: modeRef.current === 'edit',
+        edit: modeRef.current === 'edit' && !lockedRef.current,
         objects: sceneRef.current.objects,
         selectedId: selRef.current,
       })
@@ -74,10 +77,16 @@ export default function App() {
     return () => cancelAnimationFrame(raf)
   }, [])
 
-  const updateScene = (fn: (s: Scene) => Scene) => setScene(s => fn(s))
-
   const patchObject = (id: string, patch: Partial<SceneObject>) =>
-    updateScene(s => ({ ...s, objects: s.objects.map(o => (o.id === id ? { ...o, ...patch } : o)) }))
+    setScene(s => ({ ...s, objects: s.objects.map(o => (o.id === id ? { ...o, ...patch } : o)) }))
+
+  const toInternal = (ev: React.PointerEvent<HTMLCanvasElement>) => {
+    const rect = ev.currentTarget.getBoundingClientRect()
+    return {
+      sx: ((ev.clientX - rect.left) * IW) / rect.width,
+      sy: ((ev.clientY - rect.top) * IH) / rect.height,
+    }
+  }
 
   const hitTest = (sx: number, sy: number): SceneObject | null => {
     const sorted = sortedObjects(sceneRef.current.objects)
@@ -88,59 +97,71 @@ export default function App() {
     return null
   }
 
-  const toInternal = (ev: React.PointerEvent<HTMLCanvasElement>) => {
-    const rect = ev.currentTarget.getBoundingClientRect()
-    return {
-      sx: ((ev.clientX - rect.left) * IW) / rect.width,
-      sy: ((ev.clientY - rect.top) * IH) / rect.height,
-    }
-  }
-
   const onDown = (ev: React.PointerEvent<HTMLCanvasElement>) => {
-    if (modeRef.current !== 'edit') return
     const { sx, sy } = toInternal(ev)
-    const hit = hitTest(sx, sy)
-    if (hit) {
-      const g = unpx(sx, sy)
-      dragRef.current = { id: hit.id, e0: hit.pos.e, w0: hit.pos.w, ge: g.e, gw: g.w, moved: false }
-      setSelectedId(hit.id)
-      ev.currentTarget.setPointerCapture(ev.pointerId)
+    const g = unpx(sx, sy)
+    if (modeRef.current === 'edit' && !lockedRef.current) {
+      const hit = hitTest(sx, sy)
+      if (hit) {
+        dragRef.current = { id: hit.id, e0: hit.pos.e, w0: hit.pos.w, ge: g.e, gw: g.w, moved: false }
+        setSelectedId(hit.id)
+        ev.currentTarget.setPointerCapture(ev.pointerId)
+        return
+      }
     }
+    // seret area kosong / mode lihat = pan kamera
+    panRef.current = { ce: CAM.CE, cw: CAM.CW, ge: g.e, gw: g.w, moved: false }
+    ev.currentTarget.setPointerCapture(ev.pointerId)
   }
 
   const onMove = (ev: React.PointerEvent<HTMLCanvasElement>) => {
     const { sx, sy } = toInternal(ev)
     const g = unpx(sx, sy)
-    const inside = g.e >= 0 && g.w >= 0 && g.e <= ROOM.E && g.w <= ROOM.W
-    setHover(inside ? { e: snap(g.e), w: snap(g.w) } : null)
+    setHover({ e: snap(g.e), w: snap(g.w) })
 
     const d = dragRef.current
-    if (!d) return
-    const obj = sceneRef.current.objects.find(o => o.id === d.id)
-    if (!obj) return
-    const ne = clamp(snap(d.e0 + (g.e - d.ge)), 0, ROOM.E - obj.size.e)
-    const nw = clamp(snap(d.w0 + (g.w - d.gw)), 0, ROOM.W - obj.size.w)
-    if (ne !== obj.pos.e || nw !== obj.pos.w) {
-      d.moved = true
-      patchObject(d.id, { pos: { ...obj.pos, e: ne, w: nw } })
+    if (d) {
+      const obj = sceneRef.current.objects.find(o => o.id === d.id)
+      if (!obj) return
+      const ne = clamp(snap(d.e0 + (g.e - d.ge)), 0, ROOM.E - obj.size.e)
+      const nw = clamp(snap(d.w0 + (g.w - d.gw)), 0, ROOM.W - obj.size.w)
+      if (ne !== obj.pos.e || nw !== obj.pos.w) {
+        d.moved = true
+        patchObject(d.id, { pos: { ...obj.pos, e: ne, w: nw } })
+      }
+      return
+    }
+
+    const p = panRef.current
+    if (p) {
+      const de = g.e - p.ge
+      const dw = g.w - p.gw
+      if (Math.abs(de) + Math.abs(dw) > 0.15) p.moved = true
+      if (p.moved) setCenter(p.ce - de, p.cw - dw)
     }
   }
 
-  const onUp = () => { dragRef.current = null }
+  const onUp = () => {
+    if (dragRef.current && !dragRef.current.moved) {
+      /* ketukan tanpa geser = pilih (sudah saat onDown) */
+    }
+    if (panRef.current && !panRef.current.moved && modeRef.current === 'edit' && !lockedRef.current) {
+      setSelectedId(null) // ketuk lantai kosong = batal pilih
+    }
+    dragRef.current = null
+    panRef.current = null
+  }
 
   // --- aksi editor (docs/03 §4) ---
   const addObject = () => {
     const n = sceneRef.current.objects.length + 1
     const id = `objek-${n}-${Date.now().toString(36).slice(-3)}`
     const obj: SceneObject = {
-      id,
-      label: `Objek ${n}`,
-      pos: { e: 6, w: 6, z: 0 },
-      size: { e: 2, w: 1, z: 1 },
-      style: 'wood',
-      app: null,
+      id, label: `Objek ${n}`,
+      pos: { e: 6, w: 6, z: 0 }, size: { e: 2, w: 1, z: 1 },
+      style: 'wood', app: null,
     }
-    updateScene(s => ({ ...s, objects: [...s.objects, obj] }))
+    setScene(s => ({ ...s, objects: [...s.objects, obj] }))
     setSelectedId(id)
   }
 
@@ -148,16 +169,34 @@ export default function App() {
     const src = sceneRef.current.objects.find(o => o.id === id)
     if (!src) return
     const nid = `${id}-salinan-${Date.now().toString(36).slice(-3)}`
-    updateScene(s => ({
+    setScene(s => ({
       ...s,
-      objects: [...s.objects, { ...src, id: nid, label: `${src.label} (salinan)`, pos: { ...src.pos, e: clamp(src.pos.e + 1, 0, ROOM.E - src.size.e), w: clamp(src.pos.w + 1, 0, ROOM.W - src.size.w) } }],
+      objects: [...s.objects, {
+        ...src, id: nid, label: `${src.label} (salinan)`,
+        pos: { ...src.pos, e: clamp(src.pos.e + 1, 0, ROOM.E - src.size.e), w: clamp(src.pos.w + 1, 0, ROOM.W - src.size.w) },
+      }],
     }))
     setSelectedId(nid)
   }
 
   const deleteObject = (id: string) => {
-    updateScene(s => ({ ...s, objects: s.objects.filter(o => o.id !== id) }))
+    setScene(s => ({ ...s, objects: s.objects.filter(o => o.id !== id) }))
     setSelectedId(null)
+  }
+
+  // SIMPAN & KUNCI: scene terkunci = satu-satunya yang sah diterapkan ke aplikasi
+  const lockScene = () => {
+    const stamped: Scene = { ...scene, meta: { locked: true, savedAt: new Date().toISOString() } }
+    setScene(stamped)
+    saveLocked(stamped)
+    setLocked(true)
+    setMode('lihat')
+    setSelectedId(null)
+  }
+
+  const unlockScene = () => {
+    setLocked(false)
+    setMode('edit')
   }
 
   const exportJSON = () => JSON.stringify(scene, null, 2)
@@ -166,26 +205,24 @@ export default function App() {
     const blob = new Blob([exportJSON()], { type: 'application/json' })
     const a = document.createElement('a')
     a.href = URL.createObjectURL(blob)
-    a.download = 'scene.json'
+    a.download = locked ? 'scene-terkunci.json' : 'scene-draf.json'
     a.click()
     URL.revokeObjectURL(a.href)
   }
 
   const applyImport = () => {
-    try {
-      const parsed = validateScene(JSON.parse(importText))
-      if (!parsed) { setImportText(''); setModal(null); return }
-      setScene(parsed)
-      setSelectedId(null)
-      setModal(null)
-    } catch {
-      /* JSON tidak valid: biarkan modal terbuka agar pengguna memperbaiki */
-    }
+    const parsed = validateScene(JSON.parse(importText))
+    if (!parsed) return
+    setScene(parsed)
+    setLocked(Boolean(parsed.meta?.locked))
+    setSelectedId(null)
+    setModal(null)
   }
 
   const resetScene = () => {
-    setScene({ version: 1, room: { ...scene.room }, objects: [] })
+    setScene({ version: 1, room: { ...scene.room }, objects: [], meta: { locked: false, savedAt: null } })
     setSelectedId(null)
+    resetView()
   }
 
   // --- bingkai tablet ---
@@ -202,6 +239,10 @@ export default function App() {
   const previewScale = screenW / DEV_RES_W
 
   const selected = scene.objects.find(o => o.id === selectedId) ?? null
+  const editable = mode === 'edit' && !locked
+  const savedAt = scene.meta?.savedAt
+    ? new Date(scene.meta.savedAt).toLocaleTimeString('id-ID', { hour: '2-digit', minute: '2-digit' })
+    : null
 
   return (
     <div className="stage">
@@ -229,10 +270,10 @@ export default function App() {
             {dev && (
               <div className="chip">
                 <span>
-                  {hover
-                    ? `(e=${hover.e}, w=${hover.w}) · zona ${zoneName(hover.e, hover.w)}`
-                    : `mode ${mode} · ${scene.objects.length} objek`}
+                  {hover ? `(e=${hover.e}, w=${hover.w}) · ${zoneName(hover.e, hover.w)}` : `${scene.objects.length} objek`}
                 </span>
+                <span>zoom ×{ZOOM_LEVELS[zoomIdx]}</span>
+                <span className={locked ? 'on' : ''}>{locked ? `terkunci ${savedAt ?? ''}` : 'draf'}</span>
               </div>
             )}
           </div>
@@ -242,29 +283,41 @@ export default function App() {
       <div className="caption">
         <span>{DEVICE.name} · {DEVICE.res} · {DEVICE.inch} · {DEVICE.hz} · {DEVICE.os}</span>
         <span>
-          skala preview ×{previewScale.toFixed(2)} · {mode === 'edit'
-            ? 'MODE EDIT: seret objek untuk memindah (snap 0.5 tile), ketuk untuk memilih'
-            : 'mode lihat: ketuk objek belum aktif (binding app menyusul)'}
+          {editable
+            ? 'mode edit: seret objek = pindah · seret lantai = geser kamera · ketuk objek = panel'
+            : locked
+              ? 'layar terkunci: inilah versi yang diterapkan ke aplikasi'
+              : 'mode lihat: seret lantai = geser kamera'}
         </span>
       </div>
 
       <div className="toolbar">
-        <button
-          className={mode === 'edit' ? 'tbtn on' : 'tbtn'}
-          onClick={() => { setMode(m => (m === 'edit' ? 'lihat' : 'edit')); setSelectedId(null) }}
-        >
-          MODE: {mode.toUpperCase()}
-        </button>
-        {mode === 'edit' && <button className="tbtn" onClick={addObject}>+ TAMBAH</button>}
+        {locked ? (
+          <button className="tbtn on" onClick={unlockScene}>🔒 TERKUNCI — BUKA UNTUK EDIT</button>
+        ) : (
+          <>
+            <button
+              className={mode === 'edit' ? 'tbtn on' : 'tbtn'}
+              onClick={() => { setMode(m => (m === 'edit' ? 'lihat' : 'edit')); setSelectedId(null) }}
+            >
+              MODE: {mode.toUpperCase()}
+            </button>
+            {mode === 'edit' && <button className="tbtn" onClick={addObject}>+ TAMBAH</button>}
+          </>
+        )}
+        <button className="tbtn" onClick={() => setZoomIdx(i => Math.max(0, i - 1))} aria-label="zoom out">ZOOM −</button>
+        <button className="tbtn" onClick={() => setZoomIdx(i => Math.min(ZOOM_LEVELS.length - 1, i + 1))} aria-label="zoom in">ZOOM +</button>
+        <button className="tbtn" onClick={resetView}>TENGAH</button>
         <button className={grid ? 'tbtn on' : 'tbtn'} onClick={() => setGrid(v => !v)}>GRID</button>
         <button className={dev ? 'tbtn on' : 'tbtn'} onClick={() => setDev(v => !v)}>KOORDINAT</button>
         <button className="tbtn" onClick={() => setRot(r => ROT_NEXT[r])}>ROTASI: {rot.toUpperCase()}</button>
         <button className="tbtn" onClick={() => { setImportText(exportJSON()); setModal('export') }}>EXPORT</button>
         <button className="tbtn" onClick={() => { setImportText(''); setModal('import') }}>IMPORT</button>
+        {!locked && <button className="tbtn on" onClick={lockScene}>💾 SIMPAN & KUNCI</button>}
         <button className="tbtn" onClick={resetScene}>RESET</button>
       </div>
 
-      {mode === 'edit' && selected && (
+      {editable && selected && (
         <EditPanel
           obj={selected}
           onChange={patch => patchObject(selected.id, patch)}
@@ -297,7 +350,11 @@ export default function App() {
         <div className="modal">
           <div className="mcard">
             <div className="mhead">
-              <span>{modal === 'export' ? 'EXPORT scene.json' : 'IMPORT scene.json'}</span>
+              <span>
+                {modal === 'export'
+                  ? locked ? 'EXPORT scene TERKUNCI ✔' : 'EXPORT scene DRAF — aplikasi akan menolak'
+                  : 'IMPORT scene.json'}
+              </span>
               <button className="sbtn" onClick={() => setModal(null)}>✕</button>
             </div>
             <textarea

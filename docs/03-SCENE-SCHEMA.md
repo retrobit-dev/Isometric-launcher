@@ -18,7 +18,8 @@
       "style": "wood",
       "app": null
     }
-  ]
+  ],
+  "meta": { "locked": true, "savedAt": "2026-10-28T12:00:00.000Z" }
 }
 ```
 
@@ -31,6 +32,8 @@
 | `size.e / size.w / size.z` | number | ukuran dalam tile & z, minimum 0.5 |
 | `style` | string \| {top,left,right} | nama material (daftar §2) atau 3 warna eksplisit |
 | `app` | string \| null | binding tindakan/app (null = dekorasi); diisi fase app |
+| `meta.locked` | boolean | **true = scene sah untuk diterapkan ke aplikasi**; false = draf |
+| `meta.savedAt` | string \| null | timestamp ISO saat SIMPAN & KUNCI terakhir |
 
 ## 2. Material bawaan
 
@@ -52,9 +55,13 @@
 | Tambah objek | Tombol **TAMBAH** (balok baru 2×1×1 di tengah zona interaktif) |
 | Edit objek | Ketuk objek → panel: posisi, ukuran, material (cycle), label |
 | Hapus / duplikat | Tombol di panel objek |
-| Import / Export | Tombol toolbar: export = unduh + salin `scene.json`; import = tempel JSON |
-| Reset | Kembalikan ke scene kosong bawaan |
-| Persistensi | `localStorage` preview — perubahan bertahan saat reload |
+| **Zoom in/out** | Tombol **ZOOM −/+**: 6 level (×0.75 peta ruangan → ×2.5 detail). Semua level memakai langkah piksel integer agar pixel-art tetap tajam |
+| **Pan kamera** | Seret area kosong (mode apa pun) menggeser tengah kamera; **TENGAH** mengembalikan pandangan default |
+| **SIMPAN & KUNCI** | Mengunci scene: edit dinonaktifkan, `meta.locked=true` + `savedAt` dicatat. **Hanya scene terkunci yang sah diterapkan ke aplikasi** |
+| Buka kunci | Tombol 🔒 → kembali ke draf untuk diedit (versi terkunci tetap tersimpan) |
+| Import / Export | Toolbar: export = unduh + salin `scene.json` (nama file menandai draf/terkunci); import = tempel JSON |
+| Reset | Kembalikan ke scene kosong bawaan + pandangan default |
+| Persistensi | Draf & scene terkunci disimpan terpisah di `localStorage` — reload tidak menghilangkan keduanya |
 
 ## 5. Spesifikasi fitur Setting di aplikasi Android (Track B)
 
@@ -66,12 +73,15 @@ Menu **Setting → Editor Ruang** dengan kemampuan identik:
 5. **Import/Export `scene.json`** (berbagi layout antar perangkat / dari preview web)
 6. **Reset ke bawaan**
 7. **Undo satu langkah** (minimum), konfirmasi sebelum hapus
+8. **Zoom & pan**: pinch-zoom 6 level + tombol ZOOM −/+, drag satu jari di area kosong = pan, tombol TENGAH = reset pandangan
+9. **SIMPAN & KUNCI**: setelah disimpan, home mengunci layout (edit hanya dari Setting); badge jam simpan tampil di Editor Ruang; aplikasi menolak memuat scene dengan `meta.locked=false`
 Persistensi app: file `scene.json` di internal storage; aset bawaan di-bundle sebagai fallback.
 Mode edit di app hanya reachable dari Setting (bukan dari home) agar layar home tetap bersih.
 
 ## 6. Kontrak penerapan preview → aplikasi
 
-1. Susun layout di preview (Mode EDIT)
-2. **EXPORT** → dapat file `scene.json`
-3. Aplikasi membaca file itu: saat development diletakkan di `assets/scene.json`; setelah app jadi, lewat Setting → Import
-4. Renderer apa pun (canvas 2D sekarang, Three.js/libGDX nanti) wajib mematuhi skema ini — tidak ada field liar di luar `style` objek
+1. Susun layout di preview (Mode EDIT), bebas zoom/pan untuk presisi
+2. **SIMPAN & KUNCI** → scene ditandai `meta.locked = true` (+ `savedAt`)
+3. **EXPORT** → dapat file `scene-terkunci.json`
+4. Aplikasi **menolak** file dengan `meta.locked = false`; file terkunci dimuat: saat development via `assets/scene.json`, setelah app jadi lewat Setting → Import
+5. Renderer apa pun (canvas 2D sekarang, Three.js/libGDX nanti) wajib mematuhi skema ini — tidak ada field liar di luar `style` objek
