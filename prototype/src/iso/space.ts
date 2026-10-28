@@ -34,10 +34,15 @@ export const ROOM = {
 // y≈360, bawah terpotong. Seperti ROOM_FIXED, perubahan hanya lewat kode
 // developer atas permintaan eksplisit user. ZOOM/TENGAH & reload selalu
 // kembali persis ke sini; pan/pinch bebas hanya sementara (tidak disimpan).
-export const VIEW_FIXED = { q: 1.05, e: 0.1, w: 0 } as const
+interface FixedView {
+  readonly q: number
+  readonly e: number
+  readonly w: number
+}
+export const VIEW_FIXED: FixedView = { q: 1.05, e: 0.1, w: 0 }
 
-export const DEFAULT_Q = VIEW_FIXED.q // HW 17px, HH 9px — tile ≈68x36 pada skala 1280
-export const DEFAULT_CENTER = { e: VIEW_FIXED.e, w: VIEW_FIXED.w }
+export const DEFAULT_Q: number = VIEW_FIXED.q // HW 17px, HH 9px — tile ≈68x36 pada skala 1280
+export const DEFAULT_CENTER: { e: number; w: number } = { e: VIEW_FIXED.e, w: VIEW_FIXED.w }
 export const Q_MIN = 0.5
 export const Q_MAX = 6
 
