@@ -1,0 +1,42 @@
+* { margin: 0; padding: 0; box-sizing: border-box; }
+
+html, body, #root {
+  height: 100%;
+  background: #14161f;
+  overflow: hidden;
+}
+
+.stage {
+  height: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-direction: column;
+  gap: 8px;
+}
+
+/* Kanvas internal 640x400 discalakan memenuhi layar,
+   tapi semua koordinat tetap dihitung pada 2560x1600 (x4).
+   pixelated = piksel tetap kotak tajam, tidak blur. */
+.scene {
+  width: min(100vw, 160vh);
+  aspect-ratio: 16 / 10;
+  image-rendering: crisp-edges;
+  image-rendering: pixelated;
+  cursor: crosshair;
+}
+
+.hud {
+  position: fixed;
+  left: 10px;
+  bottom: 8px;
+  display: flex;
+  gap: 16px;
+  font: 12px/1.4 ui-monospace, 'Courier New', monospace;
+  color: #cfd3e4;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  user-select: none;
+}
+
+.hud .on { color: #d9a05b; }
