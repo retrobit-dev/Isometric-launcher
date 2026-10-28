@@ -212,7 +212,7 @@ export default function App() {
     const obj: SceneObject = {
       id, label: `Objek ${n}`,
       pos: { e: 6, w: 6, z: 0 }, size: { e: 2, w: 1, z: 1 },
-      style: 'wood', app: null,
+      style: 'wood', app: null, layer: 'main',
     }
     setScene(s => ({ ...s, objects: [...s.objects, obj] }))
     setSelectedId(id)
@@ -401,6 +401,11 @@ export default function App() {
             const cur = typeof selected.style === 'string' ? selected.style : ''
             const i = MATERIAL_KEYS.indexOf(cur)
             patchObject(selected.id, { style: MATERIAL_KEYS[(i + 1) % MATERIAL_KEYS.length] })
+          }}
+          onCycleLayer={() => {
+            const order = ['underlay', 'main', 'overlay'] as const
+            const cur = selected.layer ?? 'main'
+            patchObject(selected.id, { layer: order[(order.indexOf(cur) + 1) % order.length] })
           }}
           onDuplicate={() => duplicateObject(selected.id)}
           onDelete={() => deleteObject(selected.id)}

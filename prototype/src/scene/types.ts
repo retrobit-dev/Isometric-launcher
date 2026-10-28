@@ -10,6 +10,8 @@ export const ROOM_FIXED = {
   palette: 'kayu-nude',
 } as const
 
+export type Layer = 'underlay' | 'main' | 'overlay'
+
 export interface SceneObject {
   id: string
   label: string
@@ -17,6 +19,10 @@ export interface SceneObject {
   size: { e: number; w: number; z: number }
   style: string | { top: string; left: string; right: string }
   app: string | null
+  // underlay = di bawah objek main (karpet, bayangan, decal)
+  // main     = urutan kedalaman normal (furniture/app)
+  // overlay  = di atas semua (lampu gantung, balok plafon, tanaman menjulang)
+  layer?: Layer
 }
 
 export interface SceneMeta {

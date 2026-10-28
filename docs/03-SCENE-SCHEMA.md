@@ -42,6 +42,7 @@ Tombol **SIMPAN & KUNCI** mengunci **objek saja**: layout beku untuk diterapkan 
 | `size.e / size.w / size.z` | number | ukuran dalam tile & z, minimum 0.5 |
 | `style` | string \| {top,left,right} | nama material (daftar §2) atau 3 warna eksplisit |
 | `app` | string \| null | binding tindakan/app (null = dekorasi); diisi fase app |
+| `layer` | `underlay` \| `main` \| `overlay` | urutan gambar: underlay = di bawah objek main (karpet, bayangan, decal lantai); main = default, urutan kedalaman normal; overlay = di atas semua (lampu gantung, balok plafon, tanaman menjulang). Tiap layer tetap diurutkan kedalaman isometrik internal |
 | `meta.locked` | boolean | **true = OBJEK terkunci (sementara)** dan sah diterapkan ke aplikasi; false = draf objek. Ruangan tidak terpengaruh field ini (selalu terkunci) |
 | `meta.savedAt` | string \| null | timestamp ISO saat SIMPAN & KUNCI terakhir |
 
@@ -62,7 +63,7 @@ Tombol **SIMPAN & KUNCI** mengunci **objek saja**: layout beku untuk diterapkan 
 |---|---|
 | Ubah layout | Mode EDIT → **seret objek** (snap 0.5 tile) atau stepper ±0.5 di panel |
 | Tambah objek | Tombol **TAMBAH** (balok baru 2×1×1 di tengah zona interaktif) |
-| Edit objek | Ketuk objek → panel: posisi, ukuran, material (cycle), label |
+| Edit objek | Ketuk objek → panel: posisi, ukuran, material (cycle), label, **layer (cycle UNDER/MAIN/OVER)** |
 | Hapus / duplikat | Tombol di panel objek |
 | **Zoom in/out** | **Pinch in/out** di layar (kontinu ×0.5 – ×6, langkah piksel tetap integer). Tombol **ZOOM ×n** = indikator level + ketuk untuk reset ke default ×2 |
 | **Pan kamera** | Seret area kosong (mode apa pun) menggeser tengah kamera; **TENGAH** mengembalikan pandangan default |

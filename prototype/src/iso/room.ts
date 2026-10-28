@@ -129,7 +129,12 @@ export function drawScene(ctx: CanvasRenderingContext2D, o: DrawOpts) {
   floor(ctx)
   overlays(ctx, o.grid, o.edit)
 
-  for (const obj of sortedObjects(o.objects)) drawBox(ctx, obj)
+  // tiga lapis: underlay (bawah) -> main -> overlay (atas),
+  // masing-masing tetap diurutkan kedalaman agar isometrik benar
+  const layerOf = (x: SceneObject) => x.layer ?? 'main'
+  for (const obj of sortedObjects(o.objects.filter(x => layerOf(x) === 'underlay'))) drawBox(ctx, obj)
+  for (const obj of sortedObjects(o.objects.filter(x => layerOf(x) === 'main'))) drawBox(ctx, obj)
+  for (const obj of sortedObjects(o.objects.filter(x => layerOf(x) === 'overlay'))) drawBox(ctx, obj)
 
   if (o.selectedId) {
     const sel = o.objects.find(x => x.id === o.selectedId)

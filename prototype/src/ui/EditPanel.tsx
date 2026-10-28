@@ -7,6 +7,7 @@ interface Props {
   onMove: (de: number, dw: number) => void
   onResize: (de: number, dw: number, dz: number) => void
   onCycleStyle: () => void
+  onCycleLayer: () => void
   onDuplicate: () => void
   onDelete: () => void
   onClose: () => void
@@ -50,6 +51,12 @@ export default function EditPanel(p: Props) {
         <span className="rl">material</span>
         <button className="sbtn wide" onClick={p.onCycleStyle}>
           {styleName}{matIdx >= 0 ? ` (${matIdx + 1}/${MATERIAL_KEYS.length})` : ''} ⟳
+        </button>
+      </div>
+      <div className="row">
+        <span className="rl">layer</span>
+        <button className="sbtn wide" onClick={p.onCycleLayer}>
+          {(o.layer ?? 'main').toUpperCase()} ⟳
         </button>
       </div>
       <div className="row">

@@ -54,6 +54,7 @@ export function validateScene(data: unknown): Scene | null {
         ? ob.style as SceneObject['style']
         : 'wood',
       app: typeof ob.app === 'string' ? ob.app : null,
+      layer: ob.layer === 'underlay' || ob.layer === 'overlay' ? ob.layer : 'main',
     })
   }
   const m = d.meta as Partial<Scene['meta']> | undefined
