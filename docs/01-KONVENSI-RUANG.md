@@ -64,7 +64,11 @@ referensi → **80×40 px** di kanvas (320×160 px di layar 2560), nat 1 px.
 Karena internal 640×400 adalah tepat ¼ dari 2560×1600, seluruh komposisi ini
 mendarat identik di panel MatePad Mini.
 
-> **POSISI RUANGAN TERKUNCI — `VIEW_LOCKED = true` (disetujui user 2026-10-28).**
+> **STATUS KUNCI: DIBUKA SEMUA (permintaan user 2026-10-28 "buka dulu semua kunci").**
+> `ROOM_TEMP_UNLOCKED = true` dan `VIEW_LOCKED = false` — dimensi, palet, dan
+> komposisi kamera bebas diubah sampai ruangan disepakati.
+>
+> Sebelumnya (commit `1913cf9`): **posisi ruangan terkunci — `VIEW_LOCKED = true`.**
 > Komposisi dibekukan sebagai `VIEW_FIXED` (`iso/space.ts`): **Q = 2.5**
 > (HW 40, HH 20, ZH 40), pusat kamera **(0.4, 0.5)**. Konsekuensinya:
 > ZOOM/TENGAH, tombol reset, reload preview, dan aplikasi nanti **selalu**

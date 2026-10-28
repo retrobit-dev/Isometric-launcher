@@ -3,7 +3,7 @@
 // RUANGAN TERKUNCI PERMANEN (keputusan user): dimensi, tinggi dinding, dan
 // palet tidak dapat diedit oleh editor, import, maupun reset. Perubahan
 // ruangan hanya lewat perubahan kode oleh developer atas permintaan eksplisit.
-// STATUS SAAT INI: dibuka sementara (ROOM_TEMP_UNLOCKED) — lihat flag di bawah.
+// STATUS SAAT INI: DIBUKA (permintaan user 2026-10-28 "buka dulu semua kunci").
 export interface RoomDims {
   readonly e: number
   readonly w: number
