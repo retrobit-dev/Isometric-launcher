@@ -17,13 +17,19 @@
 > **RUANGAN TERKUNCI PERMANEN** sejak kesepakatan terakhir: nilai di bawah beku.
 > Editor/import/reset tidak dapat mengubahnya; perubahan hanya lewat kode developer
 > atas permintaan eksplisit user (docs/03 §0).
+>
+> **Amendemen #1 (permintaan eksplisit user):** ruangan diperpanjang +6 tile ke selatan
+> menjadi 20 × 19, dan ruangan diberi volume balok: alas slab tebal 1.5 z + dinding
+> bertebal 0.4 tile dengan tutup atas. Nilai ini kini beku kembali.
 
 | Besaran | Nilai dunia | Satuan kita |
 |---|---|---|
 | 1 tile lantai | 60 cm × 60 cm | 1 tile |
 | 1 satuan tinggi | 50 cm | 1 z |
-| Ruangan (DT × DB) | 8.4 m × 7.8 m (±65 m²) | **E = 14, W = 13** |
+| Ruangan (DT × DB) | 12.0 m × 11.4 m (±137 m²) | **E = 20, W = 19** |
 | Tinggi dinding | 6.0 m (loft sangat tinggi, sesuai permintaan) | **WALL_Z = 12** |
+| Tebal dinding | 24 cm | 0.4 tile |
+| Tebal slab alas | 75 cm | 1.5 z |
 | Tinggi pintu | 2.0 m | 4 z |
 | Tinggi meja kerja | 75 cm | 1.5 z |
 | Tinggi rak buku berdiri | 1.8 m | 3.6 z |

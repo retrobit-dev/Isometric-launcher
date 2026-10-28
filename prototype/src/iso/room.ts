@@ -46,13 +46,21 @@ function walls(ctx: CanvasRenderingContext2D) {
     WALL_Z,
     Math.ceil((CY + (Math.max(E, W) - CAM.CE - CAM.CW) * HH) / ZH) + 1,
   )
-  // Dinding Barat (kiri): nude cerah + plint
+  const T = 0.4 // ketebalan dinding dalam tile (balok bervolume)
+
+  // sisi luar dinding (terlihat dari tepi diorama) — gambar dulu, ditimpa sisi dalam
+  poly(ctx, [px(-T, 0, zTop), px(-T, W, zTop), px(-T, W, 0), px(-T, 0, 0)], PAL.wallOB)
+  poly(ctx, [px(0, -T, zTop), px(E, -T, zTop), px(E, -T, 0), px(0, -T, 0)], PAL.wallOT)
+
+  // sisi dalam dinding (bidang utama ruangan)
   poly(ctx, [px(0, 0, zTop), px(0, W, zTop), px(0, W, 0), px(0, 0, 0)], PAL.wallB)
   poly(ctx, [px(0, 0, DADO_Z), px(0, W, DADO_Z), px(0, W, 0), px(0, 0, 0)], PAL.trimB)
-
-  // Dinding Timur (kanan)
   poly(ctx, [px(0, 0, zTop), px(E, 0, zTop), px(E, 0, 0), px(0, 0, 0)], PAL.wallT)
   poly(ctx, [px(0, 0, DADO_Z), px(E, 0, DADO_Z), px(E, 0, 0), px(0, 0, 0)], PAL.trimT)
+
+  // tutup atas dinding = ketebalan balok terlihat dari atas
+  poly(ctx, [px(0, 0, zTop), px(0, W, zTop), px(-T, W, zTop), px(-T, 0, zTop)], PAL.cap)
+  poly(ctx, [px(0, 0, zTop), px(E, 0, zTop), px(E, -T, zTop), px(0, -T, zTop)], PAL.cap)
 
   line(ctx, px(0, 0, 0), px(0, 0, zTop), PAL.seam)
 }
@@ -78,7 +86,8 @@ function floor(ctx: CanvasRenderingContext2D) {
     const off = w % 2 === 0 ? 0 : 1
     for (let e = 2 - off; e < E; e += 2) line(ctx, px(e, w), px(e, w + 1), PAL.grout)
   }
-  const SK = 10 // ketebalan slab diorama
+  // alas balok tebal (1.5 z) — ruangan terbaca sebagai blok diorama massif
+  const SK = Math.round(ZH * 1.5)
   const bL = px(0, W), sL = px(E, W), tR = px(E, 0)
   poly(ctx, [bL, sL, { x: sL.x, y: sL.y + SK }, { x: bL.x, y: bL.y + SK }], PAL.skirtL)
   poly(ctx, [tR, sL, { x: sL.x, y: sL.y + SK }, { x: tR.x, y: tR.y + SK }], PAL.skirtR)

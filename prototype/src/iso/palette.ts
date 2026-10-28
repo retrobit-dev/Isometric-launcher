@@ -6,6 +6,9 @@ export const PAL = {
   // dinding nude cerah (kiri sedikit lebih gelap = sisi teduh)
   wallB: '#c6b4a2',
   wallT: '#d9c7b3',
+  wallOB: '#b3a08e',  // sisi luar dinding Barat (tebal balok)
+  wallOT: '#c3af9d',  // sisi luar dinding Timur
+  cap: '#e4d4c2',     // tutup atas dinding (ketebalan balok)
   trimB: '#a08d7c',   // plint
   trimT: '#af9c8b',
   seam: '#93816f',    // pertemuan dua dinding
@@ -58,6 +61,9 @@ export const ROOM_PALETTE_SWATCHES: { name: string; hex: string }[] = [
   { name: 'void', hex: PAL.void },
   { name: 'dinding-kiri', hex: PAL.wallB },
   { name: 'dinding-kanan', hex: PAL.wallT },
+  { name: 'dinding-luar-kiri', hex: PAL.wallOB },
+  { name: 'dinding-luar-kanan', hex: PAL.wallOT },
+  { name: 'tutup-dinding', hex: PAL.cap },
   { name: 'plint-kiri', hex: PAL.trimB },
   { name: 'plint-kanan', hex: PAL.trimT },
   { name: 'kayu-a', hex: PAL.floorBase },

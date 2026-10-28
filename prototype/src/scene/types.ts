@@ -4,8 +4,8 @@
 // palet tidak dapat diedit oleh editor, import, maupun reset. Perubahan
 // ruangan hanya lewat perubahan kode oleh developer atas permintaan eksplisit.
 export const ROOM_FIXED = {
-  e: 14,
-  w: 13,
+  e: 20,
+  w: 19,
   wallZ: 12,
   palette: 'kayu-nude',
 } as const

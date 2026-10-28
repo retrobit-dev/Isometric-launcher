@@ -5,7 +5,8 @@
 
 ## 0. Kunci ruangan (PERMANEN)
 
-Ruangan **terkunci permanen** sejak kesepakatan terakhir: `E = 14`, `W = 13`, `WALL_Z = 12`, palet `kayu-nude`.
+Ruangan **terkunci permanen** sejak kesepakatan terakhir: `E = 20`, `W = 19`, `WALL_Z = 12`, palet `kayu-nude`, tebal dinding 0.4 tile, slab alas 1.5 z.
+- **Amendemen #1**: perpanjangan +6 tile ke selatan & volume balok (alas tebal + dinding bervolume) dilakukan sekali atas permintaan eksplisit user; setelah itu nilai beku kembali
 - Editor preview, tombol RESET, dan IMPORT **tidak dapat mengubah ruangan** — nilai `room` pada file yang di-import selalu diganti konstanta `ROOM_FIXED`
 - Perubahan ruangan hanya mungkin lewat perubahan kode oleh developer, atas permintaan eksplisit user
 - Field `room` tetap ada di `scene.json` sebagai metadata baca-saja (validasi versi)

@@ -16,17 +16,18 @@ export const Z_PX = 16
 // Ruangan: skala tile-vs-furnitur dari referensi malam-biru (meja ≈ 3.5 tile).
 // Ukuran total = keputusan desain: referensi berupa crop, dan ruangan besar
 // memberi densitas slot app yang cukup untuk launcher.
-// Dinding sengaja sangat tinggi (gaya loft, permintaan "lebih tinggi lagi").
+// Dinding sangat tinggi (loft). Ruangan diperpanjang +6 tile ke selatan atas
+// permintaan eksplisit user (perubahan terkunci pertama); setelah ini beku lagi.
 export const ROOM = {
-  E: 14,        // tile ke arah Timur  = 8.4 m
-  W: 13,        // tile ke arah Barat  = 7.8 m
+  E: 20,        // tile ke arah Timur  = 12.0 m
+  W: 19,        // tile ke arah Barat  = 11.4 m
   WALL_Z: 12,   // tinggi dinding      = 6.0 m
 }
 
 // Zoom kontinu via pinch: berapa pun nilainya, HW/HH/ZH dibulatkan integer
 // supaya pixel-art tetap tajam (tidak ada jitter antar tile).
 export const DEFAULT_Q = 2 // full-bleed seperti crop referensi
-export const DEFAULT_CENTER = { e: 2.25, w: 1.5 }
+export const DEFAULT_CENTER = { e: 8.75, w: 0 }
 export const Q_MIN = 0.5
 export const Q_MAX = 6
 
@@ -51,8 +52,8 @@ export function zoomValue(): number {
 const clamp = (v: number, lo: number, hi: number) => Math.min(hi, Math.max(lo, v))
 
 export function setCenter(e: number, w: number) {
-  CAM.CE = clamp(e, 1, ROOM.E - 1)
-  CAM.CW = clamp(w, 1, ROOM.W - 1)
+  CAM.CE = clamp(e, 0, ROOM.E)
+  CAM.CW = clamp(w, 0, ROOM.W)
 }
 
 export function resetView() {
