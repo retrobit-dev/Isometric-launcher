@@ -229,9 +229,11 @@ export default function App() {
   const rotated = rot === 'putar' || (rot === 'auto' && vp.h > vp.w)
   const availW = rotated ? vp.h : vp.w
   const availH = rotated ? vp.w : vp.h
+  // ruang cadangan untuk caption + toolbar agar tidak menimpa bingkai
+  const RESERVED = 108
   const screenW = Math.max(
-    280,
-    Math.floor(Math.min((availW * 0.92) - BEZEL * 2, ((availH * 0.72) - BEZEL * 2) * 1.6)),
+    240,
+    Math.floor(Math.min((availW * 0.94) - BEZEL * 2, ((availH - RESERVED) - BEZEL * 2) * 1.6)),
   )
   const screenH = Math.round(screenW / 1.6)
   const frameW = screenW + BEZEL * 2

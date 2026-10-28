@@ -12,7 +12,8 @@ html, body, #root {
   align-items: center;
   justify-content: center;
   flex-direction: column;
-  gap: 8px;
+  gap: 6px;
+  padding: 6px 0;
 }
 
 .tablet-slot {
@@ -103,12 +104,8 @@ html, body, #root {
 }
 
 .toolbar {
-  position: fixed;
-  left: 50%;
-  bottom: 10px;
-  transform: translateX(-50%);
   display: flex;
-  gap: 6px;
+  gap: 4px;
   flex-wrap: wrap;
   justify-content: center;
   padding: 0 8px;
@@ -116,24 +113,24 @@ html, body, #root {
 }
 
 .tbtn {
-  min-height: 40px;
-  padding: 8px 12px;
-  font: 12px/1 ui-monospace, 'Courier New', monospace;
-  letter-spacing: 0.08em;
+  min-height: 26px;
+  padding: 4px 8px;
+  font: 10px/1 ui-monospace, 'Courier New', monospace;
+  letter-spacing: 0.05em;
   text-transform: uppercase;
   color: #cfd3e4;
   background: #171a26;
   border: 1px solid #2c3348;
   border-bottom-color: #0a0c12;
-  border-radius: 4px;
-  box-shadow: 0 2px 0 #0a0c12;
+  border-radius: 3px;
+  box-shadow: 0 1px 0 #0a0c12;
   cursor: pointer;
   touch-action: manipulation;
   -webkit-tap-highlight-color: transparent;
   user-select: none;
 }
 
-.tbtn:active { transform: translateY(1px); box-shadow: 0 1px 0 #0a0c12; }
+.tbtn:active { transform: translateY(1px); box-shadow: 0 0 0 #0a0c12; }
 
 .tbtn.on {
   color: #14161f;
@@ -182,9 +179,9 @@ html, body, #root {
 .rv { width: 40px; text-align: center; color: #e8e2cf; }
 
 .sbtn {
-  min-height: 28px;
-  padding: 4px 8px;
-  font: 11px/1 ui-monospace, 'Courier New', monospace;
+  min-height: 24px;
+  padding: 3px 7px;
+  font: 10px/1 ui-monospace, 'Courier New', monospace;
   letter-spacing: 0.06em;
   text-transform: uppercase;
   color: #cfd3e4;
