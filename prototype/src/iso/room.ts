@@ -46,21 +46,14 @@ function walls(ctx: CanvasRenderingContext2D) {
     WALL_Z,
     Math.ceil((CY + (Math.max(E, W) - CAM.CE - CAM.CW) * HH) / ZH) + 1,
   )
-  const T = 0.4 // ketebalan dinding dalam tile (balok bervolume)
+  const T = 0.4 // (tidak dipakai: volume balok dibatalkan user) — disimpan utk referensi
+  void T
 
-  // sisi luar dinding (terlihat dari tepi diorama) — gambar dulu, ditimpa sisi dalam
-  poly(ctx, [px(-T, 0, zTop), px(-T, W, zTop), px(-T, W, 0), px(-T, 0, 0)], PAL.wallOB)
-  poly(ctx, [px(0, -T, zTop), px(E, -T, zTop), px(E, -T, 0), px(0, -T, 0)], PAL.wallOT)
-
-  // sisi dalam dinding (bidang utama ruangan)
+  // sisi dalam dinding (bidang utama ruangan) — tanpa volume balok
   poly(ctx, [px(0, 0, zTop), px(0, W, zTop), px(0, W, 0), px(0, 0, 0)], PAL.wallB)
   poly(ctx, [px(0, 0, DADO_Z), px(0, W, DADO_Z), px(0, W, 0), px(0, 0, 0)], PAL.trimB)
   poly(ctx, [px(0, 0, zTop), px(E, 0, zTop), px(E, 0, 0), px(0, 0, 0)], PAL.wallT)
   poly(ctx, [px(0, 0, DADO_Z), px(E, 0, DADO_Z), px(E, 0, 0), px(0, 0, 0)], PAL.trimT)
-
-  // tutup atas dinding = ketebalan balok terlihat dari atas
-  poly(ctx, [px(0, 0, zTop), px(0, W, zTop), px(-T, W, zTop), px(-T, 0, zTop)], PAL.cap)
-  poly(ctx, [px(0, 0, zTop), px(E, 0, zTop), px(E, -T, zTop), px(0, -T, zTop)], PAL.cap)
 
   line(ctx, px(0, 0, 0), px(0, 0, zTop), PAL.seam)
 }
@@ -86,8 +79,8 @@ function floor(ctx: CanvasRenderingContext2D) {
     const off = w % 2 === 0 ? 0 : 1
     for (let e = 2 - off; e < E; e += 2) line(ctx, px(e, w), px(e, w + 1), PAL.grout)
   }
-  // alas balok tebal (1.5 z) — ruangan terbaca sebagai blok diorama massif
-  const SK = Math.round(ZH * 1.5)
+  // slab alas tipis kembali (volume balok dibatalkan user)
+  const SK = 10
   const bL = px(0, W), sL = px(E, W), tR = px(E, 0)
   poly(ctx, [bL, sL, { x: sL.x, y: sL.y + SK }, { x: bL.x, y: bL.y + SK }], PAL.skirtL)
   poly(ctx, [tR, sL, { x: sL.x, y: sL.y + SK }, { x: tR.x, y: tR.y + SK }], PAL.skirtR)
@@ -128,6 +121,33 @@ export interface DrawOpts {
   edit: boolean
   objects: SceneObject[]
   selectedId: string | null
+  refleksi: boolean
+}
+
+// Refleksi lantai: bayangan cermin objek di bawah bidang lantai,
+// dipadatkan 60% dan samar (alpha 12%), dipotong persis ke bentuk lantai.
+function drawReflections(ctx: CanvasRenderingContext2D, objects: SceneObject[]) {
+  const { E, W } = ROOM
+  ctx.save()
+  ctx.beginPath()
+  const f0 = px(0, 0), f1 = px(E, 0), f2 = px(E, W), f3 = px(0, W)
+  ctx.moveTo(f0.x, f0.y)
+  ctx.lineTo(f1.x, f1.y)
+  ctx.lineTo(f2.x, f2.y)
+  ctx.lineTo(f3.x, f3.y)
+  ctx.closePath()
+  ctx.clip()
+  ctx.globalAlpha = 0.12
+  const reflectable = objects.filter(x => (x.layer ?? 'main') !== 'underlay')
+  for (const obj of sortedObjects(reflectable)) {
+    const zh = obj.size.z * 0.6
+    drawBox(ctx, {
+      ...obj,
+      pos: { ...obj.pos, z: -(obj.pos.z + zh) },
+      size: { ...obj.size, z: zh },
+    })
+  }
+  ctx.restore()
 }
 
 export function drawScene(ctx: CanvasRenderingContext2D, o: DrawOpts) {
@@ -159,4 +179,7 @@ export function drawScene(ctx: CanvasRenderingContext2D, o: DrawOpts) {
   }
 
   crispify(ctx)
+
+  // refleksi digambar SETELAH crispify agar alpha samar tidak ikut ter-threshold
+  if (o.refleksi) drawReflections(ctx, o.objects)
 }

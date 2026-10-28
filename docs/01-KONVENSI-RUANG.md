@@ -19,8 +19,10 @@
 > atas permintaan eksplisit user (docs/03 §0).
 >
 > **Amendemen #1 (permintaan eksplisit user):** ruangan diperpanjang +6 tile ke selatan
-> menjadi 20 × 19, dan ruangan diberi volume balok: alas slab tebal 1.5 z + dinding
-> bertebal 0.4 tile dengan tutup atas. Nilai ini kini beku kembali.
+> menjadi 20 × 19 — **tetap berlaku**.
+> **Amendemen #2:** volume balok (slab tebal 1.5 z + dinding bervolume 0.4 tile)
+> **dibatalkan atas permintaan user** — slab & dinding tipis kembali seperti semula.
+> Nilai di tabel ini beku kembali.
 
 | Besaran | Nilai dunia | Satuan kita |
 |---|---|---|
@@ -28,8 +30,6 @@
 | 1 satuan tinggi | 50 cm | 1 z |
 | Ruangan (DT × DB) | 12.0 m × 11.4 m (±137 m²) | **E = 20, W = 19** |
 | Tinggi dinding | 6.0 m (loft sangat tinggi, sesuai permintaan) | **WALL_Z = 12** |
-| Tebal dinding | 24 cm | 0.4 tile |
-| Tebal slab alas | 75 cm | 1.5 z |
 | Tinggi pintu | 2.0 m | 4 z |
 | Tinggi meja kerja | 75 cm | 1.5 z |
 | Tinggi rak buku berdiri | 1.8 m | 3.6 z |
@@ -73,10 +73,10 @@ Tombol **ZOOM ×n** hanya menampilkan level saat ini dan **mereset ke default** 
 
 ## 3. Dinding
 
-| Kode | Nama | Bentang | Sisi layar | Peruntukan (rencana) |
+| Kode | Nama | Bentang | Sisi layar | Peruntukan (disepakati) |
 |---|---|---|---|---|
-| **DT** | Dinding Timur | U → T | kanan | jendela, kalender |
-| **DB** | Dinding Barat | U → B | kiri | papan jadwal, poster, jam digital |
+| **DT** | Dinding Timur | U → T | kanan | **jendela, pintu**, kalender |
+| **DB** | Dinding Barat | U → B | kiri | jam digital, poster, papan gabus |
 
 Sisi **S tidak berdinding** (sisi kamera).
 

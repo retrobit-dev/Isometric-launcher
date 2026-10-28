@@ -6,7 +6,8 @@
 ## 0. Kunci ruangan (PERMANEN)
 
 Ruangan **terkunci permanen** sejak kesepakatan terakhir: `E = 20`, `W = 19`, `WALL_Z = 12`, palet `kayu-nude`, tebal dinding 0.4 tile, slab alas 1.5 z.
-- **Amendemen #1**: perpanjangan +6 tile ke selatan & volume balok (alas tebal + dinding bervolume) dilakukan sekali atas permintaan eksplisit user; setelah itu nilai beku kembali
+- **Amendemen #1**: perpanjangan +6 tile ke selatan (20 × 19) — tetap berlaku
+- **Amendemen #2**: volume balok (slab tebal + dinding bervolume) dibatalkan atas permintaan user; slab & dinding tipis kembali
 - Editor preview, tombol RESET, dan IMPORT **tidak dapat mengubah ruangan** — nilai `room` pada file yang di-import selalu diganti konstanta `ROOM_FIXED`
 - Perubahan ruangan hanya mungkin lewat perubahan kode oleh developer, atas permintaan eksplisit user
 - Field `room` tetap ada di `scene.json` sebagai metadata baca-saja (validasi versi)
@@ -70,6 +71,7 @@ Tombol **SIMPAN & KUNCI** mengunci **objek saja**: layout beku untuk diterapkan 
 | **Pan kamera** | Seret area kosong (mode apa pun) menggeser tengah kamera **tanpa batas — ruangan boleh dibawa ke mana pun di kanvas**; **TENGAH** mengembalikan pandangan default |
 | **SIMPAN & KUNCI** | Mengunci scene: edit dinonaktifkan, `meta.locked=true` + `savedAt` dicatat. **Hanya scene terkunci yang sah diterapkan ke aplikasi** |
 | Buka kunci | Tombol 🔒 → kembali ke draf untuk diedit (versi terkunci tetap tersimpan) |
+| **Refleksi lantai** | Tombol **REFLEKSI** (default AKTIF): pantulan cermin objek main & overlay di permukaan lantai, alpha 12%, tinggi dipadatkan 60%, dipotong persis ke bentuk lantai. Objek layer underlay tidak dipantulkan |
 | Import / Export | Toolbar: export = unduh + salin `scene.json` (nama file menandai draf/terkunci); import = tempel JSON |
 | Reset | Kembalikan ke scene kosong bawaan + pandangan default |
 | Persistensi | Draf & scene terkunci disimpan terpisah di `localStorage` — reload tidak menghilangkan keduanya |
