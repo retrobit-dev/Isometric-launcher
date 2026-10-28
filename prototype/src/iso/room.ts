@@ -1,5 +1,7 @@
 import { IH, IW, ROOM, px, type P } from './space'
 import { PAL } from './palette'
+import { drawBox, sortedObjects } from './box'
+import type { SceneObject } from '../scene/types'
 
 function poly(ctx: CanvasRenderingContext2D, pts: P[], color: string) {
   ctx.fillStyle = color
@@ -14,17 +16,18 @@ function poly(ctx: CanvasRenderingContext2D, pts: P[], color: string) {
   ctx.fill()
 }
 
-function line(ctx: CanvasRenderingContext2D, a: P, b: P, color: string) {
+function line(ctx: CanvasRenderingContext2D, a: P, b: P, color: string, dash?: number[]) {
   ctx.strokeStyle = color
   ctx.lineWidth = 1
+  ctx.setLineDash(dash ?? [])
   ctx.beginPath()
   ctx.moveTo(Math.round(a.x) + 0.5, Math.round(a.y) + 0.5)
   ctx.lineTo(Math.round(b.x) + 0.5, Math.round(b.y) + 0.5)
   ctx.stroke()
+  ctx.setLineDash([])
 }
 
-// Buang anti-aliasing di tepi: alpha > 50% jadi solid, selain itu transparan.
-// Ini yang membuat hasilnya terlihat pixel-art tajam, bukan vektor halus.
+// Buang anti-aliasing tepi: pixel-art tetap kotak & tajam
 function crispify(ctx: CanvasRenderingContext2D) {
   const img = ctx.getImageData(0, 0, IW, IH)
   const d = img.data
@@ -32,54 +35,53 @@ function crispify(ctx: CanvasRenderingContext2D) {
   ctx.putImageData(img, 0, 0)
 }
 
-// SHELL RUANGAN SAJA: lantai + 2 dinding + plint + tepi.
-// Objek & animasi menyusul setelah shell disepakati.
-export function drawShell(ctx: CanvasRenderingContext2D, grid: boolean) {
+const DADO_Z = 2.2   // tinggi rail dado
+const RAIL_Z = 0.25  // tebal rail kayu
+
+function walls(ctx: CanvasRenderingContext2D) {
   const { E, W, WALL_Z } = ROOM
+  // Dinding Barat (kiri): atas krem, bawah teal, rail kayu, plint
+  poly(ctx, [px(0, 0, WALL_Z), px(0, W, WALL_Z), px(0, W, 0), px(0, 0, 0)], PAL.wallUpB)
+  poly(ctx, [px(0, 0, DADO_Z), px(0, W, DADO_Z), px(0, W, 0), px(0, 0, 0)], PAL.wallLoB)
+  poly(ctx, [px(0, 0, DADO_Z + RAIL_Z), px(0, W, DADO_Z + RAIL_Z), px(0, W, DADO_Z), px(0, 0, DADO_Z)], PAL.railB)
+  poly(ctx, [px(0, 0, 0.4), px(0, W, 0.4), px(0, W, 0), px(0, 0, 0)], PAL.trimB)
+  line(ctx, px(0, 0, WALL_Z), px(0, W, WALL_Z), PAL.wallUpB)
 
-  ctx.fillStyle = PAL.void
-  ctx.fillRect(0, 0, IW, IH)
+  // Dinding Timur (kanan)
+  poly(ctx, [px(0, 0, WALL_Z), px(E, 0, WALL_Z), px(E, 0, 0), px(0, 0, 0)], PAL.wallUpT)
+  poly(ctx, [px(0, 0, DADO_Z), px(E, 0, DADO_Z), px(E, 0, 0), px(0, 0, 0)], PAL.wallLoT)
+  poly(ctx, [px(0, 0, DADO_Z + RAIL_Z), px(E, 0, DADO_Z + RAIL_Z), px(E, 0, DADO_Z), px(0, 0, DADO_Z)], PAL.railT)
+  poly(ctx, [px(0, 0, 0.4), px(E, 0, 0.4), px(E, 0, 0), px(0, 0, 0)], PAL.trimT)
+  line(ctx, px(0, 0, WALL_Z), px(E, 0, WALL_Z), PAL.wallUpT)
 
-  // --- LANTAI: tile checker 2 warna ---
+  line(ctx, px(0, 0, 0), px(0, 0, WALL_Z), PAL.seam)
+}
+
+function floor(ctx: CanvasRenderingContext2D) {
+  const { E, W } = ROOM
   for (let e = 0; e < E; e++) {
     for (let w = 0; w < W; w++) {
       poly(ctx, [px(e, w), px(e + 1, w), px(e + 1, w + 1), px(e, w + 1)],
         (e + w) % 2 === 0 ? PAL.floorA : PAL.floorB)
     }
   }
-  // nat tile
   for (let e = 0; e <= E; e++) line(ctx, px(e, 0), px(e, W), PAL.grout)
   for (let w = 0; w <= W; w++) line(ctx, px(0, w), px(E, w), PAL.grout)
-
-  // --- TEPI LANTAI (ketebalan papan, sisi depan/kamera) ---
   const SK = 5
   const bL = px(0, W), sL = px(E, W), tR = px(E, 0)
   poly(ctx, [bL, sL, { x: sL.x, y: sL.y + SK }, { x: bL.x, y: bL.y + SK }], PAL.skirtL)
   poly(ctx, [tR, sL, { x: sL.x, y: sL.y + SK }, { x: tR.x, y: tR.y + SK }], PAL.skirtR)
+}
 
-  // --- DINDING BARAT (kiri) ---
-  poly(ctx, [px(0, 0, WALL_Z), px(0, W, WALL_Z), px(0, W, 0), px(0, 0, 0)], PAL.wallB)
-  poly(ctx, [px(0, 0, 0.4), px(0, W, 0.4), px(0, W, 0), px(0, 0, 0)], PAL.trimB)
-  line(ctx, px(0, 0, WALL_Z), px(0, W, WALL_Z), PAL.wallBTop)
-
-  // --- DINDING TIMUR (kanan) ---
-  poly(ctx, [px(0, 0, WALL_Z), px(E, 0, WALL_Z), px(E, 0, 0), px(0, 0, 0)], PAL.wallT)
-  poly(ctx, [px(0, 0, 0.4), px(E, 0, 0.4), px(E, 0, 0), px(0, 0, 0)], PAL.trimT)
-  line(ctx, px(0, 0, WALL_Z), px(E, 0, WALL_Z), PAL.wallTTop)
-
-  // garis pertemuan dua dinding di pojok U
-  line(ctx, px(0, 0, 0), px(0, 0, WALL_Z), PAL.seam)
-
-  // --- OVERLAY GRID (tombol GRID) + tick koordinat ---
-  // Pojok U/T/S/B kini di luar layar (kamera full-bleed), jadi penanda
-  // diganti angka tick sepanjang garis dasar dinding DT & DB.
+function overlays(ctx: CanvasRenderingContext2D, grid: boolean, edit: boolean) {
+  const { E, W } = ROOM
   if (grid) {
     for (let e = 0; e <= E; e++) line(ctx, px(e, 0), px(e, W), PAL.grid)
     for (let w = 0; w <= W; w++) line(ctx, px(0, w), px(E, w), PAL.grid)
     ctx.font = '7px monospace'
     ctx.fillStyle = PAL.hud
-    ctx.textAlign = 'left'
     const onScreen = (p: P) => p.x > -20 && p.x < IW + 20 && p.y > -10 && p.y < IH + 10
+    ctx.textAlign = 'left'
     for (let e = 2; e <= E; e += 2) {
       const p = px(e, 0)
       if (onScreen(p)) ctx.fillText(String(e), p.x + 3, p.y + 9)
@@ -92,6 +94,42 @@ export function drawShell(ctx: CanvasRenderingContext2D, grid: boolean) {
     ctx.textAlign = 'center'
     ctx.fillText('DT', px(9, 0, 3.2).x, px(9, 0, 3.2).y)
     ctx.fillText('DB', px(0, 9, 3.2).x, px(0, 9, 3.2).y)
+  }
+  if (edit) {
+    // batas zona interaktif t = 12.5 (docs/03 §3)
+    line(ctx, px(12.5, 0), px(12.5, W), PAL.zone, [3, 3])
+    line(ctx, px(0, 12.5), px(E, 12.5), PAL.zone, [3, 3])
+  }
+}
+
+export interface DrawOpts {
+  grid: boolean
+  edit: boolean
+  objects: SceneObject[]
+  selectedId: string | null
+}
+
+export function drawScene(ctx: CanvasRenderingContext2D, o: DrawOpts) {
+  ctx.fillStyle = PAL.void
+  ctx.fillRect(0, 0, IW, IH)
+
+  walls(ctx)
+  floor(ctx)
+  overlays(ctx, o.grid, o.edit)
+
+  for (const obj of sortedObjects(o.objects)) drawBox(ctx, obj)
+
+  if (o.selectedId) {
+    const sel = o.objects.find(x => x.id === o.selectedId)
+    if (sel) {
+      // sorot: garis dasar tile tempat objek berdiri
+      const { e, w } = sel.pos
+      const se = sel.size.e, sw = sel.size.w
+      line(ctx, px(e, w), px(e + se, w), PAL.zone)
+      line(ctx, px(e + se, w), px(e + se, w + sw), PAL.zone)
+      line(ctx, px(e + se, w + sw), px(e, w + sw), PAL.zone)
+      line(ctx, px(e, w + sw), px(e, w), PAL.zone)
+    }
   }
 
   crispify(ctx)

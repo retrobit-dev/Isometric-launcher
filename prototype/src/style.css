@@ -12,10 +12,9 @@ html, body, #root {
   align-items: center;
   justify-content: center;
   flex-direction: column;
-  gap: 10px;
+  gap: 8px;
 }
 
-/* slot = ruang yang ditempati bingkai SETELAH rotasi */
 .tablet-slot {
   display: flex;
   align-items: center;
@@ -23,7 +22,6 @@ html, body, #root {
   flex: none;
 }
 
-/* bingkai perangkat */
 .tablet {
   position: relative;
   background: #05060a;
@@ -54,7 +52,6 @@ html, body, #root {
   background: #14161f;
 }
 
-/* kanvas internal 640x400 = 2560x1600 / 4; pixelated biar tetap kotak tajam */
 .scene {
   width: 100%;
   height: 100%;
@@ -62,6 +59,7 @@ html, body, #root {
   image-rendering: crisp-edges;
   image-rendering: pixelated;
   cursor: crosshair;
+  touch-action: none;
 }
 
 .glare {
@@ -71,7 +69,6 @@ html, body, #root {
   background: linear-gradient(115deg, rgba(255, 255, 255, 0.045), rgba(255, 255, 255, 0) 42%);
 }
 
-/* overlay dev di dalam layar */
 .chip {
   position: absolute;
   left: 6px;
@@ -105,22 +102,22 @@ html, body, #root {
   padding: 0 12px;
 }
 
-/* toolbar tombol sentuh — satu-satunya cara mengontrol preview */
 .toolbar {
   position: fixed;
   left: 50%;
   bottom: 10px;
   transform: translateX(-50%);
   display: flex;
-  gap: 8px;
+  gap: 6px;
   flex-wrap: wrap;
   justify-content: center;
   padding: 0 8px;
+  max-width: 100vw;
 }
 
 .tbtn {
   min-height: 40px;
-  padding: 8px 14px;
+  padding: 8px 12px;
   font: 12px/1 ui-monospace, 'Courier New', monospace;
   letter-spacing: 0.08em;
   text-transform: uppercase;
@@ -136,13 +133,117 @@ html, body, #root {
   user-select: none;
 }
 
-.tbtn:active {
-  transform: translateY(1px);
-  box-shadow: 0 1px 0 #0a0c12;
-}
+.tbtn:active { transform: translateY(1px); box-shadow: 0 1px 0 #0a0c12; }
 
 .tbtn.on {
   color: #14161f;
   background: #d9a05b;
   border-color: #b07f3f;
 }
+
+/* panel editor objek */
+.panel {
+  position: fixed;
+  top: 10px;
+  left: 10px;
+  width: 232px;
+  padding: 8px;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  background: rgba(13, 15, 20, 0.92);
+  border: 1px solid #2c3348;
+  border-radius: 6px;
+  font: 11px/1.4 ui-monospace, 'Courier New', monospace;
+  color: #cfd3e4;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  z-index: 20;
+}
+
+.phead { display: flex; gap: 6px; align-items: center; }
+
+.pinput {
+  flex: 1;
+  min-width: 0;
+  padding: 5px 6px;
+  font: inherit;
+  text-transform: none;
+  color: #e8e2cf;
+  background: #171a26;
+  border: 1px solid #2c3348;
+  border-radius: 3px;
+}
+
+.pgrid { display: flex; flex-direction: column; gap: 4px; }
+
+.row { display: flex; gap: 6px; align-items: center; }
+.rl { width: 62px; flex: none; color: #7d8298; }
+.rv { width: 40px; text-align: center; color: #e8e2cf; }
+
+.sbtn {
+  min-height: 28px;
+  padding: 4px 8px;
+  font: 11px/1 ui-monospace, 'Courier New', monospace;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: #cfd3e4;
+  background: #1d2130;
+  border: 1px solid #333a52;
+  border-radius: 3px;
+  cursor: pointer;
+  touch-action: manipulation;
+  user-select: none;
+}
+.sbtn:active { background: #262c40; }
+.sbtn.wide { flex: 1; }
+.sbtn.danger { color: #e4b1ab; border-color: #6d3a35; background: #2a1715; }
+
+/* modal export/import */
+.modal {
+  position: fixed;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: rgba(5, 6, 10, 0.7);
+  z-index: 30;
+}
+
+.mcard {
+  width: min(560px, 92vw);
+  max-height: 80vh;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  padding: 10px;
+  background: #12141d;
+  border: 1px solid #2c3348;
+  border-radius: 8px;
+}
+
+.mhead {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  font: 12px/1 ui-monospace, monospace;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: #d9a05b;
+}
+
+.mtext {
+  flex: 1;
+  min-height: 40vh;
+  padding: 8px;
+  font: 11px/1.5 ui-monospace, monospace;
+  color: #cfd3e4;
+  background: #0b0d13;
+  border: 1px solid #262c40;
+  border-radius: 4px;
+  resize: none;
+  white-space: pre;
+  overflow: auto;
+}
+
+.mfoot { display: flex; gap: 6px; }
