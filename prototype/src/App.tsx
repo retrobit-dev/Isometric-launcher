@@ -5,7 +5,7 @@ import {
 } from './iso/space'
 import { drawScene } from './iso/room'
 import { bboxOf, sortedObjects } from './iso/box'
-import { FLOOR_KEYS, MATERIAL_KEYS } from './iso/palette'
+import { FLOOR_DEFAULT, FLOOR_KEYS, MATERIAL_KEYS } from './iso/palette'
 import { seedScene } from './scene/seed'
 import { emptyRoom, loadDraft, loadLocked, saveDraft, saveLocked, validateScene } from './scene/store'
 import { type Scene, type SceneObject } from './scene/types'
@@ -221,6 +221,23 @@ export default function App() {
     setSelectedId(id)
   }
 
+  // + LANTAI: buat/lengkapi lantai dengan satu ketuk (tidak bergantung objek lama)
+  const addFloor = () => {
+    const id = `lantai-${Date.now().toString(36).slice(-4)}`
+    const obj: SceneObject = {
+      id,
+      label: 'Lantai Ruangan',
+      pos: { e: -2, w: -2, z: 0 },
+      size: { e: 28, w: 28, z: 0.1 },
+      style: FLOOR_DEFAULT,
+      app: null,
+      layer: 'main',
+      role: 'lantai',
+    }
+    setScene(s => ({ ...s, objects: [...s.objects, obj] }))
+    setSelectedId(id)
+  }
+
   const duplicateObject = (id: string) => {
     const src = sceneRef.current.objects.find(o => o.id === id)
     if (!src) return
@@ -382,6 +399,11 @@ export default function App() {
               MODE: {mode.toUpperCase()}
             </button>
             {mode === 'edit' && <button className="tbtn" onClick={addObject}>+ TAMBAH</button>}
+            {mode === 'edit' && (
+              <button className="tbtn" onClick={addFloor} title="tambah bidang lantai kayu selang-seling (28×28 tile)">
+                + LANTAI
+              </button>
+            )}
             {mode === 'edit' && (
               <button className="tbtn" onClick={() => { setScene(seedScene()); setSelectedId(null) }} title="muat 8 balok placeholder dari daftar objek">
                 SEED

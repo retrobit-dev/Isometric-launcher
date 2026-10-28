@@ -42,8 +42,10 @@ function migratePrevDraft(): Scene | null {
 function normalize(scene: Scene): Scene {
   let changed = false
   const objects = scene.objects.map(o => {
-    const isSlab = o.size.e >= 8 && o.size.w >= 8 && o.size.z <= 1.5
-    const asFloor = o.role === 'lantai' || isSlab
+    const styleIsFloor = typeof o.style === 'string' && FLOOR_MATERIALS[o.style] !== undefined
+    // "lempeng": luas bidang >= 8x8 tile dan tipis (<= 2 z) -> jelas lantai
+    const isSlab = o.size.e >= 8 && o.size.w >= 8 && o.size.z <= 2
+    const asFloor = o.role === 'lantai' || styleIsFloor || isSlab
     if (!asFloor) return o
     const styleOk = typeof o.style === 'string' && FLOOR_MATERIALS[o.style] !== undefined
     const next: SceneObject = {
