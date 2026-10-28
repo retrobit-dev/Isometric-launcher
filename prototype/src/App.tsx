@@ -45,6 +45,18 @@ export default function App() {
   // tombol objek, klik objek hanya memberi informasi nama objek").
   // Klik di kanvas tidak lagi memilih / menggeser objek apa pun.
   const [info, setInfo] = useState<{ id: string; sx: number; sy: number } | null>(null)
+
+  // ---- RIWAYAT UNDO / REDO (permintaan user 2026-10-28) -------------------
+  // Setiap perubahan scene dicatat. Perubahan beruntun (mis. mengetik angka
+  // atau tombol +/- ditekan cepat) digabung jadi SATU langkah memakai jeda
+  // 350 ms, supaya undo tidak perlu ditekan puluhan kali.
+  const pastRef = useRef<Scene[]>([])
+  const futureRef = useRef<Scene[]>([])
+  const prevSceneRef = useRef<Scene | null>(null)
+  const pendingBaseRef = useRef<Scene | null>(null)
+  const histTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null)
+  const skipHistRef = useRef(false)
+  const [histVer, setHistVer] = useState(0)   // pemicu render tombol
   // jumlah objek yang dipulihkan dari file server saat aplikasi dibuka
   const [dipulihkan, setDipulihkan] = useState<number | null>(null)
 
@@ -58,6 +70,65 @@ export default function App() {
   const panRef = useRef<{ ce: number; cw: number; ge: number; gw: number; moved: boolean } | null>(null)
   const pointersRef = useRef<Map<number, { x: number; y: number }>>(new Map())
   const pinchRef = useRef<{ d0: number; q0: number } | null>(null)
+
+  // catat riwayat setiap kali scene berubah (kecuali perubahan hasil undo/redo)
+  useEffect(() => {
+    const prev = prevSceneRef.current
+    prevSceneRef.current = scene
+    if (prev === null || prev === scene) return
+    if (skipHistRef.current) { skipHistRef.current = false; return }
+    if (pendingBaseRef.current === null) pendingBaseRef.current = prev
+    if (histTimerRef.current) clearTimeout(histTimerRef.current)
+    histTimerRef.current = setTimeout(() => {
+      const base = pendingBaseRef.current
+      pendingBaseRef.current = null
+      if (!base) return
+      pastRef.current.push(base)
+      if (pastRef.current.length > 80) pastRef.current.shift()
+      futureRef.current = []
+      setHistVer(v => v + 1)
+    }, 350)
+  }, [scene])
+
+  /** simpan perubahan yang masih tertunda sebelum undo/redo */
+  const flushHist = () => {
+    if (histTimerRef.current) { clearTimeout(histTimerRef.current); histTimerRef.current = null }
+    const base = pendingBaseRef.current
+    pendingBaseRef.current = null
+    if (base) {
+      pastRef.current.push(base)
+      if (pastRef.current.length > 80) pastRef.current.shift()
+    }
+  }
+
+  const doUndo = () => {
+    flushHist()
+    const target = pastRef.current.pop()
+    if (!target) return
+    futureRef.current.push(sceneRef.current)
+    skipHistRef.current = true
+    setScene(target)
+    setSelectedId(null)
+    setHistVer(v => v + 1)
+  }
+
+  const doRedo = () => {
+    flushHist()
+    const target = futureRef.current.pop()
+    if (!target) return
+    pastRef.current.push(sceneRef.current)
+    skipHistRef.current = true
+    setScene(target)
+    setSelectedId(null)
+    setHistVer(v => v + 1)
+  }
+
+  // REFRESH: kembalikan kamera ke acuan x1 di (0,0) — zoom & pusat
+  const refreshKamera = () => {
+    setZoom(1)
+    setCenter(0, 0)
+    forceZoomLabel(v => v + 1)
+  }
 
   // autosave: localStorage (cepat) + file server (tahan restart browser)
   useEffect(() => {
@@ -496,6 +567,7 @@ export default function App() {
   const frameH = screenH + BEZEL * 2
   const previewScale = screenW / DEV_RES_W
 
+  void histVer // tombol UNDO/REDO memakai histVer sebagai pemicu render
   const selected = scene.objects.find(o => o.id === selectedId) ?? null
   const editable = mode === 'edit' && !locked
   const savedAt = scene.meta?.savedAt
@@ -603,6 +675,29 @@ export default function App() {
             </button>
           </>
         )}
+        <button
+          className="tbtn"
+          disabled={pastRef.current.length === 0 && pendingBaseRef.current === null}
+          onClick={doUndo}
+          title="batalkan perubahan terakhir (URUNGKAN / undo)"
+        >
+          ↶ UNDO
+        </button>
+        <button
+          className="tbtn"
+          disabled={futureRef.current.length === 0}
+          onClick={doRedo}
+          title="ulangi perubahan yang dibatalkan (redo)"
+        >
+          ↷ REDO
+        </button>
+        <button
+          className="tbtn"
+          onClick={refreshKamera}
+          title="kembalikan kamera ke zoom x1 di titik (0,0)"
+        >
+          ⟳ REFRESH
+        </button>
         <button className="tbtn" onClick={() => { setImportText(exportJSON()); setModal('export') }}>EXPORT</button>
         <button className="tbtn" onClick={() => { setImportText(''); setModal('import') }}>IMPORT</button>
         {!locked && <button className="tbtn on" onClick={lockScene}>💾 SIMPAN & KUNCI</button>}
