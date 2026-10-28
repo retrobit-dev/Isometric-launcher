@@ -64,11 +64,17 @@ referensi → **80×40 px** di kanvas (320×160 px di layar 2560), nat 1 px.
 Karena internal 640×400 adalah tepat ¼ dari 2560×1600, seluruh komposisi ini
 mendarat identik di panel MatePad Mini.
 
-> **Komposisi default = `VIEW_FIXED` (`iso/space.ts`)**: Q = 2.5 (HW 40, HH 20,
-> ZH 40), pusat kamera (0.4, 0.5). Tombol ZOOM/TENGAH dan setiap reload preview
-> selalu kembali ke sini; pan/pinch bebas tetapi tidak disimpan.
-> **Kunci view ikut DIBUKA SEMENTARA** bersama kunci ruangan (2026-10-28) selama
-> fase penyamaan dengan referensi; setelah disepakati dibekukan lagi.
+> **POSISI RUANGAN TERKUNCI — `VIEW_LOCKED = true` (disetujui user 2026-10-28).**
+> Komposisi dibekukan sebagai `VIEW_FIXED` (`iso/space.ts`): **Q = 2.5**
+> (HW 40, HH 20, ZH 40), pusat kamera **(0.4, 0.5)**. Konsekuensinya:
+> ZOOM/TENGAH, tombol reset, reload preview, dan aplikasi nanti **selalu**
+> mendarat persis di komposisi ini. Pan & pinch masih boleh untuk bekerja,
+> tetapi bersifat sementara dan **tidak pernah disimpan**. Mengubah angka
+> komposisi = perubahan kode developer atas permintaan eksplisit user.
+> Chip KOORDINAT menampilkan `view: terkunci ×2.5` sebagai penanda.
+>
+> Catatan: **kunci RUANGAN (dimensi)** masih dibuka sementara
+> (`ROOM_TEMP_UNLOCKED`) menunggu keputusan akhir soal tinggi dinding.
 
 ## 2. Mata arah (nama arah utama)
 

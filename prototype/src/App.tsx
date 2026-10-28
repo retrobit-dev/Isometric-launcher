@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState } from 'react'
 import {
-  CAM, DEFAULT_Q, IH, IW, ROOM,
+  CAM, DEFAULT_Q, IH, IW, ROOM, VIEW_FIXED, VIEW_LOCKED,
   resetView, setCenter, setZoom, unpx, zoomValue, zoneName,
 } from './iso/space'
 import { drawScene } from './iso/room'
@@ -338,6 +338,9 @@ export default function App() {
                   {ROOM_TEMP_UNLOCKED
                     ? `ruang: TERBUKA sementara · ${ROOM.E}×${ROOM.W}×${ROOM.WALL_Z}z`
                     : 'ruang: terkunci'}
+                </span>
+                <span className={VIEW_LOCKED ? '' : 'on'}>
+                  {VIEW_LOCKED ? `view: terkunci ×${VIEW_FIXED.q}` : 'view: bebas'}
                 </span>
               </div>
             )}
