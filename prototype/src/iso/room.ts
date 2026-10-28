@@ -1,5 +1,5 @@
 import { CAM, CY, EXT_E, EXT_W, HH, IH, IW, ROOM, ROOM_VISIBLE, ZH, px, type P } from './space'
-import { PAL, floorMat } from './palette'
+import { PAL, floorMat, wallColors } from './palette'
 import { drawBox, footprintOf, sortedObjects } from './box'
 import type { SceneObject } from '../scene/types'
 
@@ -276,8 +276,10 @@ export function drawWallObjects(ctx: CanvasRenderingContext2D, objects: SceneObj
     const at: P = { x: a.x, y: a.y - o.size.z * ZH }
     const bt: P = { x: b.x, y: b.y - o.size.z * ZH }
 
-    const face = o.side === 'kiri' ? PAL.wallB : PAL.wallT
-    const trim = o.side === 'kiri' ? PAL.trimB : PAL.trimT
+    // warna mengikuti `style` objek: palet dinding (dinding-navy/krem/kayu/...)
+    // atau material balok biasa; style tak dikenal -> magenta (penanda bug)
+    const side: 'kiri' | 'kanan' = o.side === 'kanan' ? 'kanan' : 'kiri'
+    const { face, trim } = wallColors(o.style, side)
 
     poly(ctx, [a, b, bt, at], face)
 

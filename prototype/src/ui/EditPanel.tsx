@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from 'react'
-import { FLOOR_DEFAULT, FLOOR_KEYS, MATERIAL_KEYS } from '../iso/palette'
+import { FLOOR_DEFAULT, FLOOR_KEYS, MATERIAL_KEYS, WALL_STYLE_KEYS } from '../iso/palette'
 import type { SceneObject } from '../scene/types'
 
 interface Props {
@@ -77,7 +77,7 @@ export default function EditPanel(p: Props) {
   const o = p.obj
   const isFloor = o.role === 'lantai'
   const styleName = typeof o.style === 'string' ? o.style : 'custom'
-  const keys = isFloor ? FLOOR_KEYS : MATERIAL_KEYS
+  const keys = isFloor ? FLOOR_KEYS : o.role === 'dinding' ? WALL_STYLE_KEYS : MATERIAL_KEYS
   const matIdx = keys.indexOf(styleName)
   const rot = o.rot ?? 0
   const refl = o.refleksi !== false

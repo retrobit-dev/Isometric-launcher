@@ -1,5 +1,5 @@
 import { px, type P } from './space'
-import { MATERIALS } from './palette'
+import { MATERIALS, UNKNOWN_STYLE } from './palette'
 import type { SceneObject } from '../scene/types'
 
 export interface Box { x0: number; y0: number; x1: number; y1: number }
@@ -18,7 +18,8 @@ function poly(ctx: CanvasRenderingContext2D, pts: P[], color: string) {
 }
 
 function colorsOf(o: SceneObject) {
-  if (typeof o.style === 'string') return MATERIALS[o.style] ?? MATERIALS.wood
+  // style tak dikenal TIDAK lagi diam-diam jadi kayu: magenta supaya terlihat
+  if (typeof o.style === 'string') return MATERIALS[o.style] ?? UNKNOWN_STYLE
   return o.style
 }
 

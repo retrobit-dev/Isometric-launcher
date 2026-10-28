@@ -134,3 +134,49 @@ export const ROOM_PALETTE_SWATCHES: { name: string; hex: string }[] = [
   { name: 'slab-kiri', hex: PAL.skirtL },
   { name: 'slab-kanan', hex: PAL.skirtR },
 ]
+
+// ---------------------------------------------------------------------------
+// PALET DINDING (dipakai objek ber-role 'dinding' lewat field `style`)
+// Sisi kiri (DB) selalu lebih teduh, sisi kanan (DT) kena cahaya — sama seperti
+// palet ruangan. `trim` = plint kayu di kaki dinding.
+// Objek dinding juga boleh memakai MATERIALS biasa (wood, metal, dst).
+// ---------------------------------------------------------------------------
+export interface WallMat {
+  kiri: string   // muka dinding sisi teduh (DB)
+  kanan: string  // muka dinding sisi cahaya (DT)
+  trimKiri: string
+  trimKanan: string
+}
+
+export const WALL_MATERIALS: Record<string, WallMat> = {
+  'dinding-navy':   { kiri: PAL.wallB, kanan: PAL.wallT, trimKiri: PAL.trimB, trimKanan: PAL.trimT },
+  'dinding-krem':   { kiri: '#c4b89c', kanan: '#d6cbb2', trimKiri: '#7a5530', trimKanan: '#86603a' },
+  'dinding-kayu':   { kiri: '#6e4a30', kanan: '#8a5c3c', trimKiri: '#4a3222', trimKanan: '#553a28' },
+  'dinding-teal':   { kiri: '#3d5f5c', kanan: '#4a736f', trimKiri: '#2a4442', trimKanan: '#33514e' },
+  'dinding-bata':   { kiri: '#8f4f45', kanan: '#a35c50', trimKiri: '#5c312a', trimKanan: '#6b3a31' },
+  'dinding-kertas': { kiri: '#a49e8c', kanan: '#b8b2a0', trimKiri: '#7a5530', trimKanan: '#86603a' },
+}
+export const WALL_KEYS = Object.keys(WALL_MATERIALS)
+export const WALL_DEFAULT = 'dinding-navy'
+
+// Semua style yang SAH untuk objek dinding: palet dinding dulu, lalu material balok.
+export const WALL_STYLE_KEYS = [...WALL_KEYS, ...Object.keys(MATERIALS)]
+
+// Style yang tidak dikenal TIDAK lagi diam-diam jadi kayu: dipetakan ke magenta
+// supaya kesalahan data langsung terlihat di layar (bukan bug tersembunyi).
+export const UNKNOWN_STYLE = { top: '#ff00ff', left: '#cc00cc', right: '#990099' }
+
+/** Warna muka + plint dinding untuk sebuah style & sisi. */
+export function wallColors(style: unknown, side: 'kiri' | 'kanan') {
+  const kiri = side !== 'kanan'
+  const name = typeof style === 'string' ? style : ''
+  const wm = WALL_MATERIALS[name]
+  if (wm) return { face: kiri ? wm.kiri : wm.kanan, trim: kiri ? wm.trimKiri : wm.trimKanan }
+  const m = MATERIALS[name]
+  if (m) return { face: kiri ? m.left : m.top, trim: m.right }
+  // dinding lama tanpa style sah ('dinding-kiri' / 'dinding-kanan') -> navy acuan
+  if (!name || name === 'dinding-kiri' || name === 'dinding-kanan') {
+    return { face: kiri ? PAL.wallB : PAL.wallT, trim: kiri ? PAL.trimB : PAL.trimT }
+  }
+  return { face: UNKNOWN_STYLE.top, trim: UNKNOWN_STYLE.right }   // magenta = bug
+}

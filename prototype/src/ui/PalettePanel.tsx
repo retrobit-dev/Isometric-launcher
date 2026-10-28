@@ -1,4 +1,4 @@
-import { MATERIALS, MATERIAL_KEYS, ROOM_PALETTE_SWATCHES } from '../iso/palette'
+import { MATERIALS, MATERIAL_KEYS, ROOM_PALETTE_SWATCHES, WALL_KEYS, WALL_MATERIALS } from '../iso/palette'
 
 // Panel palet warna: semua warna ruangan & material objek yang tersedia,
 // diekstrak dari referensi malam-biru. Dipakai untuk memilih style objek
@@ -16,6 +16,15 @@ export default function PalettePanel(props: { onClose: () => void }) {
           <div className="palrow" key={s.name} title={s.hex}>
             <span className="sw" style={{ background: s.hex }} />
             <span className="pn">{s.name}</span>
+          </div>
+        ))}
+      </div>
+      <div className="palgroup">DINDING ({WALL_KEYS.length})</div>
+      <div className="palgrid">
+        {WALL_KEYS.map(k => (
+          <div className="palrow" key={k} title={`${k}: muka kiri ${WALL_MATERIALS[k].kiri}, muka kanan ${WALL_MATERIALS[k].kanan}`}>
+            <span className="sw tri" style={{ background: `linear-gradient(90deg, ${WALL_MATERIALS[k].kiri} 50%, ${WALL_MATERIALS[k].kanan} 50%)` }} />
+            <span className="pn">{k}</span>
           </div>
         ))}
       </div>

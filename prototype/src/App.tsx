@@ -5,14 +5,12 @@ import {
 } from './iso/space'
 import { drawScene } from './iso/room'
 import { bboxOf, sortedObjects } from './iso/box'
-import { FLOOR_DEFAULT, FLOOR_KEYS, MATERIAL_KEYS } from './iso/palette'
+import { FLOOR_DEFAULT, FLOOR_KEYS, MATERIAL_KEYS, WALL_DEFAULT, WALL_STYLE_KEYS } from './iso/palette'
 import { loadDraft, loadLocked, saveDraft, saveLocked, validateScene } from './scene/store'
 import { type Scene, type SceneObject } from './scene/types'
 import EditPanel from './ui/EditPanel'
 import PalettePanel from './ui/PalettePanel'
 
-const PAL_WALL_KIRI = 'dinding-kiri'
-const PAL_WALL_KANAN = 'dinding-kanan'
 const DEV_RES_W = 2560
 const BEZEL = 16
 
@@ -254,7 +252,7 @@ export default function App() {
       label: 'Dinding Kiri (DB)',
       pos: { e: e0, w: w0, z: z0 },
       size: { e: 0.2, w: sw, z: H },
-      style: PAL_WALL_KIRI,
+      style: WALL_DEFAULT,
       app: null,
       layer: 'main',
       role: 'dinding',
@@ -266,7 +264,7 @@ export default function App() {
       label: 'Dinding Kanan (DT)',
       pos: { e: e0, w: w0, z: z0 },
       size: { e: se, w: 0.2, z: H },
-      style: PAL_WALL_KANAN,
+      style: WALL_DEFAULT,
       app: null,
       layer: 'main',
       role: 'dinding',
@@ -472,8 +470,14 @@ export default function App() {
             },
           })}
           onCycleStyle={() => {
-            // objek lantai memakai daftar palet lantai (kayu selang-seling / ubin)
-            const keys = selected.role === 'lantai' ? FLOOR_KEYS : MATERIAL_KEYS
+            // lantai  -> palet lantai (kayu selang-seling / ubin)
+            // dinding -> palet dinding + semua material balok
+            // balok   -> material balok
+            const keys = selected.role === 'lantai'
+              ? FLOOR_KEYS
+              : selected.role === 'dinding'
+                ? WALL_STYLE_KEYS
+                : MATERIAL_KEYS
             const cur = typeof selected.style === 'string' ? selected.style : ''
             const i = keys.indexOf(cur)
             patchObject(selected.id, { style: keys[(i + 1) % keys.length] })
