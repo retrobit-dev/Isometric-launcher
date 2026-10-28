@@ -44,9 +44,10 @@ export interface ViewState {
 }
 
 // Komposisi acuan untuk tombol TENGAH / ZOOM reset (bukan kunci).
-// ZOOM x1 (permintaan user 2026-10-28: "zoom seharusnya x1") di (-1.2, 1.3):
-// HW 16, HH 8, ZH 16.
-export const VIEW_FIXED: ViewState = { q: 1, e: -1.2, w: 1.3 }
+// ZOOM x1 di pusat (0, 0) — permintaan user 2026-10-28: "buat kamera X1 (0,0)".
+// HW 16, HH 8, ZH 16 -> puncak belakang ruangan (e=0,w=0) tepat di titik
+// tengah kanvas (320, 200).
+export const VIEW_FIXED: ViewState = { q: 1, e: 0, w: 0 }
 export const DEFAULT_Q: number = VIEW_FIXED.q
 export const DEFAULT_CENTER: { e: number; w: number } = { e: VIEW_FIXED.e, w: VIEW_FIXED.w }
 
@@ -54,9 +55,9 @@ export const Q_MIN = 0.5
 export const Q_MAX = 6
 
 // --- penyimpanan posisi kamera -------------------------------------------
-// v4: nilai kamera lama (x0.88) dibuang; mulai dari komposisi acuan x1.
-// Setiap perubahan pan/zoom tetap disimpan (supaya tidak balik ke tengah).
-const CAM_KEY = 'isola-kamera-v4'
+// v5: nilai kamera lama (x0.88 / pusat -1.2,1.3) dibuang; mulai dari acuan
+// x1 di (0,0). Setiap pan/zoom berikutnya tetap disimpan otomatis.
+const CAM_KEY = 'isola-kamera-v5'
 
 function readView(): ViewState | null {
   try {

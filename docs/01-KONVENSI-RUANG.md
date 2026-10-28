@@ -51,7 +51,7 @@ Tombol **ZOOM ×n** hanya menampilkan level saat ini dan **mereset ke default** 
 
 | Zoom | Kegunaan |
 |---|---|
-| **×1 (acuan)** | HW 16, HH 8, pusat (−1.2, 1.3) — dipakai tombol ZOOM/TENGAH |
+| **×1 (acuan)** | HW 16, HH 8, ZH 16, pusat **(0, 0)** — puncak ruangan (e=0,w=0) tepat di tengah kanvas (320,200); dipakai tombol ZOOM/TENGAH |
 | ×0.5 – ×1.5 | peta diorama seluruh ruangan |
 | ×3 – ×6 | pandangan dekat untuk presisi edit |
 
