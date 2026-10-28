@@ -49,7 +49,7 @@ Zoom **hanya** lewat gestur **pinch in/out** (kontinu, rentang ×0.5 – ×6); s
 nilai zoom membulatkan langkah piksel ke integer agar pixel-art tetap tajam.
 **Tombol ZOOM sudah dihapus** (permintaan user 2026-10-28: "hapus tombol zoom,
 tapi pertahankan fungsi pinch in dan pinch out") — tidak ada tombol zoom sama
-sekali di toolbar. Level zoom aktif bisa dibaca di chip **KOORDINAT**
+sekali di toolbar. Level zoom aktif bisa dibaca di chip koordinat yang **selalu tampil** (tombol KOORDINAT dihapus)
 (`kamera ×1.0 (0.0, 0.0)`).
 
 | Zoom | Kegunaan |
@@ -62,9 +62,9 @@ sekali di toolbar. Level zoom aktif bisa dibaca di chip **KOORDINAT**
 > dan **tidak** dipulihkan dari localStorage (`isola-kamera-v2..v5` dibersihkan).
 > Setiap reload / hot-reload / aplikasi dibuka, kamera mendarat persis di
 > `VIEW_FIXED` (`iso/space.ts`): **Q = 1**, pusat **(0, 0)**. Selama sesi, pan
-> (drag satu jari di area kosong) dan pinch bebas tanpa batas; tombol **TENGAH**
-> mengembalikan kamera ke acuan ×1 (0,0). Tidak ada kunci zoom maupun kunci
-> posisi — keduanya sudah dihapus bersama aturan ruangan lain.
+> (drag satu jari di area kosong) dan pinch bebas tanpa batas. Tombol **TENGAH**
+> dihapus; kamera kembali ke acuan ×1 (0,0) setiap halaman dimuat. Tidak ada
+> kunci zoom maupun kunci posisi.
 
 ## 2. Mata arah (nama arah utama)
 

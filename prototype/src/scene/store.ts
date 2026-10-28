@@ -122,6 +122,7 @@ export function validateScene(data: unknown): Scene | null {
       layer: ob.layer === 'underlay' || ob.layer === 'overlay' ? ob.layer : 'main',
       // grup & kunci ikut dipertahankan saat import/normalisasi
       ...(typeof ob.grup === 'string' && ob.grup ? { grup: ob.grup } : {}),
+      ...(typeof ob.grupNama === 'string' && ob.grupNama ? { grupNama: ob.grupNama } : {}),
       ...(ob.kunci === 'warna' || ob.kunci === 'semua' ? { kunci: ob.kunci } : {}),
     })
   }

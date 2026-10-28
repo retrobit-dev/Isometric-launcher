@@ -55,6 +55,8 @@ export interface SceneObject {
   // sama, sehingga susunan relatifnya tetap. Ukuran/warna/rotasi tetap
   // per objek (bisa diatur sendiri-sendiri).
   grup?: string
+  // nama folder grup (ditampilkan di DAFTAR OBJEK, bisa di-rename user)
+  grupNama?: string
   // KUNCI pengeditan per objek:
   //   'warna' = posisi/ukuran/rotasi/layer/peran/sisi/hapus DIKUNCI,
   //             hanya material (warna) yang masih bisa diubah

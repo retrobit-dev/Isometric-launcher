@@ -1,7 +1,7 @@
 import { useEffect, useRef, useState } from 'react'
 import {
   ROOM, CAM, IH, IW,
-  resetView, setCenter, setZoom, unpx, zoomValue, zoneName,
+  setCenter, setZoom, unpx, zoomValue, zoneName,
 } from './iso/space'
 import { drawScene } from './iso/room'
 import { bboxOf, sortedObjects } from './iso/box'
@@ -9,14 +9,11 @@ import { FLOOR_DEFAULT, FLOOR_KEYS, MATERIAL_KEYS, WALL_DEFAULT, WALL_STYLE_KEYS
 import { loadDraft, loadLocked, saveDraft, saveLocked, validateScene } from './scene/store'
 import { type Scene, type SceneObject } from './scene/types'
 import EditPanel from './ui/EditPanel'
-import PalettePanel from './ui/PalettePanel'
 import ObjectList from './ui/ObjectList'
 
 const DEV_RES_W = 2560
 const BEZEL = 16
 
-type Rot = 'auto' | 'tegak' | 'putar'
-const ROT_NEXT: Record<Rot, Rot> = { auto: 'tegak', tegak: 'putar', putar: 'auto' }
 
 const snap = (v: number) => Math.round(v * 10) / 10 // kelipatan 0.1 (permintaan user)
 
@@ -25,13 +22,9 @@ export default function App() {
   const [scene, setScene] = useState<Scene>(() => loadDraft())
   const [locked, setLocked] = useState<boolean>(() => loadLocked() !== null)
   const [mode, setMode] = useState<'lihat' | 'edit'>('lihat')
-  const [grid, setGrid] = useState(false)
-  const [dev, setDev] = useState(true)
-  const [rot, setRot] = useState<Rot>('auto')
   const [, forceZoomLabel] = useState(0) // refresh chip KOORDINAT saat pinch zoom
   const [selectedId, setSelectedId] = useState<string | null>(null)
   const [modal, setModal] = useState<'export' | 'import' | null>(null)
-  const [showPalette, setShowPalette] = useState(false)
   const [showList, setShowList] = useState(false)
   const [multi, setMulti] = useState<string[]>([]) // centang di DAFTAR OBJEK
   const [importText, setImportText] = useState('')
@@ -42,7 +35,6 @@ export default function App() {
   const modeRef = useRef(mode); modeRef.current = mode
   const lockedRef = useRef(locked); lockedRef.current = locked
   const selRef = useRef(selectedId); selRef.current = selectedId
-  const gridRef = useRef(grid); gridRef.current = grid
   // drag satu objek = drag seluruh anggota grupnya (jarak relatif tetap)
   const dragRef = useRef<{
     id: string
@@ -85,7 +77,7 @@ export default function App() {
     let raf = 0
     const loop = () => {
       drawScene(ctx, {
-        grid: gridRef.current,
+        grid: false,
         edit: modeRef.current === 'edit' && !lockedRef.current,
         objects: sceneRef.current.objects,
         selectedId: selRef.current,
@@ -266,23 +258,6 @@ export default function App() {
     setSelectedId(id)
   }
 
-  // + LANTAI: buat/lengkapi lantai dengan satu ketuk (tidak bergantung objek lama)
-  const addFloor = () => {
-    const id = `lantai-${Date.now().toString(36).slice(-4)}`
-    const obj: SceneObject = {
-      id,
-      label: 'Lantai Ruangan',
-      pos: { e: -2, w: -2, z: 0 },
-      size: { e: 28, w: 28, z: 0.1 },
-      style: FLOOR_DEFAULT,
-      app: null,
-      layer: 'main',
-      role: 'lantai',
-    }
-    setScene(s => ({ ...s, objects: [...s.objects, obj] }))
-    setSelectedId(id)
-  }
-
   // + DINDING: buat 2 dinding (kiri/DB & kanan/DT) mengikuti tepi belakang
   // lantai yang ada. Tidak ada lantai -> pakai batas ruangan (0,0).
   const addWalls = () => {
@@ -345,9 +320,12 @@ export default function App() {
   const groupSelected = () => {
     if (multi.length < 2) return
     const gid = `grup-${Date.now().toString(36).slice(-4)}`
+    // nama folder bawaan: FOLDER 1, FOLDER 2, ... (bisa di-rename di daftar)
+    const n = new Set(sceneRef.current.objects.map(o => o.grup).filter(Boolean)).size + 1
     setScene(s => ({
       ...s,
-      objects: s.objects.map(o => (multi.includes(o.id) ? { ...o, grup: gid } : o)),
+      objects: s.objects.map(o =>
+        multi.includes(o.id) ? { ...o, grup: gid, grupNama: `FOLDER ${n}` } : o),
     }))
     setMulti([])
   }
@@ -360,6 +338,16 @@ export default function App() {
       objects: s.objects.map(o => (multi.includes(o.id) ? { ...o, grup: undefined } : o)),
     }))
     setMulti([])
+  }
+
+  // ganti nama folder grup (semua anggota ikut, karena nama disimpan di objek)
+  const renameGroup = (gid: string, nama: string) => {
+    const clean = nama.trim()
+    if (!clean) return
+    setScene(s => ({
+      ...s,
+      objects: s.objects.map(o => (o.grup === gid ? { ...o, grupNama: clean } : o)),
+    }))
   }
 
   // kunci per objek: bebas -> warna -> semua -> bebas
@@ -432,7 +420,8 @@ export default function App() {
   }
 
   // --- bingkai tablet ---
-  const rotated = rot === 'putar' || (rot === 'auto' && vp.h > vp.w)
+  // ROTASI selalu AUTO: orientasi perangkat mengikuti bentuk jendela
+  const rotated = vp.h > vp.w
   const availW = rotated ? vp.h : vp.w
   const availH = rotated ? vp.w : vp.h
   // ruang cadangan untuk toolbar saja (keterangan di bawah tablet sudah dihapus)
@@ -475,7 +464,7 @@ export default function App() {
               onPointerLeave={ev => { setHover(null); onUp(ev) }}
             />
             <div className="glare" />
-            {dev && (
+            {(
               <div className="chip">
                 <span>
                   {hover ? `(e=${hover.e}, w=${hover.w}) · ${zoneName(hover.e, hover.w)}` : `${scene.objects.length} objek`}
@@ -511,29 +500,19 @@ export default function App() {
             </button>
             {mode === 'edit' && <button className="tbtn" onClick={addObject}>+ TAMBAH</button>}
             {mode === 'edit' && (
-              <button className="tbtn" onClick={addFloor} title="tambah bidang lantai kayu selang-seling (28×28 tile)">
-                + LANTAI
-              </button>
-            )}
-            {mode === 'edit' && (
               <button className="tbtn" onClick={addWalls} title="buat 2 dinding (kiri & kanan) mengikuti tepi belakang lantai">
                 + DINDING
               </button>
             )}
             <button
               className={showList ? 'tbtn on' : 'tbtn'}
-              onClick={() => { setShowList(v => !v); setShowPalette(false) }}
+              onClick={() => setShowList(v => !v)}
               title="daftar semua objek yang sudah dibuat — ketuk untuk memilih"
             >
               OBJEK {scene.objects.length}
             </button>
           </>
         )}
-        <button className="tbtn" onClick={resetView}>TENGAH</button>
-        <button className={grid ? 'tbtn on' : 'tbtn'} onClick={() => setGrid(v => !v)}>GRID</button>
-        <button className={showPalette ? 'tbtn on' : 'tbtn'} onClick={() => { setShowPalette(v => !v); setShowList(false) }}>PALET</button>
-        <button className={dev ? 'tbtn on' : 'tbtn'} onClick={() => setDev(v => !v)}>KOORDINAT</button>
-        <button className="tbtn" onClick={() => setRot(r => ROT_NEXT[r])}>ROTASI: {rot.toUpperCase()}</button>
         <button className="tbtn" onClick={() => { setImportText(exportJSON()); setModal('export') }}>EXPORT</button>
         <button className="tbtn" onClick={() => { setImportText(''); setModal('import') }}>IMPORT</button>
         {!locked && <button className="tbtn on" onClick={lockScene}>💾 SIMPAN & KUNCI</button>}
@@ -586,8 +565,6 @@ export default function App() {
         />
       )}
 
-      {showPalette && <PalettePanel onClose={() => setShowPalette(false)} />}
-
       {showList && (
         <ObjectList
           objects={scene.objects}
@@ -607,6 +584,7 @@ export default function App() {
           }
           onClearMulti={() => setMulti([])}
           onGroup={groupSelected}
+          onRenameGroup={(gid, nama) => renameGroup(gid, nama)}
           onUngroup={ungroupSelected}
           onCycleKunci={id => cycleKunci(id)}
           onClose={() => setShowList(false)}

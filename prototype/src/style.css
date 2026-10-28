@@ -453,3 +453,44 @@ html, body, #root {
 .olbtn:disabled { opacity: 0.35; cursor: default; }
 
 .oltag.grup { color: #b9a6e0; border-color: #3b3355; background: #191527; }
+
+/* folder grup di dalam daftar objek */
+.olfolderwrap { display: flex; flex-direction: column; gap: 2px; }
+
+.olrow.folder { background: #1a1e2e; border-color: #2f3650; }
+.olchev { flex: none; width: 9px; color: #8c93ab; font-size: 9px; }
+.olicon { flex: none; font-size: 10px; }
+.olcount {
+  flex: none;
+  padding: 0 3px;
+  font-size: 9px;
+  color: #b9a6e0;
+  background: #191527;
+  border: 1px solid #3b3355;
+  border-radius: 2px;
+}
+
+.olrename {
+  flex: 1;
+  min-width: 0;
+  padding: 2px 4px;
+  font: inherit;
+  font-size: 10px;
+  text-transform: none;
+  letter-spacing: 0;
+  color: #e8e2cf;
+  background: #10131c;
+  border: 1px solid #7a5c2e;
+  border-radius: 3px;
+}
+
+.olfolderbody {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  margin-left: 8px;
+  padding-left: 6px;
+  border-left: 1px solid #3b3355;
+}
+
+.olrow.infolder { background: #141826; }

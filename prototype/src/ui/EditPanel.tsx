@@ -196,28 +196,6 @@ export default function EditPanel(p: Props) {
         </button>
       </div>
       <div className="row">
-        <span className="rl">peran</span>
-        <button
-          className={o.role === 'lantai' ? 'sbtn wide on' : 'sbtn wide'}
-          disabled={frozen}
-          onClick={() => p.onChange(
-            o.role === 'lantai'
-              ? { role: undefined }
-              : {
-                  role: 'lantai',
-                  // jadikan lantai -> turunkan ke dasar + palet lantai (kayu selang-seling)
-                  pos: { ...o.pos, z: 0 },
-                  style: FLOOR_KEYS.includes(typeof o.style === 'string' ? o.style : '')
-                    ? o.style
-                    : FLOOR_DEFAULT,
-                },
-          )}
-          title="lantai = digambar sebagai bidang datar seluas objek ini"
-        >
-          {o.role === 'lantai' ? 'LANTAI ✓ (balik ke balok)' : 'JADIKAN LANTAI'}
-        </button>
-      </div>
-      <div className="row">
         <span className="rl">kunci</span>
         <button
           className={kunci ? 'sbtn wide on' : 'sbtn wide'}
