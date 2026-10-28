@@ -53,6 +53,17 @@ export const MATERIALS: Record<string, { top: string; left: string; right: strin
   'book-green': { top: '#5d7f63', left: '#4b6850', right: '#3f5744' },
   'book-blue':  { top: '#5a6f9e', left: '#485a82', right: '#3d4d6f' },
   'paper-night':{ top: '#d9d6c8', left: '#b3b0a2', right: '#9c998c' }, // kertas/kalender
+  // --- PALET PASTEL LEMBUT (permintaan user 2026-10-28) ---
+  // ditambahkan sebagai pilihan BARU; material malam-biru tetap ada.
+  // Selisih ketiga tone tetap nyata supaya bentuk isometrik tetap terbaca.
+  'pastel-mint':  { top: '#bfe3d0', left: '#a5d4bc', right: '#8fc4aa' },
+  'pastel-peach': { top: '#f6cfb8', left: '#e8b79c', right: '#d9a387' },
+  'pastel-lavender': { top: '#d6cdeb', left: '#beb3db', right: '#a79bc9' },
+  'pastel-blue':  { top: '#c6dcf2', left: '#adcae6', right: '#95b6d6' },
+  'pastel-butter':{ top: '#f4e7b8', left: '#e6d79f', right: '#d4c489' },
+  'pastel-rose':  { top: '#f2c7cf', left: '#e2afb9', right: '#ce99a4' },
+  'pastel-sage':  { top: '#cfe0c4', left: '#b9cfac', right: '#a3be96' },
+  'pastel-clay':  { top: '#e7cdbb', left: '#d6b7a1', right: '#c2a08a' },
 }
 // ---------------------------------------------------------------------------
 // PALET LANTAI (dipakai objek ber-role 'lantai' lewat field `style`)
@@ -101,6 +112,61 @@ export const FLOOR_MATERIALS: Record<string, FloorMat> = {
     skirtR: '#553a28',
     plank: 4,
     grain: '#6f482d',
+  },
+  // --- LANTAI PASTEL LEMBUT (papan 4x1, nat lembut, serat tipis) ---
+  'lantai-pastel-krem': {
+    pattern: 'papan',
+    tones: ['#f3e3c7', '#ebdaba', '#f7ebd3'],
+    grout: '#d9c6a5',
+    skirtL: '#c9b58f',
+    skirtR: '#d5c29b',
+    plank: 4,
+    grain: '#e3d0ae',
+  },
+  'lantai-pastel-sakura': {
+    pattern: 'papan',
+    tones: ['#f6dcdd', '#f0d2d4', '#fbe6e7'],
+    grout: '#dcc0c2',
+    skirtL: '#cdaeb1',
+    skirtR: '#d9bcc0',
+    plank: 4,
+    grain: '#e8cbce',
+  },
+  'lantai-pastel-mint': {
+    pattern: 'papan',
+    tones: ['#dcefe4', '#d3e8dc', '#e5f5ec'],
+    grout: '#bfd6c9',
+    skirtL: '#b0c8bb',
+    skirtR: '#bcd4c7',
+    plank: 4,
+    grain: '#cbe3d6',
+  },
+  'lantai-pastel-lavender': {
+    pattern: 'papan',
+    tones: ['#e4def2', '#dbd4ec', '#ede8f8'],
+    grout: '#c6bedc',
+    skirtL: '#b7aecd',
+    skirtR: '#c3bada',
+    plank: 4,
+    grain: '#d3cbe6',
+  },
+  'lantai-pastel-biru': {
+    pattern: 'papan',
+    tones: ['#dce8f5', '#d3e1f0', '#e6f0fa'],
+    grout: '#bfd0e2',
+    skirtL: '#b0c2d6',
+    skirtR: '#bccfe2',
+    plank: 4,
+    grain: '#cbdaea',
+  },
+  'lantai-pastel-ijo': {
+    pattern: 'papan',
+    tones: ['#e0edd8', '#d6e5ce', '#eaf4e3'],
+    grout: '#c2d2b8',
+    skirtL: '#b3c4a8',
+    skirtR: '#bfd1b4',
+    plank: 4,
+    grain: '#d0dfc6',
   },
   // ubin persegi biru-ungu (palet malam-biru)
   'lantai-ubin': {
@@ -155,6 +221,13 @@ export const WALL_MATERIALS: Record<string, WallMat> = {
   'dinding-teal':   { kiri: '#3d5f5c', kanan: '#4a736f', trimKiri: '#2a4442', trimKanan: '#33514e' },
   'dinding-bata':   { kiri: '#8f4f45', kanan: '#a35c50', trimKiri: '#5c312a', trimKanan: '#6b3a31' },
   'dinding-kertas': { kiri: '#a49e8c', kanan: '#b8b2a0', trimKiri: '#7a5530', trimKanan: '#86603a' },
+  // --- DINDING PASTEL LEMBUT (muka teduh/cahaya + plint lembut) ---
+  'dinding-pastel-krem':     { kiri: '#e8decb', kanan: '#f1e9da', trimKiri: '#c9b79b', trimKanan: '#d6c5a9' },
+  'dinding-pastel-sakura':   { kiri: '#ead3d6', kanan: '#f4e1e3', trimKiri: '#cdb2b6', trimKanan: '#d9c2c5' },
+  'dinding-pastel-mint':     { kiri: '#d6e7dd', kanan: '#e3f0e8', trimKiri: '#b6cbbf', trimKanan: '#c3d7cb' },
+  'dinding-pastel-lavender': { kiri: '#ddd6ec', kanan: '#eae4f6', trimKiri: '#bcb3d0', trimKanan: '#c9c1dd' },
+  'dinding-pastel-biru':     { kiri: '#d6e2f0', kanan: '#e4edf8', trimKiri: '#b6c4d6', trimKanan: '#c3d1e2' },
+  'dinding-pastel-kuning':   { kiri: '#f0e4c2', kanan: '#f8efd6', trimKiri: '#d4c49b', trimKanan: '#e0d2ac' },
 }
 export const WALL_KEYS = Object.keys(WALL_MATERIALS)
 export const WALL_DEFAULT = 'dinding-navy'
