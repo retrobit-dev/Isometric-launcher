@@ -7,7 +7,7 @@ import { drawScene } from './iso/room'
 import { bboxOf, sortedObjects } from './iso/box'
 import { FLOOR_DEFAULT, FLOOR_KEYS, MATERIAL_KEYS } from './iso/palette'
 import { seedScene } from './scene/seed'
-import { emptyRoom, loadDraft, loadLocked, saveDraft, saveLocked, validateScene } from './scene/store'
+import { loadDraft, loadLocked, saveDraft, saveLocked, validateScene } from './scene/store'
 import { type Scene, type SceneObject } from './scene/types'
 import EditPanel from './ui/EditPanel'
 import PalettePanel from './ui/PalettePanel'
@@ -310,13 +310,6 @@ export default function App() {
     setModal(null)
   }
 
-  const resetScene = () => {
-    // reset = ruangan kosong (fase penyamaan ruangan dengan referensi)
-    setScene(emptyRoom())
-    setSelectedId(null)
-    resetView()
-  }
-
   // --- bingkai tablet ---
   const rotated = rot === 'putar' || (rot === 'auto' && vp.h > vp.w)
   const availW = rotated ? vp.h : vp.w
@@ -423,7 +416,6 @@ export default function App() {
         <button className="tbtn" onClick={() => { setImportText(exportJSON()); setModal('export') }}>EXPORT</button>
         <button className="tbtn" onClick={() => { setImportText(''); setModal('import') }}>IMPORT</button>
         {!locked && <button className="tbtn on" onClick={lockScene}>💾 SIMPAN & KUNCI</button>}
-        <button className="tbtn" onClick={resetScene}>RESET</button>
       </div>
 
       {editable && selected && (
