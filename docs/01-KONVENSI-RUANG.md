@@ -12,30 +12,30 @@
 | 1 tile lantai | 32 × 16 px internal (rasio isometrik 2:1) |
 | 1 satuan tinggi (`z`) | 16 px internal |
 
-## 1a. Skala fisik (dikunci dari referensi ruangan)
+## 1a. Skala fisik (dikunci dari referensi malam-biru)
 
 | Besaran | Nilai dunia | Satuan kita |
 |---|---|---|
 | 1 tile lantai | 60 cm × 60 cm | 1 tile |
 | 1 satuan tinggi | 50 cm | 1 z |
-| Ruangan (DT × DB) | 6.0 m × 5.4 m (±32 m²) | **E = 10, W = 9** |
-| Tinggi dinding | 3.25 m | **WALL_Z = 6.5** |
+| Ruangan (DT × DB) | 8.4 m × 7.8 m (±65 m²) | **E = 14, W = 13** |
+| Tinggi dinding | 5.0 m (gaya loft, sesuai permintaan) | **WALL_Z = 10** |
 | Tinggi pintu | 2.0 m | 4 z |
 | Tinggi meja kerja | 75 cm | 1.5 z |
 | Tinggi rak buku berdiri | 1.8 m | 3.6 z |
 | Tinggi lampu berdiri | 1.5 m | 3 z |
 
-Proporsi ruangan mengikuti gambar referensi (ruang isometrik): dinding kanan (DT) lebih panjang dari kiri (DB), rasio ≈ 1.1 : 1, tinggi dinding ≈ 1.6× tinggi pintu.
+Referensi malam-biru berupa **crop** (kamera di dalam ruangan), sehingga ukuran total ruangan adalah keputusan desain: dipilih 14 × 13 tile agar (a) full-bleed tercapai pada zoom default, dan (b) densitas slot app cukup untuk launcher. Skala tile-vs-furnitur tetap mengikuti referensi: meja ≈ 3.5 tile, rak ≈ 2.5 tile.
+
+**Palet ruangan: `malam-biru`** — dinding biru gelap polos (kiri lebih gelap), lantai tile besar biru-ungu dengan nat dan variasi shade jarang, plint gelap, slab diorama. Seluruh warna ruangan & 22 material objek terlihat di tombol **PALET** pada preview.
 
 ## 1b. Framing kamera
 
 | Zoom | Kegunaan |
 |---|---|
-| ×1 / ×1.625 | peta ruangan menyeluruh |
-| **×2.5 (default)** | **framing referensi**: diorama, lebar penuh tepi-ke-tepi, slab lantai terlihat di bawah |
-| ×4 / ×6 | pandangan dekat untuk presisi edit |
-
-Catatan jujur: ruangan seukuran referensi (10 × 9 tile) tidak bisa full-bleed total di keempat tepi pada zoom wajar — sudut bawah memperlihatkan latar, persis seperti gambar referensi yang menampilkan ruangan sebagai diorama. Full-bleed penuh hanya mungkin di zoom ×6 (terlalu dekat untuk dijadikan default).
+| ×1 / ×1.625 | peta diorama seluruh ruangan |
+| **×2 (default)** | **full-bleed seperti crop referensi**: dinding melewati tepi atas, lantai melewati tepi bawah |
+| ×2.5 / ×4 / ×6 | pandangan dekat untuk presisi edit |
 
 ## 2. Mata arah (nama arah utama)
 

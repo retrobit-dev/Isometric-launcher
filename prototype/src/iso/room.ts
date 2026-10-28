@@ -35,24 +35,17 @@ function crispify(ctx: CanvasRenderingContext2D) {
   ctx.putImageData(img, 0, 0)
 }
 
-const DADO_Z = 2.2   // tinggi rail dado
-const RAIL_Z = 0.25  // tebal rail kayu
+const DADO_Z = 0.4   // tinggi plint
 
 function walls(ctx: CanvasRenderingContext2D) {
   const { E, W, WALL_Z } = ROOM
-  // Dinding Barat (kiri): atas krem, bawah teal, rail kayu, plint
-  poly(ctx, [px(0, 0, WALL_Z), px(0, W, WALL_Z), px(0, W, 0), px(0, 0, 0)], PAL.wallUpB)
-  poly(ctx, [px(0, 0, DADO_Z), px(0, W, DADO_Z), px(0, W, 0), px(0, 0, 0)], PAL.wallLoB)
-  poly(ctx, [px(0, 0, DADO_Z + RAIL_Z), px(0, W, DADO_Z + RAIL_Z), px(0, W, DADO_Z), px(0, 0, DADO_Z)], PAL.railB)
-  poly(ctx, [px(0, 0, 0.4), px(0, W, 0.4), px(0, W, 0), px(0, 0, 0)], PAL.trimB)
-  line(ctx, px(0, 0, WALL_Z), px(0, W, WALL_Z), PAL.wallUpB)
+  // Dinding Barat (kiri): biru gelap polos + plint
+  poly(ctx, [px(0, 0, WALL_Z), px(0, W, WALL_Z), px(0, W, 0), px(0, 0, 0)], PAL.wallB)
+  poly(ctx, [px(0, 0, DADO_Z), px(0, W, DADO_Z), px(0, W, 0), px(0, 0, 0)], PAL.trimB)
 
   // Dinding Timur (kanan)
-  poly(ctx, [px(0, 0, WALL_Z), px(E, 0, WALL_Z), px(E, 0, 0), px(0, 0, 0)], PAL.wallUpT)
-  poly(ctx, [px(0, 0, DADO_Z), px(E, 0, DADO_Z), px(E, 0, 0), px(0, 0, 0)], PAL.wallLoT)
-  poly(ctx, [px(0, 0, DADO_Z + RAIL_Z), px(E, 0, DADO_Z + RAIL_Z), px(E, 0, DADO_Z), px(0, 0, DADO_Z)], PAL.railT)
-  poly(ctx, [px(0, 0, 0.4), px(E, 0, 0.4), px(E, 0, 0), px(0, 0, 0)], PAL.trimT)
-  line(ctx, px(0, 0, WALL_Z), px(E, 0, WALL_Z), PAL.wallUpT)
+  poly(ctx, [px(0, 0, WALL_Z), px(E, 0, WALL_Z), px(E, 0, 0), px(0, 0, 0)], PAL.wallT)
+  poly(ctx, [px(0, 0, DADO_Z), px(E, 0, DADO_Z), px(E, 0, 0), px(0, 0, 0)], PAL.trimT)
 
   line(ctx, px(0, 0, 0), px(0, 0, WALL_Z), PAL.seam)
 }
@@ -61,13 +54,15 @@ function floor(ctx: CanvasRenderingContext2D) {
   const { E, W } = ROOM
   for (let e = 0; e < E; e++) {
     for (let w = 0; w < W; w++) {
+      // variasi shade jarang seperti referensi (bukan checker kontras)
+      const alt = (e * 31 + w * 17) % 4 === 0
       poly(ctx, [px(e, w), px(e + 1, w), px(e + 1, w + 1), px(e, w + 1)],
-        (e + w) % 2 === 0 ? PAL.floorA : PAL.floorB)
+        alt ? PAL.floorAlt : PAL.floorBase)
     }
   }
   for (let e = 0; e <= E; e++) line(ctx, px(e, 0), px(e, W), PAL.grout)
   for (let w = 0; w <= W; w++) line(ctx, px(0, w), px(E, w), PAL.grout)
-  const SK = 10 // ketebalan slab lantai (diorama, seperti referensi)
+  const SK = 10 // ketebalan slab diorama
   const bL = px(0, W), sL = px(E, W), tR = px(E, 0)
   poly(ctx, [bL, sL, { x: sL.x, y: sL.y + SK }, { x: bL.x, y: bL.y + SK }], PAL.skirtL)
   poly(ctx, [tR, sL, { x: sL.x, y: sL.y + SK }, { x: tR.x, y: tR.y + SK }], PAL.skirtR)

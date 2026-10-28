@@ -9,6 +9,7 @@ import { MATERIAL_KEYS } from './iso/palette'
 import { loadDraft, loadLocked, saveDraft, saveLocked, validateScene } from './scene/store'
 import type { Scene, SceneObject } from './scene/types'
 import EditPanel from './ui/EditPanel'
+import PalettePanel from './ui/PalettePanel'
 
 const DEVICE = {
   name: 'HUAWEI MatePad Mini',
@@ -37,6 +38,7 @@ export default function App() {
   const [zoomIdx, setZoomIdx] = useState(DEFAULT_ZOOM_IDX)
   const [selectedId, setSelectedId] = useState<string | null>(null)
   const [modal, setModal] = useState<'export' | 'import' | null>(null)
+  const [showPalette, setShowPalette] = useState(false)
   const [importText, setImportText] = useState('')
   const [vp, setVp] = useState({ w: window.innerWidth, h: window.innerHeight })
   const [hover, setHover] = useState<{ e: number; w: number } | null>(null)
@@ -311,6 +313,7 @@ export default function App() {
         <button className="tbtn" onClick={() => setZoomIdx(i => Math.min(ZOOM_LEVELS.length - 1, i + 1))} aria-label="zoom in">ZOOM +</button>
         <button className="tbtn" onClick={resetView}>TENGAH</button>
         <button className={grid ? 'tbtn on' : 'tbtn'} onClick={() => setGrid(v => !v)}>GRID</button>
+        <button className={showPalette ? 'tbtn on' : 'tbtn'} onClick={() => setShowPalette(v => !v)}>PALET</button>
         <button className={dev ? 'tbtn on' : 'tbtn'} onClick={() => setDev(v => !v)}>KOORDINAT</button>
         <button className="tbtn" onClick={() => setRot(r => ROT_NEXT[r])}>ROTASI: {rot.toUpperCase()}</button>
         <button className="tbtn" onClick={() => { setImportText(exportJSON()); setModal('export') }}>EXPORT</button>
@@ -347,6 +350,8 @@ export default function App() {
           onClose={() => setSelectedId(null)}
         />
       )}
+
+      {showPalette && <PalettePanel onClose={() => setShowPalette(false)} />}
 
       {modal && (
         <div className="modal">

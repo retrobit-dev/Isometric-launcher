@@ -196,6 +196,51 @@ html, body, #root {
 .sbtn.wide { flex: 1; }
 .sbtn.danger { color: #e4b1ab; border-color: #6d3a35; background: #2a1715; }
 
+/* panel palet warna */
+.palpanel {
+  position: fixed;
+  top: 10px;
+  right: 10px;
+  width: 210px;
+  max-height: 78vh;
+  overflow: auto;
+  padding: 8px;
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+  background: rgba(13, 15, 20, 0.94);
+  border: 1px solid #2c3348;
+  border-radius: 6px;
+  font: 10px/1.4 ui-monospace, 'Courier New', monospace;
+  color: #cfd3e4;
+  letter-spacing: 0.05em;
+  z-index: 20;
+}
+
+.ptitle { color: #e8b060; letter-spacing: 0.08em; }
+
+.palgroup {
+  margin-top: 4px;
+  color: #7d8298;
+  text-transform: uppercase;
+  border-top: 1px solid #262c40;
+  padding-top: 4px;
+}
+
+.palgrid { display: flex; flex-direction: column; gap: 3px; }
+
+.palrow { display: flex; gap: 6px; align-items: center; }
+
+.sw {
+  width: 22px;
+  height: 12px;
+  flex: none;
+  border: 1px solid #0a0c12;
+  border-radius: 2px;
+}
+
+.pn { text-transform: lowercase; color: #aeb3c8; }
+
 /* modal export/import */
 .modal {
   position: fixed;

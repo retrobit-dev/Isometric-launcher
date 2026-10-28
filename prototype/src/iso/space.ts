@@ -13,20 +13,21 @@ export const TILE_W = 32
 export const TILE_H = 16
 export const Z_PX = 16
 
-// Ruangan: proporsi mengikuti referensi (docs/01 §1a).
-// DT (kanan) lebih panjang dari DB (kiri), seperti ruangan referensi.
+// Ruangan: skala tile-vs-furnitur dari referensi malam-biru (meja ≈ 3.5 tile).
+// Ukuran total = keputusan desain: referensi berupa crop, dan ruangan besar
+// memberi densitas slot app yang cukup untuk launcher.
+// Dinding sengaja tinggi (gaya loft, sesuai permintaan "dinding lebih tinggi").
 export const ROOM = {
-  E: 10,       // tile ke arah Timur  = 6.0 m
-  W: 9,        // tile ke arah Barat  = 5.4 m
-  WALL_Z: 6.5, // tinggi dinding      = 3.25 m
+  E: 14,        // tile ke arah Timur  = 8.4 m
+  W: 13,        // tile ke arah Barat  = 7.8 m
+  WALL_Z: 10,   // tinggi dinding      = 5.0 m
 }
 
 // Level zoom: dipilih agar HW/HH/ZH selalu integer (pixel-art tajam)
-// x2.5 = framing referensi (diorama, lebar penuh tepi-ke-tepi)
-// x4 / x6 = dekat untuk presisi & pandangan dalam ruangan
-export const ZOOM_LEVELS = [1, 1.625, 2.5, 4, 6]
+// x2 = full-bleed seperti crop referensi (dinding lewat atas, lantai lewat bawah)
+export const ZOOM_LEVELS = [1, 1.625, 2, 2.5, 4, 6]
 export const DEFAULT_ZOOM_IDX = 2
-export const DEFAULT_CENTER = { e: 5, w: 4.5 }
+export const DEFAULT_CENTER = { e: 2.25, w: 1.5 }
 
 export const CAM = { Q: ZOOM_LEVELS[DEFAULT_ZOOM_IDX], CE: DEFAULT_CENTER.e, CW: DEFAULT_CENTER.w }
 
