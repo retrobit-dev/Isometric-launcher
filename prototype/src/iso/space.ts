@@ -27,11 +27,17 @@ export const ROOM = {
 
 // Zoom kontinu via pinch: berapa pun nilainya, HW/HH/ZH dibulatkan integer
 // supaya pixel-art tetap tajam (tidak ada jitter antar tile).
-// Default = komposisi referensi user (mockup 1280x800, diskalakan ke 640x400):
-// lantai mengisi separuh bawah kanvas, puncak belakang diamond ≈(318,199),
-// memotong tepi kiri y≈358 & kanan y≈360, bawah terpotong tepi layar.
-export const DEFAULT_Q = 1.05 // HW 17px, HH 9px — tile ≈68x36 pada skala 1280
-export const DEFAULT_CENTER = { e: 0.1, w: 0 }
+//
+// VIEW TERKUNCI PERMANEN (keputusan user): komposisi default = referensi user
+// (mockup 1280x800 -> 640x400): puncak belakang lantai ≈(318,199) di tengah
+// kanvas, lantai mengisi separuh bawah, memotong tepi kiri y≈358 & kanan
+// y≈360, bawah terpotong. Seperti ROOM_FIXED, perubahan hanya lewat kode
+// developer atas permintaan eksplisit user. ZOOM/TENGAH & reload selalu
+// kembali persis ke sini; pan/pinch bebas hanya sementara (tidak disimpan).
+export const VIEW_FIXED = { q: 1.05, e: 0.1, w: 0 } as const
+
+export const DEFAULT_Q = VIEW_FIXED.q // HW 17px, HH 9px — tile ≈68x36 pada skala 1280
+export const DEFAULT_CENTER = { e: VIEW_FIXED.e, w: VIEW_FIXED.w }
 export const Q_MIN = 0.5
 export const Q_MAX = 6
 

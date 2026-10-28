@@ -56,6 +56,13 @@ internal 640×400 (÷2): ubin diamond ±68×36 px (skala 1280: referensi ±64×4
 rasio engine 2:1 isometrik, tinggi 42 tidak dapat dicapai tanpa skew), nat tiap
 ±34 px horizontal / ±18 px vertikal pada skala 1280.
 
+> **Komposisi default TERKUNCI (keputusan user).** Q = 1.05 (HW 17 px, HH 9 px)
+> dan pusat kamera (0.1, 0) dibekukan di kode sebagai `VIEW_FIXED`
+> (`iso/space.ts`) — setara `ROOM_FIXED`. Tombol ZOOM/TENGAH dan setiap reload
+> preview selalu kembali persis ke komposisi ini. Pan/pinch tetap bebas untuk
+> bekerja tetapi hanya sementara (posisi kamera tidak disimpan). Perubahan
+> komposisi default hanya lewat kode developer atas permintaan eksplisit user.
+
 ## 2. Mata arah (nama arah utama)
 
 ```
