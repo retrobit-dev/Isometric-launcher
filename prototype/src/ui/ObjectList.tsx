@@ -17,6 +17,10 @@ interface Props {
   onGroup: () => void
   onUngroup: () => void
   onRenameGroup: (gid: string, nama: string) => void
+  /** buat sub-folder di dalam folder `gid` dari objek yang dicentang */
+  onAddSub: (gid: string) => void
+  /** keluarkan folder dari induknya (jadi folder tingkat atas) */
+  onDetachGroup: (gid: string) => void
   onCycleKunci: (id: string) => void
   /** pasang kembali scene dari cadangan/riwayat (objek yang hilang) */
   onRestore: (scene: Scene) => void
@@ -72,27 +76,24 @@ export default function ObjectList(p: Props) {
   const onHeadUp = () => { dragRef.current = null }
 
   // ---- susun daftar: objek bergrup jadi satu folder, sisanya baris biasa ----
-  type Entry =
-    | { kind: 'obj'; obj: SceneObject }
-    | { kind: 'folder'; gid: string; nama: string; items: SceneObject[] }
+  // ---- POHON FOLDER (folder boleh bersarang) ------------------------------
+  // grup = kumpulan objek dengan `grup` sama; nama & induknya disimpan di
+  // setiap anggota (grupNama / grupInduk) sehingga tidak ada struktur terpisah.
+  const itemsOf = (gid: string) => p.objects.filter(o => o.grup === gid)
+  const gids: string[] = []
+  for (const o of p.objects) if (o.grup && !gids.includes(o.grup)) gids.push(o.grup)
 
-  const entries: Entry[] = []
-  const seen: string[] = []
-  for (const o of p.objects) {
-    if (o.grup) {
-      if (seen.includes(o.grup)) continue
-      seen.push(o.grup)
-      const items = p.objects.filter(x => x.grup === o.grup)
-      entries.push({
-        kind: 'folder',
-        gid: o.grup,
-        nama: items.find(x => x.grupNama)?.grupNama ?? o.grup.replace('grup-', 'FOLDER '),
-        items,
-      })
-    } else {
-      entries.push({ kind: 'obj', obj: o })
-    }
+  const namaOf = (gid: string) =>
+    itemsOf(gid).find(x => x.grupNama)?.grupNama ?? gid.replace('grup-', 'FOLDER ')
+  const indukOf = (gid: string): string | undefined => {
+    const ind = itemsOf(gid).find(x => x.grupInduk)?.grupInduk
+    // induk yang tidak ada lagi -> diperlakukan sebagai folder tingkat atas
+    return ind && gids.includes(ind) ? ind : undefined
   }
+  const anakOf = (induk: string | undefined) => gids.filter(g => indukOf(g) === induk)
+
+  // objek lepas (tidak masuk grup) tetap tampil sebagai baris biasa
+  const lepas = p.objects.filter(o => !o.grup)
 
   // scene kosong = kemungkinan objek hilang -> langsung tawarkan pemulihan
   useEffect(() => {
@@ -112,7 +113,7 @@ export default function ObjectList(p: Props) {
     setOpenFolders(f => (f.includes(gid) ? f.filter(x => x !== gid) : [...f, gid]))
 
   const nGrup = p.multi.length
-  const grupCount = seen.length
+  const grupCount = gids.length
 
   // ---- satu baris objek ----
   const objRow = (o: SceneObject, inFolder: boolean) => {
@@ -206,7 +207,7 @@ export default function ObjectList(p: Props) {
           ⟲
         </button>
       </div>
-      {grupCount > 0 && <div className="olhint">{grupCount} folder aktif</div>}
+      {grupCount > 0 && <div className="olhint">{grupCount} folder ({gids.filter(g => indukOf(g)).length} sub-folder)</div>}
 
       {showRescue && (
         <div className="olrescue">
@@ -236,65 +237,98 @@ export default function ObjectList(p: Props) {
       )}
 
       <div className="ollist">
-        {entries.map(e => {
-          if (e.kind === 'obj') return objRow(e.obj, false)
-          const open = openFolders.includes(e.gid)
-          const nSel = e.items.filter(o => p.multi.includes(o.id)).length
+        {renderLevel(undefined, 0)}
+        {lepas.map(o => objRow(o, false))}
+      </div>
+
+      <div className="olfoot">folder bersarang · ＋SUB di dalam folder · ☐ centang · 🔒 kunci</div>
+    </div>
+  )
+
+  // ---- satu folder + isinya (rekursif: sub-folder di atas, lalu objeknya) --
+  function renderLevel(induk: string | undefined, depth: number): React.ReactNode {
+    if (depth > 5) return null   // pengaman: kedalaman maksimal 5 tingkat
+    return anakOf(induk).map(e => {
+          const gid = e
+          const items = itemsOf(gid)
+          const nama = namaOf(gid)
+          const open = openFolders.includes(gid)
+          const nSel = items.filter(o => p.multi.includes(o.id)).length
+          const anak = anakOf(gid)
           return (
-            <div key={e.gid} className="olfolderwrap">
+            <div key={gid} className="olfolderwrap" style={{ marginLeft: depth * 8 }}>
               <div
                 className="olrow folder"
-                onClick={() => (editing === e.gid ? undefined : toggleFolder(e.gid))}
+                onClick={() => (editing === gid ? undefined : toggleFolder(gid))}
                 title="ketuk untuk buka/tutup folder"
               >
                 <div className="olline">
                   <span className="olchev">{open ? '▾' : '▸'}</span>
-                  <span className="olicon">📁</span>
-                  {editing === e.gid ? (
+                  <span className="olicon">{anak.length > 0 ? '🗂' : '📁'}</span>
+                  {editing === gid ? (
                     <input
                       className="olrename"
                       autoFocus
                       value={draft}
                       onClick={ev => ev.stopPropagation()}
                       onChange={ev => setDraft(ev.target.value)}
-                      onBlur={() => { p.onRenameGroup(e.gid, draft); setEditing(null) }}
+                      onBlur={() => { p.onRenameGroup(gid, draft); setEditing(null) }}
                       onKeyDown={ev => {
-                        if (ev.key === 'Enter') { p.onRenameGroup(e.gid, draft); setEditing(null) }
+                        if (ev.key === 'Enter') { p.onRenameGroup(gid, draft); setEditing(null) }
                         if (ev.key === 'Escape') setEditing(null)
                       }}
                     />
                   ) : (
-                    <span className="olname">{e.nama}</span>
+                    <span className="olname">{anak.length > 0 ? nama.split(' / ').pop() : nama}</span>
                   )}
-                  <span className="olcount">{e.items.length}</span>
+                  <span className="olcount">{items.length + anak.length}</span>
                   <button
                     className="olbtn"
                     title="ganti nama folder"
                     onClick={ev => {
                       ev.stopPropagation()
-                      setEditing(e.gid)
-                      setDraft(e.nama)
-                      if (!open) toggleFolder(e.gid)
+                      setEditing(gid)
+                      setDraft(nama)
+                      if (!open) toggleFolder(gid)
                     }}
                   >✎</button>
+                  <button
+                    className="olbtn sub"
+                    disabled={p.multi.length === 0}
+                    title={
+                      p.multi.length === 0
+                        ? 'centang dulu objek yang mau dimasukkan ke sub-folder'
+                        : `jadikan ${p.multi.length} objek bercetang sebagai SUB-FOLDER di dalam folder ini`
+                    }
+                    onClick={ev => { ev.stopPropagation(); if (p.multi.length > 0) p.onAddSub(gid) }}
+                  >＋</button>
+                  {induk !== undefined && (
+                    <button
+                      className="olbtn"
+                      title="keluarkan folder ini dari induknya (jadi folder tingkat atas)"
+                      onClick={ev => { ev.stopPropagation(); p.onDetachGroup(gid) }}
+                    >⇧</button>
+                  )}
                 </div>
                 <div className="olmeta">
-                  <span className="oltag grup">GRUP</span>
+                  <span className="oltag grup">{anak.length > 0 ? 'FOLDER' : 'GRUP'}</span>
+                  {anak.length > 0 && <span className="oltag">{anak.length} sub</span>}
                   {nSel > 0 && <span className="oltag">{nSel} dicentang</span>}
                   <span className="olpos">
-                    {e.items.filter(o => o.kunci).length > 0
-                      ? `${e.items.filter(o => o.kunci).length} terkunci`
+                    {items.filter(o => o.kunci).length > 0
+                      ? `${items.filter(o => o.kunci).length} terkunci`
                       : 'bebas'}
                   </span>
                 </div>
               </div>
-              {open && <div className="olfolderbody">{e.items.map(o => objRow(o, true))}</div>}
+              {open && (
+                <div className="olfolderbody">
+                  {renderLevel(gid, depth + 1)}
+                  {items.map(o => objRow(o, true))}
+                </div>
+              )}
             </div>
           )
-        })}
-      </div>
-
-      <div className="olfoot">folder bisa dibuka & di-rename · ☐ centang · ◎ bidik · 🔒 kunci</div>
-    </div>
-  )
+        })
+  }
 }

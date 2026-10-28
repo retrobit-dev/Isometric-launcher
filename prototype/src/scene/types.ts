@@ -65,6 +65,9 @@ export interface SceneObject {
   grup?: string
   // nama folder grup (ditampilkan di DAFTAR OBJEK, bisa di-rename user)
   grupNama?: string
+  // SUB-FOLDER: id grup induk. Grup boleh bersarang (folder di dalam folder);
+  // semua anggota satu grup memakai grupNama & grupInduk yang sama.
+  grupInduk?: string
   // KUNCI pengeditan per objek:
   //   'warna' = posisi/ukuran/rotasi/layer/peran/sisi/hapus DIKUNCI,
   //             hanya material (warna) yang masih bisa diubah

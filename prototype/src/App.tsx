@@ -309,6 +309,33 @@ export default function App() {
     setMulti([])
   }
 
+  // SUB-FOLDER: pindahkan objek bercetang menjadi grup BARU di dalam folder `induk`.
+  // Karena selalu membuat grup baru, tidak mungkin terjadi siklus (folder
+  // menjadi induk dirinya sendiri).
+  const addSubGroup = (induk: string) => {
+    if (multi.length === 0) return
+    const gid = `grup-${Date.now().toString(36).slice(-4)}`
+    const namaInduk = sceneRef.current.objects.find(o => o.grup === induk)?.grupNama ?? induk
+    const n = sceneRef.current.objects.filter(o => o.grupInduk === induk).length + 1
+    setScene(s => ({
+      ...s,
+      objects: s.objects.map(o =>
+        multi.includes(o.id)
+          ? { ...o, grup: gid, grupNama: `${namaInduk} / SUB ${n}`, grupInduk: induk }
+          : o),
+    }))
+    setMulti([])
+    setShowList(true)
+  }
+
+  // keluarkan folder ini dari induknya (jadi folder tingkat atas)
+  const detachGroup = (gid: string) => {
+    setScene(s => ({
+      ...s,
+      objects: s.objects.map(o => (o.grup === gid ? { ...o, grupInduk: undefined } : o)),
+    }))
+  }
+
   // ganti nama folder grup (semua anggota ikut, karena nama disimpan di objek)
   const renameGroup = (gid: string, nama: string) => {
     const clean = nama.trim()
@@ -648,6 +675,8 @@ export default function App() {
           onClearMulti={() => setMulti([])}
           onGroup={groupSelected}
           onRenameGroup={(gid, nama) => renameGroup(gid, nama)}
+          onAddSub={gid => addSubGroup(gid)}
+          onDetachGroup={gid => detachGroup(gid)}
           onUngroup={ungroupSelected}
           onCycleKunci={id => cycleKunci(id)}
           onRestore={sc => restoreScene(sc)}

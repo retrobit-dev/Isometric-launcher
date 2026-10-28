@@ -310,6 +310,7 @@ export function validateScene(data: unknown): Scene | null {
       // grup & kunci ikut dipertahankan saat import/normalisasi
       ...(typeof ob.grup === 'string' && ob.grup ? { grup: ob.grup } : {}),
       ...(typeof ob.grupNama === 'string' && ob.grupNama ? { grupNama: ob.grupNama } : {}),
+      ...(typeof ob.grupInduk === 'string' && ob.grupInduk ? { grupInduk: ob.grupInduk } : {}),
       ...(ob.kunci === 'warna' || ob.kunci === 'semua' ? { kunci: ob.kunci } : {}),
     })
   }

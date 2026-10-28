@@ -606,3 +606,8 @@ html, body, #root {
   color: #cfe6c2;
   z-index: 31;
 }
+
+/* tombol sub-folder di baris folder */
+.olbtn.sub { color: #b9a6e0; border-color: #3b3355; background: #191527; }
+.olbtn.sub:disabled { color: #4a4f63; border-color: #232a3c; background: #10131c; }
+.olfolderwrap { min-width: 0; }
