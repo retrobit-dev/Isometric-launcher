@@ -10,6 +10,7 @@ import { loadDraft, loadLocked, saveDraft, saveLocked, validateScene } from './s
 import { type Scene, type SceneObject } from './scene/types'
 import EditPanel from './ui/EditPanel'
 import PalettePanel from './ui/PalettePanel'
+import ObjectList from './ui/ObjectList'
 
 const DEV_RES_W = 2560
 const BEZEL = 16
@@ -31,6 +32,7 @@ export default function App() {
   const [selectedId, setSelectedId] = useState<string | null>(null)
   const [modal, setModal] = useState<'export' | 'import' | null>(null)
   const [showPalette, setShowPalette] = useState(false)
+  const [showList, setShowList] = useState(false)
   const [importText, setImportText] = useState('')
   const [vp, setVp] = useState({ w: window.innerWidth, h: window.innerHeight })
   const [hover, setHover] = useState<{ e: number; w: number } | null>(null)
@@ -439,11 +441,18 @@ export default function App() {
                 + DINDING
               </button>
             )}
+            <button
+              className={showList ? 'tbtn on' : 'tbtn'}
+              onClick={() => { setShowList(v => !v); setShowPalette(false) }}
+              title="daftar semua objek yang sudah dibuat — ketuk untuk memilih"
+            >
+              OBJEK {scene.objects.length}
+            </button>
           </>
         )}
         <button className="tbtn" onClick={resetView}>TENGAH</button>
         <button className={grid ? 'tbtn on' : 'tbtn'} onClick={() => setGrid(v => !v)}>GRID</button>
-        <button className={showPalette ? 'tbtn on' : 'tbtn'} onClick={() => setShowPalette(v => !v)}>PALET</button>
+        <button className={showPalette ? 'tbtn on' : 'tbtn'} onClick={() => { setShowPalette(v => !v); setShowList(false) }}>PALET</button>
         <button className={dev ? 'tbtn on' : 'tbtn'} onClick={() => setDev(v => !v)}>KOORDINAT</button>
         <button className="tbtn" onClick={() => setRot(r => ROT_NEXT[r])}>ROTASI: {rot.toUpperCase()}</button>
         <button className="tbtn" onClick={() => { setImportText(exportJSON()); setModal('export') }}>EXPORT</button>
@@ -498,6 +507,23 @@ export default function App() {
       )}
 
       {showPalette && <PalettePanel onClose={() => setShowPalette(false)} />}
+
+      {showList && (
+        <ObjectList
+          objects={scene.objects}
+          selectedId={selectedId}
+          locked={locked}
+          onSelect={id => setSelectedId(id)}
+          onFocus={id => {
+            const o = scene.objects.find(x => x.id === id)
+            if (!o) return
+            setCenter(o.pos.e + o.size.e / 2, o.pos.w + o.size.w / 2)
+            setSelectedId(id)
+          }}
+          onDelete={id => deleteObject(id)}
+          onClose={() => setShowList(false)}
+        />
+      )}
 
       {modal && (
         <div className="modal">
