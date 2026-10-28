@@ -352,7 +352,16 @@ export default function App() {
                 <span>
                   {hover ? `(e=${hover.e}, w=${hover.w}) · ${zoneName(hover.e, hover.w)}` : `${scene.objects.length} objek`}
                 </span>
-                <span>zoom ×{zoomValue()}</span>
+                {(() => {
+                  const fl = scene.objects.filter(o => o.role === 'lantai')
+                  return (
+                    <span className={fl.length ? 'on' : ''}>
+                      {fl.length
+                        ? `lantai ${fl.length}: ${fl.map(f => (typeof f.style === 'string' ? f.style.replace('lantai-', '') : '?')).join(',')}`
+                        : 'lantai: tidak ada'}
+                    </span>
+                  )
+                })()}
                 <span className={locked ? 'on' : ''}>{locked ? `terkunci ${savedAt ?? ''}` : 'draf'}</span>
                 <span>{`kamera ×${zoomValue()} (${CAM.CE.toFixed(1)}, ${CAM.CW.toFixed(1)})`}</span>
               </div>

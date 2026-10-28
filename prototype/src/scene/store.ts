@@ -1,11 +1,12 @@
-import { FLOOR_DEFAULT } from '../iso/palette'
+import { FLOOR_DEFAULT, FLOOR_MATERIALS } from '../iso/palette'
 import { ROOM_FROM_FILE, ROOM_FIXED, type Scene, type SceneObject } from './types'
 
 // v4: ruangan saja (fase penyamaan ruangan dengan referensi; objek menyusul)
 // v5: objek bisa berperan sebagai LANTAI ruangan (role 'lantai')
-const DRAFT_KEY = 'isola-draft-v5'
-const LOCKED_KEY = 'isola-locked-v5'
-const PREV_DRAFT_KEY = 'isola-draft-v4'
+// v6: lantai memakai palet kayu selang-seling (style dari FLOOR_MATERIALS)
+const DRAFT_KEY = 'isola-draft-v6'
+const LOCKED_KEY = 'isola-locked-v6'
+const PREV_DRAFT_KEYS = ['isola-draft-v5', 'isola-draft-v4'] as const
 
 export function emptyRoom(): Scene {
   return {
@@ -17,24 +18,47 @@ export function emptyRoom(): Scene {
 }
 
 export function loadDraft(): Scene {
-  return read(DRAFT_KEY) ?? migratePrevDraft() ?? emptyRoom()
+  return normalize(read(DRAFT_KEY) ?? migratePrevDraft() ?? emptyRoom())
 }
 
-// Migrasi sekali jalan dari draft v4: objek berupa "lempeng" besar & tipis
-// (mis. yang dibuat user: 17.2 x 22.8 x 0.5) diubah menjadi LANTAI ruangan:
-// role 'lantai' + z diturunkan ke 0. Objek lain dibiarkan apa adanya.
+// Migrasi sekali jalan dari draft lama (v5/v4): objek berupa "lempeng" besar &
+// tipis (mis. yang dibuat user: 17.2 x 22.8 x 0.5) diubah menjadi LANTAI ruangan.
 function migratePrevDraft(): Scene | null {
-  const prev = read(PREV_DRAFT_KEY)
-  if (!prev) return null
-  const objects = prev.objects.map(o => {
+  for (const key of PREV_DRAFT_KEYS) {
+    const prev = read(key)
+    if (prev) {
+      const migrated = normalize(prev)
+      write(DRAFT_KEY, migrated)
+      return migrated
+    }
+  }
+  return null
+}
+
+// Penjaga konsistensi (jalan setiap kali draft dimuat, versi apa pun):
+// - objek "lempeng" besar & tipis otomatis jadi lantai (z=0)
+// - objek ber-role lantai WAJIB memakai palet lantai; kalau style lama masih
+//   material balok (mis. 'wood-dark'), diganti FLOOR_DEFAULT -> kayu selang-seling
+function normalize(scene: Scene): Scene {
+  let changed = false
+  const objects = scene.objects.map(o => {
     const isSlab = o.size.e >= 8 && o.size.w >= 8 && o.size.z <= 1.5
-    return isSlab
-      ? { ...o, role: 'lantai' as const, style: FLOOR_DEFAULT, pos: { ...o.pos, z: 0 } }
-      : o
+    const asFloor = o.role === 'lantai' || isSlab
+    if (!asFloor) return o
+    const styleOk = typeof o.style === 'string' && FLOOR_MATERIALS[o.style] !== undefined
+    const next: SceneObject = {
+      ...o,
+      role: 'lantai',
+      style: styleOk ? o.style : FLOOR_DEFAULT,
+      pos: { ...o.pos, z: 0 },
+    }
+    if (o.role !== 'lantai' || !styleOk || o.pos.z !== 0) changed = true
+    return next
   })
-  const migrated: Scene = { ...prev, objects }
-  write(DRAFT_KEY, migrated)
-  return migrated
+  if (!changed) return scene
+  const fixed: Scene = { ...scene, objects }
+  write(DRAFT_KEY, fixed)
+  return fixed
 }
 export function saveDraft(scene: Scene) { write(DRAFT_KEY, scene) }
 

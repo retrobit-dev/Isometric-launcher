@@ -53,7 +53,8 @@ export const Q_MIN = 0.5
 export const Q_MAX = 6
 
 // --- penyimpanan posisi kamera -------------------------------------------
-const CAM_KEY = 'isola-kamera-v2'
+// v3: kamera lama (panned jauh) dibuang sekali agar ruangan baru pasti terlihat
+const CAM_KEY = 'isola-kamera-v3'
 
 function readView(): ViewState | null {
   try {
