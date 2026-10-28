@@ -3,10 +3,13 @@ import { ROOM_FIXED } from '../scene/types'
 // Konvensi ruang: lihat docs/01-KONVENSI-RUANG.md
 // Resolusi internal 640x400; final = x4 = 2560x1600 (MatePad Mini landscape)
 //
-// KAMERA: posisi tengah (CE, CW) + zoom Q. Default mengikuti komposisi
-// referensi user: puncak belakang lantai ≈ tengah kanvas, lantai mengisi
-// separuh bawah. Zoom out = peta seluruh ruangan; zoom in = pandangan dekat
-// untuk penempatan presisi.
+// KAMERA: posisi tengah (CE, CW) + zoom Q.
+//
+// Semua kunci ruangan & kamera DIBUKA (permintaan user 2026-10-28 "buka kunci").
+// Posisi kamera kini DISIMPAN (localStorage) sehingga pan/zoom tidak hilang saat
+// halaman di-reload atau saat dev server hot-reload karena perubahan kode.
+// Tombol "KUNCI POSISI INI" merekam posisi yang sedang dilihat user menjadi
+// komposisi tetap (tanpa perlu screenshot).
 
 export const SCALE = 4
 export const IW = 640
@@ -16,56 +19,99 @@ export const TILE_W = 32
 export const TILE_H = 16
 export const Z_PX = 16
 
-// Ruangan: skala tile-vs-furnitur dari referensi malam-biru (meja ≈ 3.5 tile).
-// Ukuran total = keputusan desain: referensi berupa crop, dan ruangan besar
-// memberi densitas slot app yang cukup untuk launcher.
-//
-// KUNCI RUANGAN DIBUKA SEMENTARA (permintaan user 2026-10-28) — sedang
-// disamakan dengan gambar referensi. Satu sumber kebenaran: ROOM_FIXED.
+// Ruangan: satu sumber kebenaran ROOM_FIXED (kunci ruangan sedang dibuka).
 export const ROOM = {
-  E: ROOM_FIXED.e,        // tile ke arah Timur  = 12.0 m
-  W: ROOM_FIXED.w,        // tile ke arah Barat  = 11.4 m
-  WALL_Z: ROOM_FIXED.wallZ, // tinggi dinding    = 6.0 m
+  E: ROOM_FIXED.e,
+  W: ROOM_FIXED.w,
+  WALL_Z: ROOM_FIXED.wallZ,
 }
 
-// Zoom kontinu via pinch: berapa pun nilainya, HW/HH/ZH dibulatkan integer
-// supaya pixel-art tetap tajam (tidak ada jitter antar tile).
-//
-// VIEW = komposisi gambar referensi user (1122x706 -> kanvas 640x400, ÷1.76):
-// puncak belakang lantai (pertemuan dua dinding) di (324,182) ≈ (0.51W, 0.455H),
-// ubin diamond 80x40 px (referensi 140x70), dasar dinding memotong tepi kiri
-// ≈y352 & kanan ≈y338, lantai memotong tepi bawah, dinding melewati tepi atas.
-// KUNCI POSISI RUANGAN: VIEW_LOCKED = true -> komposisi di bawah BEKU; ZOOM/TENGAH,
-// reset, dan setiap reload selalu kembali persis ke sini (pan/pinch sementara).
-// STATUS: TERKUNCI (keputusan user 2026-10-28: ukuran & posisi ruangan harus sama
-// dengan tampilan preview saat itu). Nilai VIEW_FIXED di bawah adalah komposisi
-// final; mengubahnya = perubahan kode atas permintaan eksplisit user.
-export const VIEW_LOCKED = true
-
-interface FixedView {
-  readonly q: number
-  readonly e: number
-  readonly w: number
+export interface ViewState {
+  q: number
+  e: number
+  w: number
 }
-export const VIEW_FIXED: FixedView = { q: 2.5, e: 0.4, w: 0.5 }
 
-// HW 40px, HH 20px -> ubin 80x40 px di kanvas 640 (160x80 di layar 2560)
+// Komposisi acuan (dipakai tombol TENGAH / ZOOM reset) = komposisi referensi:
+// puncak belakang lantai (324,182), ubin 80x40 px, dasar dinding memotong tepi
+// kiri y≈344 & kanan y≈340.
+export const VIEW_FIXED: ViewState = { q: 2.5, e: 0.4, w: 0.5 }
 export const DEFAULT_Q: number = VIEW_FIXED.q
 export const DEFAULT_CENTER: { e: number; w: number } = { e: VIEW_FIXED.e, w: VIEW_FIXED.w }
+
 export const Q_MIN = 0.5
 export const Q_MAX = 6
 
-export const CAM = { Q: DEFAULT_Q, CE: DEFAULT_CENTER.e, CW: DEFAULT_CENTER.w }
+// --- penyimpanan posisi kamera -------------------------------------------
+const CAM_KEY = 'isola-kamera-v1'
+const LOCK_KEY = 'isola-posisi-terkunci-v1'
+
+function readView(key: string): ViewState | null {
+  try {
+    const raw = localStorage.getItem(key)
+    if (!raw) return null
+    const v = JSON.parse(raw) as Partial<ViewState>
+    if (typeof v.q !== 'number' || typeof v.e !== 'number' || typeof v.w !== 'number') return null
+    return { q: v.q, e: v.e, w: v.w }
+  } catch {
+    return null
+  }
+}
+function writeView(key: string, v: ViewState) {
+  try {
+    localStorage.setItem(key, JSON.stringify(v))
+  } catch {
+    /* storage penuh/private — kamera tetap jalan di memori */
+  }
+}
+
+/** Posisi yang dikunci user lewat tombol "KUNCI POSISI INI" (null = bebas). */
+export function lockedView(): ViewState | null {
+  return readView(LOCK_KEY)
+}
+
+/** Rekam posisi kamera saat ini sebagai komposisi tetap. */
+export function lockCurrentView(): ViewState {
+  const v = { q: CAM.Q, e: CAM.CE, w: CAM.CW }
+  writeView(LOCK_KEY, v)
+  writeView(CAM_KEY, v)
+  return v
+}
+
+/** Hapus posisi terkunci (kamera kembali bebas). */
+export function unlockView() {
+  try {
+    localStorage.removeItem(LOCK_KEY)
+  } catch {
+    /* abaikan */
+  }
+}
+
+// posisi awal: posisi terkunci > posisi terakhir > komposisi acuan
+const initialView: ViewState = lockedView() ?? readView(CAM_KEY) ?? VIEW_FIXED
+
+export const CAM = { Q: initialView.q, CE: initialView.e, CW: initialView.w }
 
 export let HW = 32
 export let HH = 16
 export let ZH = 32
+
+let saveTimer: ReturnType<typeof setTimeout> | null = null
+function scheduleSaveCam() {
+  if (typeof window === 'undefined') return
+  if (saveTimer) return
+  saveTimer = setTimeout(() => {
+    saveTimer = null
+    writeView(CAM_KEY, { q: CAM.Q, e: CAM.CE, w: CAM.CW })
+  }, 250)
+}
 
 export function setZoom(q: number) {
   CAM.Q = Math.min(Q_MAX, Math.max(Q_MIN, q))
   HW = Math.min(160, Math.max(8, Math.round(16 * CAM.Q)))
   HH = Math.round(HW / 2)
   ZH = HW
+  scheduleSaveCam()
 }
 
 // Level zoom saat ini (untuk tampilan tombol/chip)
@@ -73,19 +119,23 @@ export function zoomValue(): number {
   return Math.round((HW / 16) * 100) / 100
 }
 
-const clamp = (v: number, lo: number, hi: number) => Math.min(hi, Math.max(lo, v))
-
 // Pan kamera TIDAK dibatasi: ruangan boleh digeser ke mana pun di kanvas
 // (permintaan user: jangan batasi perpindahan ruangan)
 export function setCenter(e: number, w: number) {
   CAM.CE = e
   CAM.CW = w
+  scheduleSaveCam()
 }
 
+/** Kembalikan kamera ke komposisi acuan (posisi terkunci kalau ada). */
 export function resetView() {
-  setZoom(DEFAULT_Q)
-  setCenter(DEFAULT_CENTER.e, DEFAULT_CENTER.w)
+  const v = lockedView() ?? VIEW_FIXED
+  setZoom(v.q)
+  setCenter(v.e, v.w)
 }
+
+// terapkan zoom awal (HW/HH/ZH) sesuai posisi awal
+setZoom(CAM.Q)
 
 export const OX = IW / 2
 export const CY = IH / 2

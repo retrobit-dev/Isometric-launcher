@@ -1,7 +1,8 @@
 import { useEffect, useRef, useState } from 'react'
 import {
-  CAM, DEFAULT_Q, IH, IW, ROOM, VIEW_FIXED, VIEW_LOCKED,
-  resetView, setCenter, setZoom, unpx, zoomValue, zoneName,
+  CAM, DEFAULT_Q, IH, IW, ROOM,
+  lockCurrentView, lockedView, resetView, setCenter, setZoom, unlockView,
+  unpx, zoomValue, zoneName,
 } from './iso/space'
 import { drawScene } from './iso/room'
 import { bboxOf, sortedObjects } from './iso/box'
@@ -37,6 +38,7 @@ export default function App() {
   const [dev, setDev] = useState(true)
   const [rot, setRot] = useState<Rot>('auto')
   const [, forceZoomLabel] = useState(0) // refresh label tombol ZOOM saat pinch
+  const [viewLocked, setViewLocked] = useState(() => lockedView() !== null)
   const [selectedId, setSelectedId] = useState<string | null>(null)
   const [modal, setModal] = useState<'export' | 'import' | null>(null)
   const [showPalette, setShowPalette] = useState(false)
@@ -339,8 +341,10 @@ export default function App() {
                     ? `ruang: TERBUKA sementara · ${ROOM.E}×${ROOM.W}×${ROOM.WALL_Z}z`
                     : 'ruang: terkunci'}
                 </span>
-                <span className={VIEW_LOCKED ? '' : 'on'}>
-                  {VIEW_LOCKED ? `view: terkunci ×${VIEW_FIXED.q}` : 'view: bebas'}
+                <span className={viewLocked ? 'on' : ''}>
+                  {viewLocked
+                    ? `posisi terkunci ×${CAM.Q} (${CAM.CE.toFixed(1)}, ${CAM.CW.toFixed(1)})`
+                    : `posisi bebas ×${zoomValue()}`}
                 </span>
               </div>
             )}
@@ -386,6 +390,17 @@ export default function App() {
           ZOOM ×{zoomValue()}
         </button>
         <button className="tbtn" onClick={resetView}>TENGAH</button>
+        <button
+          className={viewLocked ? 'tbtn on' : 'tbtn'}
+          title="rekam posisi kamera yang sedang tampil sebagai posisi tetap"
+          onClick={() => {
+            if (viewLocked) { unlockView(); setViewLocked(false) }
+            else { lockCurrentView(); setViewLocked(true) }
+            forceZoomLabel(v => v + 1)
+          }}
+        >
+          {viewLocked ? '🔓 POSISI TERKUNCI' : '📌 KUNCI POSISI INI'}
+        </button>
         <button className={grid ? 'tbtn on' : 'tbtn'} onClick={() => setGrid(v => !v)}>GRID</button>
         <button className={showPalette ? 'tbtn on' : 'tbtn'} onClick={() => setShowPalette(v => !v)}>PALET</button>
         <button className={refleksi ? 'tbtn on' : 'tbtn'} onClick={() => setRefleksi(v => !v)} title="pantulan objek di lantai kayu">REFLEKSI</button>

@@ -18,13 +18,15 @@
 > Editor/import/reset tidak dapat mengubahnya; perubahan hanya lewat kode developer
 > atas permintaan eksplisit user (docs/03 §0).
 >
-> ✅ **DIKUNCI KEMBALI — 2026-10-28 (keputusan user):** "saya ingin ukuran dan
-> posisi ruangan sama dengan yang ada di tampilan preview sekarang."
-> `ROOM_TEMP_UNLOCKED = false` + `VIEW_LOCKED = true`. Nilai di bawah adalah
-> **nilai final yang dibekukan**, sama persis dengan tampilan preview saat itu
-> (ruangan 20 × 19 × 12z, palet `malam-biru`, kamera ×2.5 di pusat 0.4/0.5).
-> Riwayat: sempat dibuka sementara (`ROOM_TEMP_UNLOCKED = true`,
-> `VIEW_LOCKED = false`) saat menyamakan ruangan dengan gambar referensi.
+> 🔓 **SEMUA KUNCI DIBUKA — 2026-10-28 (permintaan user "buka kunci").**
+> `ROOM_TEMP_UNLOCKED = true`. Dimensi ruangan boleh diubah lagi.
+> **Posisi kamera kini DISIMPAN** (`localStorage: isola-kamera-v1`) sehingga pan
+> & zoom **tidak kembali ke tengah** saat halaman di-reload atau saat dev server
+> hot-reload karena perubahan kode. Tombol **📌 KUNCI POSISI INI** merekam posisi
+> yang sedang tampil menjadi posisi tetap (`isola-posisi-terkunci-v1`), dan
+> **🔓 POSISI TERKUNCI** menghapusnya — jadi tidak perlu screenshot untuk
+> menentukan posisi ruangan.
+> Riwayat: sempat dikunci (`VIEW_LOCKED = true` + `ROOM_TEMP_UNLOCKED = false`).
 >
 > **Amendemen #1 (permintaan eksplisit user):** ruangan diperpanjang +6 tile ke selatan
 > menjadi 20 × 19 — **tetap berlaku**.
@@ -65,11 +67,11 @@ referensi → **80×40 px** di kanvas (320×160 px di layar 2560), nat 1 px.
 Karena internal 640×400 adalah tepat ¼ dari 2560×1600, seluruh komposisi ini
 mendarat identik di panel MatePad Mini.
 
-> **POSISI & UKURAN RUANGAN TERKUNCI — 2026-10-28 (keputusan user).**
-> `VIEW_LOCKED = true` + `ROOM_TEMP_UNLOCKED = false`: komposisi `VIEW_FIXED`
-> (Q 2.5, pusat 0.4/0.5) dan dimensi ruangan (20 × 19 × 12z, `malam-biru`) beku.
-> ZOOM/TENGAH, tombol reset, reload preview, dan aplikasi nanti selalu mendarat
-> persis di komposisi ini; pan/pinch hanya sementara dan tidak pernah disimpan.
+> **POSISI KAMERA: bebas + tersimpan otomatis.** Urutan posisi awal saat halaman
+> dibuka: (1) posisi yang dikunci user lewat tombol **📌 KUNCI POSISI INI**,
+> (2) posisi kamera terakhir (`isola-kamera-v1`), (3) komposisi acuan
+> `VIEW_FIXED` (Q 2.5, pusat 0.4/0.5). Tombol TENGAH/ZOOM-reset kembali ke
+> posisi terkunci kalau ada, kalau tidak ke `VIEW_FIXED`.
 > Komposisi dibekukan sebagai `VIEW_FIXED` (`iso/space.ts`): **Q = 2.5**
 > (HW 40, HH 20, ZH 40), pusat kamera **(0.4, 0.5)**. Konsekuensinya:
 > ZOOM/TENGAH, tombol reset, reload preview, dan aplikasi nanti **selalu**
