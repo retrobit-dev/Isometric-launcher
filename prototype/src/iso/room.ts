@@ -1,4 +1,4 @@
-import { CAM, CY, HH, IH, IW, OX, ROOM, ZH, px, type P } from './space'
+import { CAM, CY, HH, HW, IH, IW, OX, ROOM, ZH, px, type P } from './space'
 import { PAL } from './palette'
 import { drawBox, sortedObjects } from './box'
 import type { SceneObject } from '../scene/types'
