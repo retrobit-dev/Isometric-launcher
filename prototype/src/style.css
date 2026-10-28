@@ -506,3 +506,51 @@ html, body, #root {
   border-radius: 4px;
 }
 .olrescue .sbtn { justify-content: flex-start; text-align: left; }
+
+/* dialog konfirmasi aksi merusak (hapus / import menimpa scene) */
+.mcard.confirm { width: min(420px, 92vw); }
+
+.cwarn { color: #e8a05b; }
+
+.cbody {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  padding: 4px 2px 2px;
+  text-transform: none;
+  letter-spacing: 0;
+  font: 11px/1.5 ui-monospace, 'Courier New', monospace;
+  color: #aeb3c8;
+}
+
+.cline.strong { color: #e8e2cf; text-transform: uppercase; letter-spacing: 0.05em; }
+
+.cfoot { display: flex; gap: 6px; }
+
+.chint {
+  color: #6f7590;
+  font-size: 9px;
+  text-transform: none;
+  letter-spacing: 0;
+  text-align: center;
+}
+
+/* toast URUNGKAN setelah hapus/import */
+.toast {
+  position: fixed;
+  left: 50%;
+  bottom: 76px;
+  transform: translateX(-50%);
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 6px 8px;
+  background: rgba(13, 15, 20, 0.95);
+  border: 1px solid #7a5c2e;
+  border-radius: 6px;
+  font: 10px/1.4 ui-monospace, 'Courier New', monospace;
+  text-transform: none;
+  letter-spacing: 0;
+  color: #e8e2cf;
+  z-index: 40;
+}

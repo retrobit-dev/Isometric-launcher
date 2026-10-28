@@ -50,7 +50,6 @@ const KUNCI_TAG: Record<string, string> = { warna: '🔒w', semua: '🔒' }
  */
 export default function ObjectList(p: Props) {
   const [pos, setPos] = useState({ x: Math.max(10, window.innerWidth - 262), y: 10 })
-  const [confirmDel, setConfirmDel] = useState<string | null>(null)
   const [openFolders, setOpenFolders] = useState<string[]>([])
   const [editing, setEditing] = useState<string | null>(null)   // gid yang sedang di-rename
   const [showRescue, setShowRescue] = useState(false)
@@ -148,19 +147,11 @@ export default function ObjectList(p: Props) {
             onClick={ev => { ev.stopPropagation(); p.onCycleKunci(o.id) }}
           >{KUNCI_TAG[o.kunci ?? ''] ?? '🔓'}</button>
           <button
-            className={confirmDel === o.id ? 'olbtn del' : 'olbtn'}
+            className="olbtn del"
             disabled={frozen}
-            title={frozen ? 'objek terkunci' : confirmDel === o.id ? 'ketuk lagi untuk menghapus' : 'hapus objek'}
-            onClick={ev => {
-              ev.stopPropagation()
-              if (frozen) return
-              if (confirmDel === o.id) { p.onDelete(o.id); setConfirmDel(null) }
-              else {
-                setConfirmDel(o.id)
-                setTimeout(() => setConfirmDel(c => (c === o.id ? null : c)), 2500)
-              }
-            }}
-          >{confirmDel === o.id ? '!' : '🗑'}</button>
+            title={frozen ? 'objek terkunci' : 'hapus objek (akan diminta konfirmasi)'}
+            onClick={ev => { ev.stopPropagation(); if (!frozen) p.onDelete(o.id) }}
+          >🗑</button>
         </div>
         <div className="olmeta">
           <span className="oltag">{roleTag(o)}</span>

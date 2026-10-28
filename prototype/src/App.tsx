@@ -10,6 +10,7 @@ import { loadCandidates, loadDraft, loadLocked, saveDraftGuarded, saveLocked, va
 import { type Scene, type SceneObject } from './scene/types'
 import EditPanel from './ui/EditPanel'
 import ObjectList from './ui/ObjectList'
+import Confirm, { type ConfirmReq } from './ui/Confirm'
 
 const DEV_RES_W = 2560
 const BEZEL = 16
@@ -28,6 +29,10 @@ export default function App() {
   const [showList, setShowList] = useState(false)
   const [multi, setMulti] = useState<string[]>([]) // centang di DAFTAR OBJEK
   const [importText, setImportText] = useState('')
+  // dialog konfirmasi untuk aksi merusak (hapus objek / import menimpa scene)
+  const [confirm, setConfirm] = useState<ConfirmReq | null>(null)
+  // URUNGKAN: simpan scene sesaat sebelum dihapus, bisa dipasang kembali
+  const [undo, setUndo] = useState<{ scene: Scene; label: string } | null>(null)
   const [vp, setVp] = useState({ w: window.innerWidth, h: window.innerHeight })
   const [hover, setHover] = useState<{ e: number; w: number } | null>(null)
 
@@ -48,6 +53,13 @@ export default function App() {
   const pinchRef = useRef<{ d0: number; q0: number } | null>(null)
 
   useEffect(() => { saveDraftGuarded(scene) }, [scene])
+
+  // toast URUNGKAN hilang sendiri setelah 8 detik
+  useEffect(() => {
+    if (!undo) return
+    const t = setTimeout(() => setUndo(null), 8000)
+    return () => clearTimeout(t)
+  }, [undo])
 
   useEffect(() => {
     const onResize = () => setVp({ w: window.innerWidth, h: window.innerHeight })
@@ -365,9 +377,40 @@ export default function App() {
     setSelectedId(null)
   }
 
-  const deleteObject = (id: string) => {
-    setScene(s => ({ ...s, objects: s.objects.filter(o => o.id !== id) }))
-    setSelectedId(null)
+  // TANYA DULU sebelum menghapus (permintaan user: jangan ada data hilang
+  // tanpa peringatan). Dialog menyebut nama objek, peran, dan apakah dia
+  // anggota grup / objek terakhir.
+  const requestDelete = (id: string) => {
+    const o = sceneRef.current.objects.find(x => x.id === id)
+    if (!o) return
+    const grupN = o.grup ? sceneRef.current.objects.filter(x => x.grup === o.grup).length : 0
+    const terakhir = sceneRef.current.objects.length === 1
+    const lines = [
+      `Hapus "${o.label || o.id}"?`,
+      `peran: ${o.role === 'lantai' ? 'lantai' : o.role === 'dinding' ? 'dinding ' + (o.side ?? 'kiri') : 'balok'} · layer ${o.layer ?? 'main'} · posisi e${o.pos.e} w${o.pos.w} z${o.pos.z}`,
+    ]
+    if (grupN > 0) lines.push(`objek ini anggota grup berisi ${grupN} objek — objek lain TIDAK ikut terhapus`)
+    if (terakhir) lines.push('INI OBJEK TERAKHIR — scene akan menjadi kosong')
+    setConfirm({
+      title: 'KONFIRMASI HAPUS OBJEK',
+      lines,
+      confirmLabel: 'YA, HAPUS',
+      danger: true,
+      onConfirm: () => {
+        const before = sceneRef.current
+        setUndo({ scene: before, label: o.label || o.id })
+        setScene(sc => ({ ...sc, objects: sc.objects.filter(x => x.id !== id) }))
+        setSelectedId(null)
+        setConfirm(null)
+      },
+    })
+  }
+
+  // tombol URUNGKAN pada toast: pasang kembali scene sebelum penghapusan
+  const undoDelete = () => {
+    if (!undo) return
+    setScene(undo.scene)
+    setUndo(null)
   }
 
   // SIMPAN & KUNCI: scene terkunci = satu-satunya yang sah diterapkan ke aplikasi
@@ -418,12 +461,39 @@ export default function App() {
   }
 
   const applyImport = () => {
-    const parsed = validateScene(JSON.parse(importText))
+    let parsed: Scene | null = null
+    try {
+      parsed = validateScene(JSON.parse(importText))
+    } catch {
+      parsed = null
+    }
     if (!parsed) return
-    setScene(parsed)
-    setLocked(Boolean(parsed.meta?.locked))
-    setSelectedId(null)
-    setModal(null)
+    const now = sceneRef.current.objects.length
+    const next = parsed.objects.length
+    const terjadwal = () => {
+      setUndo({ scene: sceneRef.current, label: 'scene sebelum import' })
+      setScene(parsed as Scene)
+      setLocked(Boolean(parsed.meta?.locked))
+      setSelectedId(null)
+      setModal(null)
+      setConfirm(null)
+    }
+    // scene sekarang berisi objek -> import akan MENGGANTI semuanya, jadi tanya
+    if (now > 0) {
+      setConfirm({
+        title: 'KONFIRMASI IMPORT',
+        lines: [
+          `Import akan MENGGANTI seluruh scene: ${now} objek → ${next} objek.`,
+          next < now ? `PERHATIAN: ${now - next} objek akan hilang dari layar` : 'jumlah objek bertambah',
+          'tombol URUNGKAN muncul ±8 detik setelah import',
+        ],
+        confirmLabel: 'YA, GANTI SCENE',
+        danger: next < now,
+        onConfirm: terjadwal,
+      })
+      return
+    }
+    terjadwal()
   }
 
   // --- bingkai tablet ---
@@ -567,7 +637,7 @@ export default function App() {
             patchObject(selected.id, { layer: order[(order.indexOf(cur) + 1) % order.length] })
           }}
           onDuplicate={() => duplicateObject(selected.id)}
-          onDelete={() => deleteObject(selected.id)}
+          onDelete={() => requestDelete(selected.id)}
           onClose={() => setSelectedId(null)}
         />
       )}
@@ -584,7 +654,7 @@ export default function App() {
             setCenter(o.pos.e + o.size.e / 2, o.pos.w + o.size.w / 2)
             setSelectedId(id)
           }}
-          onDelete={id => deleteObject(id)}
+          onDelete={id => requestDelete(id)}
           multi={multi}
           onToggle={id =>
             setMulti(m => (m.includes(id) ? m.filter(x => x !== id) : [...m, id]))
@@ -597,6 +667,16 @@ export default function App() {
           onRestore={sc => restoreScene(sc)}
           onClose={() => setShowList(false)}
         />
+      )}
+
+      {confirm && <Confirm {...confirm} onCancel={() => setConfirm(null)} />}
+
+      {undo && (
+        <div className="toast">
+          <span>“{undo.label}” dihapus/diganti</span>
+          <button className="sbtn" onClick={undoDelete}>URUNGKAN</button>
+          <button className="sbtn" onClick={() => setUndo(null)}>✕</button>
+        </div>
       )}
 
       {modal && (
