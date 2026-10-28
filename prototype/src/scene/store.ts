@@ -39,6 +39,8 @@ function migratePrevDraft(): Scene | null {
 // - objek "lempeng" besar & tipis otomatis jadi lantai (z=0)
 // - objek ber-role lantai WAJIB memakai palet lantai; kalau style lama masih
 //   material balok (mis. 'wood-dark'), diganti FLOOR_DEFAULT -> kayu selang-seling
+// - nilai z milik user DIHORMATI bila role 'lantai' sudah diset eksplisit
+//   (lantai boleh dinaikkan); z hanya dipaksa 0 saat objek dikonversi otomatis
 function normalize(scene: Scene): Scene {
   let changed = false
   const objects = scene.objects.map(o => {
@@ -48,13 +50,15 @@ function normalize(scene: Scene): Scene {
     const asFloor = o.role === 'lantai' || styleIsFloor || isSlab
     if (!asFloor) return o
     const styleOk = typeof o.style === 'string' && FLOOR_MATERIALS[o.style] !== undefined
+    const explicitFloor = o.role === 'lantai'
     const next: SceneObject = {
       ...o,
       role: 'lantai',
       style: styleOk ? o.style : FLOOR_DEFAULT,
-      pos: { ...o.pos, z: 0 },
+      // role eksplisit -> z user dibiarkan; konversi otomatis -> z diturunkan
+      pos: explicitFloor ? { ...o.pos } : { ...o.pos, z: 0 },
     }
-    if (o.role !== 'lantai' || !styleOk || o.pos.z !== 0) changed = true
+    if (!explicitFloor || !styleOk || (!explicitFloor && o.pos.z !== 0)) changed = true
     return next
   })
   if (!changed) return scene
