@@ -50,6 +50,10 @@ export interface SceneObject {
   refleksi?: boolean
   // PANTULAN = bayangan cermin objek ini di permukaan lantai. Default ON.
   pantulan?: boolean
+  // ARAH PAPAN LANTAI: 0 = papan membentang sepanjang sumbu e (bawaan),
+  // 1 = diputar 90 derajat sehingga membentang sepanjang sumbu w.
+  // Hanya berpengaruh untuk lantai ber-pola 'papan' (kayu).
+  polaRot?: 0 | 1
   // underlay = di bawah objek main (karpet, bayangan, decal)
   // main     = urutan kedalaman normal (furniture/app)
   // overlay  = di atas semua (lampu gantung, balok plafon, tanaman menjulang)

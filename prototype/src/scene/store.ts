@@ -245,6 +245,7 @@ export function validateScene(data: unknown): Scene | null {
       ...(ob.rot === 1 || ob.rot === 2 || ob.rot === 3 ? { rot: ob.rot } : { rot: 0 }),
       ...(typeof ob.refleksi === 'boolean' ? { refleksi: ob.refleksi } : {}),
       ...(typeof ob.pantulan === 'boolean' ? { pantulan: ob.pantulan } : {}),
+      ...(ob.polaRot === 1 ? { polaRot: 1 as const } : {}),
       ...(ob.role === 'lantai' || ob.role === 'dinding' ? { role: ob.role } : {}),
       ...(ob.side === 'kiri' || ob.side === 'kanan' ? { side: ob.side } : {}),
       layer: ob.layer === 'underlay' || ob.layer === 'overlay' ? ob.layer : 'main',

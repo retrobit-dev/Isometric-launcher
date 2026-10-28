@@ -194,41 +194,54 @@ function drawFloorObjects(ctx: CanvasRenderingContext2D, objects: SceneObject[])
     if (mat.pattern === 'papan') {
       // PAPAN KAYU PANJANG (default 4x1 tile) dengan sambungan digeser
       // setengah papan tiap baris -> kesan lantai kayu, bukan bata.
+      // `polaRot: 1` memutar arah papan 90 derajat (permintaan user
+      // 2026-10-28): papan membentang sepanjang sumbu w, dan barisannya
+      // menumpuk sepanjang sumbu e. Nat, serat kayu, dan sambungan ujung
+      // ikut berputar karena semua koordinat dipetakan lewat `at()`.
       const L = Math.max(2, Math.round(mat.plank ?? 4))
       const stagger = Math.round(L / 2)
-      for (let wr = Math.floor(w0); wr < Math.ceil(w1); wr++) {
-        const cd = Math.max(wr, w0), dd = Math.min(wr + 1, w1)
-        if (dd <= cd) continue
-        const off = ((wr % 2) + 2) % 2 === 0 ? 0 : stagger
-        const first = Math.floor((e0 - off) / L) * L + off
-        for (let e0p = first; e0p < e1; e0p += L) {
-          const a = Math.max(e0p, e0), b = Math.min(e0p + L, e1)
-          if (b <= a) continue
-          const toneIdx = (Math.abs(Math.round(e0p / L)) * 5 + wr * 3) % 3
-          piece(a, b, cd, dd, mat.tones[toneIdx])
+      const rot90 = o.polaRot === 1
+      // r = sumbu baris (tepi pendek papan), p = sumbu panjang papan
+      const R0 = rot90 ? e0 : w0
+      const R1 = rot90 ? e1 : w1
+      const P0 = rot90 ? w0 : e0
+      const P1 = rot90 ? w1 : e1
+      const at = (r: number, p: number) => (rot90 ? px(r, p, z) : px(p, r, z))
+      const quad = (pA: number, pB: number, rA: number, rB: number, tone: string) =>
+        poly(ctx, [at(rA, pA), at(rA, pB), at(rB, pB), at(rB, pA)], tone)
 
-          // SERAT KAYU: satu garis tipis searah panjang papan, hanya pada
-          // sebagian papan (deterministik) supaya lantai tidak terlihat garis-garis
-          if (mat.grain && (wr * 7 + toneIdx * 5 + Math.round(a)) % 3 !== 0) {
-            const h = dd - cd
-            const g1 = cd + h * (0.42 + ((wr * 5 + toneIdx) % 3) * 0.12)
-            line(ctx, px(a, g1, z), px(b, g1, z), mat.grain)
+      for (let rr = Math.floor(R0); rr < Math.ceil(R1); rr++) {
+        const rA = Math.max(rr, R0), rB = Math.min(rr + 1, R1)
+        if (rB <= rA) continue
+        const off = ((rr % 2) + 2) % 2 === 0 ? 0 : stagger
+        const first = Math.floor((P0 - off) / L) * L + off
+        for (let p0 = first; p0 < P1; p0 += L) {
+          const pA = Math.max(p0, P0), pB = Math.min(p0 + L, P1)
+          if (pB <= pA) continue
+          const toneIdx = (Math.abs(Math.round(p0 / L)) * 5 + rr * 3) % 3
+          quad(pA, pB, rA, rB, mat.tones[toneIdx])
+
+          // SERAT KAYU: satu garis tipis searah panjang papan
+          if (mat.grain && (rr * 7 + toneIdx * 5 + Math.round(pA)) % 3 !== 0) {
+            const h = rB - rA
+            const g1 = rA + h * (0.42 + ((rr * 5 + toneIdx) % 3) * 0.12)
+            line(ctx, at(g1, pA), at(g1, pB), mat.grain)
           }
         }
       }
-      // nat TIPIS hanya di batas baris papan (bukan garis tebal tiap tile)
-      for (let ww = Math.ceil(w0); ww < w1; ww++) line(ctx, px(e0, ww, z), px(e1, ww, z), mat.grout)
-      line(ctx, px(e0, w1, z), px(e1, w1, z), mat.grout)
-      line(ctx, px(e0, w0, z), px(e1, w0, z), mat.grout)
-      // sambungan ujung papan (hanya di ujung papan, ikut pergeseran baris)
-      for (let wr = Math.floor(w0); wr < Math.ceil(w1); wr++) {
-        const cd = Math.max(wr, w0), dd = Math.min(wr + 1, w1)
-        if (dd <= cd) continue
-        const off = ((wr % 2) + 2) % 2 === 0 ? 0 : stagger
-        const first = Math.floor((e0 - off) / L) * L + off
-        for (let ee = first + L; ee < e1; ee += L) {
-          if (ee <= e0) continue
-          line(ctx, px(ee, cd, z), px(ee, dd, z), mat.grout)
+      // nat TIPIS hanya di batas baris papan
+      for (let rr = Math.ceil(R0); rr < R1; rr++) line(ctx, at(rr, P0), at(rr, P1), mat.grout)
+      line(ctx, at(R1, P0), at(R1, P1), mat.grout)
+      line(ctx, at(R0, P0), at(R0, P1), mat.grout)
+      // sambungan ujung papan (ikut pergeseran baris)
+      for (let rr = Math.floor(R0); rr < Math.ceil(R1); rr++) {
+        const rA = Math.max(rr, R0), rB = Math.min(rr + 1, R1)
+        if (rB <= rA) continue
+        const off = ((rr % 2) + 2) % 2 === 0 ? 0 : stagger
+        const first = Math.floor((P0 - off) / L) * L + off
+        for (let pp = first + L; pp < P1; pp += L) {
+          if (pp <= P0) continue
+          line(ctx, at(rA, pp), at(rB, pp), mat.grout)
         }
       }
     } else {

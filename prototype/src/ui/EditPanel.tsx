@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from 'react'
-import { FLOOR_DEFAULT, FLOOR_KEYS, MATERIAL_KEYS, WALL_STYLE_KEYS } from '../iso/palette'
+import { FLOOR_DEFAULT, FLOOR_KEYS, MATERIAL_KEYS, WALL_STYLE_KEYS, floorMat } from '../iso/palette'
 import type { SceneObject } from '../scene/types'
 
 interface Props {
@@ -212,6 +212,19 @@ export default function EditPanel(p: Props) {
           {styleName}{matIdx >= 0 ? ` (${matIdx + 1}/${keys.length})` : ''} ⟳
         </button>
       </div>
+      {isFloor && floorMat(styleName).pattern === 'papan' && (
+        <div className="row">
+          <span className="rl">arah papan</span>
+          <button
+            className="sbtn wide"
+            disabled={frozen}
+            onClick={() => p.onChange({ polaRot: o.polaRot === 1 ? 0 : 1 })}
+            title="putar arah papan lantai 90° — 0° membentang sepanjang sumbu e, 90° sepanjang sumbu w"
+          >
+            {o.polaRot === 1 ? '90° (sumbu w) ⟳' : '0° (sumbu e) ⟳'}
+          </button>
+        </div>
+      )}
       <div className="row">
         <span className="rl">kunci</span>
         <button
