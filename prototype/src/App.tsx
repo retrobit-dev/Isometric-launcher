@@ -33,6 +33,7 @@ export default function App() {
   const [modal, setModal] = useState<'export' | 'import' | null>(null)
   const [showPalette, setShowPalette] = useState(false)
   const [showList, setShowList] = useState(false)
+  const [multi, setMulti] = useState<string[]>([]) // centang di DAFTAR OBJEK
   const [importText, setImportText] = useState('')
   const [vp, setVp] = useState({ w: window.innerWidth, h: window.innerHeight })
   const [hover, setHover] = useState<{ e: number; w: number } | null>(null)
@@ -42,7 +43,14 @@ export default function App() {
   const lockedRef = useRef(locked); lockedRef.current = locked
   const selRef = useRef(selectedId); selRef.current = selectedId
   const gridRef = useRef(grid); gridRef.current = grid
-  const dragRef = useRef<{ id: string; e0: number; w0: number; ge: number; gw: number; moved: boolean } | null>(null)
+  // drag satu objek = drag seluruh anggota grupnya (jarak relatif tetap)
+  const dragRef = useRef<{
+    id: string
+    members: { id: string; e0: number; w0: number }[]
+    ge: number
+    gw: number
+    moved: boolean
+  } | null>(null)
   const panRef = useRef<{ ce: number; cw: number; ge: number; gw: number; moved: boolean } | null>(null)
   const pointersRef = useRef<Map<number, { x: number; y: number }>>(new Map())
   const pinchRef = useRef<{ d0: number; q0: number } | null>(null)
@@ -81,6 +89,12 @@ export default function App() {
         edit: modeRef.current === 'edit' && !lockedRef.current,
         objects: sceneRef.current.objects,
         selectedId: selRef.current,
+        highlightIds: (() => {
+          const sel = sceneRef.current.objects.find(o => o.id === selRef.current)
+          return sel?.grup
+            ? sceneRef.current.objects.filter(x => x.grup === sel.grup).map(x => x.id)
+            : []
+        })(),
       })
       raf = requestAnimationFrame(loop)
     }
@@ -98,6 +112,14 @@ export default function App() {
       sy: ((ev.clientY - rect.top) * IH) / rect.height,
     }
   }
+
+  // id semua anggota grup dari objek ini (objek tanpa grup -> dirinya saja)
+  const grupOf = (o: SceneObject): string[] =>
+    o.grup ? sceneRef.current.objects.filter(x => x.grup === o.grup).map(x => x.id) : [o.id]
+
+  // objek terkunci: 'warna' & 'semua' sama-sama tidak boleh digeser/diubah
+  // bentuknya; 'semua' juga tidak boleh ganti warna.
+  const frozen = (o: SceneObject) => o.kunci === 'warna' || o.kunci === 'semua'
 
   const hitTest = (sx: number, sy: number): SceneObject | null => {
     // objek lantai (role 'lantai') dicek TERAKHIR supaya tidak menelan klik
@@ -133,8 +155,23 @@ export default function App() {
     if (modeRef.current === 'edit' && !lockedRef.current) {
       const hit = hitTest(sx, sy)
       if (hit) {
-        dragRef.current = { id: hit.id, e0: hit.pos.e, w0: hit.pos.w, ge: g.e, gw: g.w, moved: false }
         setSelectedId(hit.id)
+        // objek terkunci hanya bisa dipilih, tidak bisa digeser. Grup yang
+        // salah satu anggotanya terkunci juga tidak digeser sama sekali, supaya
+        // susunan grup tidak pecah (geser sebagian = posisi relatif berubah).
+        const ids = grupOf(hit)
+        const members = ids
+          .map(id => sceneRef.current.objects.find(o => o.id === id))
+          .filter((o): o is SceneObject => !!o)
+        if (!frozen(hit) && !members.some(frozen)) {
+          dragRef.current = {
+            id: hit.id,
+            members: members.map(o => ({ id: o.id, e0: o.pos.e, w0: o.pos.w })),
+            ge: g.e,
+            gw: g.w,
+            moved: false,
+          }
+        }
         ev.currentTarget.setPointerCapture(ev.pointerId)
         return
       }
@@ -167,14 +204,23 @@ export default function App() {
 
     const d = dragRef.current
     if (d) {
-      const obj = sceneRef.current.objects.find(o => o.id === d.id)
-      if (!obj) return
-      // tanpa aturan ruangan: posisi objek bebas (tidak dikurung ke 20x19)
-      const ne = snap(d.e0 + (g.e - d.ge))
-      const nw = snap(d.w0 + (g.w - d.gw))
-      if (ne !== obj.pos.e || nw !== obj.pos.w) {
+      const de = g.e - d.ge
+      const dw = g.w - d.gw
+      // satu set patch untuk semua anggota supaya mereka bergerak serempak
+      let changed = false
+      const objects = sceneRef.current.objects.map(o => {
+        const m = d.members.find(x => x.id === o.id)
+        if (!m) return o
+        // tanpa aturan ruangan: posisi objek bebas (tidak dikurung ke 20x19)
+        const ne = snap(m.e0 + de)
+        const nw = snap(m.w0 + dw)
+        if (ne === o.pos.e && nw === o.pos.w) return o
+        changed = true
+        return { ...o, pos: { ...o.pos, e: ne, w: nw } }
+      })
+      if (changed) {
         d.moved = true
-        patchObject(d.id, { pos: { ...obj.pos, e: ne, w: nw } })
+        setScene(sc => ({ ...sc, objects }))
       }
       return
     }
@@ -286,9 +332,42 @@ export default function App() {
       objects: [...s.objects, {
         ...src, id: nid, label: `${src.label} (salinan)`,
         pos: { ...src.pos, e: snap(src.pos.e + 1), w: snap(src.pos.w + 1) },
+        // salinan berdiri sendiri: lepas dari grup & dari kunci objek asal
+        grup: undefined,
+        kunci: undefined,
       }],
     }))
     setSelectedId(nid)
+  }
+
+  // GABUNG GRUP: semua objek bercetang mendapat id grup yang sama, sehingga
+  // menyeret salah satunya menggeser semuanya (jarak relatif tetap).
+  const groupSelected = () => {
+    if (multi.length < 2) return
+    const gid = `grup-${Date.now().toString(36).slice(-4)}`
+    setScene(s => ({
+      ...s,
+      objects: s.objects.map(o => (multi.includes(o.id) ? { ...o, grup: gid } : o)),
+    }))
+    setMulti([])
+  }
+
+  // LEPAS GRUP: buang `grup` dari objek bercetang (kembali mandiri)
+  const ungroupSelected = () => {
+    if (multi.length === 0) return
+    setScene(s => ({
+      ...s,
+      objects: s.objects.map(o => (multi.includes(o.id) ? { ...o, grup: undefined } : o)),
+    }))
+    setMulti([])
+  }
+
+  // kunci per objek: bebas -> warna -> semua -> bebas
+  const cycleKunci = (id: string) => {
+    const o = sceneRef.current.objects.find(x => x.id === id)
+    if (!o) return
+    const next = o.kunci === undefined ? 'warna' : o.kunci === 'warna' ? 'semua' : undefined
+    patchObject(id, { kunci: next })
   }
 
   const deleteObject = (id: string) => {
@@ -495,6 +574,7 @@ export default function App() {
             const cur = selected.rot ?? 0
             patchObject(selected.id, { rot: (((cur + 1) % 4) as 0 | 1 | 2 | 3) })
           }}
+          onCycleKunci={() => cycleKunci(selected.id)}
           onCycleLayer={() => {
             const order = ['underlay', 'main', 'overlay'] as const
             const cur = selected.layer ?? 'main'
@@ -521,6 +601,14 @@ export default function App() {
             setSelectedId(id)
           }}
           onDelete={id => deleteObject(id)}
+          multi={multi}
+          onToggle={id =>
+            setMulti(m => (m.includes(id) ? m.filter(x => x !== id) : [...m, id]))
+          }
+          onClearMulti={() => setMulti([])}
+          onGroup={groupSelected}
+          onUngroup={ungroupSelected}
+          onCycleKunci={id => cycleKunci(id)}
           onClose={() => setShowList(false)}
         />
       )}

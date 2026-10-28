@@ -123,6 +123,8 @@ export interface DrawOpts {
   edit: boolean
   objects: SceneObject[]
   selectedId: string | null
+  /** id tambahan yang ikut tersorot (anggota grup dari objek terpilih) */
+  highlightIds?: string[]
 }
 
 // Refleksi lantai: bayangan cermin objek di bawah bidang lantai,
@@ -316,17 +318,16 @@ export function drawScene(ctx: CanvasRenderingContext2D, o: DrawOpts) {
   for (const obj of sortedObjects(solid.filter(x => layerOf(x) === 'main'))) drawBox(ctx, obj)
   for (const obj of sortedObjects(solid.filter(x => layerOf(x) === 'overlay'))) drawBox(ctx, obj)
 
-  if (o.selectedId) {
-    const sel = o.objects.find(x => x.id === o.selectedId)
-    if (sel) {
-      // sorot: garis dasar tile tempat objek berdiri
-      const { e, w } = sel.pos
-      const { se, sw } = footprintOf(sel)
-      line(ctx, px(e, w), px(e + se, w), PAL.zone)
-      line(ctx, px(e + se, w), px(e + se, w + sw), PAL.zone)
-      line(ctx, px(e + se, w + sw), px(e, w + sw), PAL.zone)
-      line(ctx, px(e, w + sw), px(e, w), PAL.zone)
-    }
+  const marks = o.objects.filter(x =>
+    x.id === o.selectedId || (o.highlightIds ?? []).includes(x.id))
+  for (const sel of marks) {
+    // sorot: garis dasar tile tempat objek berdiri
+    const { e, w } = sel.pos
+    const { se, sw } = footprintOf(sel)
+    line(ctx, px(e, w), px(e + se, w), PAL.zone)
+    line(ctx, px(e + se, w), px(e + se, w + sw), PAL.zone)
+    line(ctx, px(e + se, w + sw), px(e, w + sw), PAL.zone)
+    line(ctx, px(e, w + sw), px(e, w), PAL.zone)
   }
 
   crispify(ctx)

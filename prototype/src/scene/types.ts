@@ -50,6 +50,17 @@ export interface SceneObject {
   // main     = urutan kedalaman normal (furniture/app)
   // overlay  = di atas semua (lampu gantung, balok plafon, tanaman menjulang)
   layer?: Layer
+  // GRUP: objek dengan `grup` sama dianggap satu kesatuan saat dipilih &
+  // digeser — menyeret satu anggota menggeser semua anggota dengan jarak yang
+  // sama, sehingga susunan relatifnya tetap. Ukuran/warna/rotasi tetap
+  // per objek (bisa diatur sendiri-sendiri).
+  grup?: string
+  // KUNCI pengeditan per objek:
+  //   'warna' = posisi/ukuran/rotasi/layer/peran/sisi/hapus DIKUNCI,
+  //             hanya material (warna) yang masih bisa diubah
+  //   'semua' = terkunci total, termasuk warna
+  // tidak diisi = bebas
+  kunci?: 'warna' | 'semua'
 }
 
 export interface SceneMeta {

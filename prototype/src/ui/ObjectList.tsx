@@ -9,6 +9,13 @@ interface Props {
   onSelect: (id: string) => void
   onFocus: (id: string) => void
   onDelete: (id: string) => void
+  /** id objek yang dicentang (untuk digabung jadi grup) */
+  multi: string[]
+  onToggle: (id: string) => void
+  onClearMulti: () => void
+  onGroup: () => void
+  onUngroup: () => void
+  onCycleKunci: (id: string) => void
   onClose: () => void
 }
 
@@ -28,14 +35,18 @@ function roleTag(o: SceneObject): string {
 }
 
 const LAYER_TAG: Record<string, string> = { underlay: 'U', main: 'M', overlay: 'O' }
+const KUNCI_TAG: Record<string, string> = { warna: '🔒w', semua: '🔒' }
 
 /**
- * DAFTAR OBJEK — semua objek yang sudah dibuat, dalam satu panel yang bisa
- * digeser. Ketuk baris = pilih objek (sama seperti mengetuk di kanvas), tombol
- * ◎ = bidik kamera ke objek itu, 🗑 = hapus (butuh 2 ketukan agar aman).
+ * DAFTAR OBJEK — semua objek yang sudah dibuat.
+ *  • ketuk baris        = pilih objek (sama seperti mengetuk di kanvas)
+ *  • ketuk kotak centang = tandai beberapa objek, lalu GABUNG GRUP
+ *  • ◎  = bidik kamera ke objek
+ *  • 🗑  = hapus (butuh 2 ketukan agar tidak salah hapus)
+ *  • 🔒 = ubah status kunci objek (bebas -> warna saja -> total)
  */
 export default function ObjectList(p: Props) {
-  const [pos, setPos] = useState({ x: Math.max(10, window.innerWidth - 236), y: 10 })
+  const [pos, setPos] = useState({ x: Math.max(10, window.innerWidth - 262), y: 10 })
   const [confirmDel, setConfirmDel] = useState<string | null>(null)
   const dragRef = useRef<{ dx: number; dy: number } | null>(null)
 
@@ -53,6 +64,9 @@ export default function ObjectList(p: Props) {
   }
   const onHeadUp = () => { dragRef.current = null }
 
+  const nGrup = p.multi.length
+  const grupCount = new Set(p.objects.map(o => o.grup).filter(Boolean)).size
+
   return (
     <div className="objlist" style={{ left: pos.x, top: pos.y }}>
       <div
@@ -64,11 +78,35 @@ export default function ObjectList(p: Props) {
         title="seret untuk memindahkan daftar"
       >
         <span className="pgrip">⠿</span>
-        <span className="ptitle">DAFTAR OBJEK ({p.objects.length})</span>
+        <span className="ptitle">OBJEK ({p.objects.length})</span>
         <button className="sbtn" onClick={p.onClose} title="tutup daftar">✕</button>
       </div>
 
-      {p.locked && <div className="olhint">terkunci — buka kunci untuk mengedit</div>}
+      {/* aksi grup: muncul saat ada objek dicentang */}
+      <div className="olact">
+        <button className="sbtn" onClick={p.onClearMulti} title="kosongkan centang">
+          ☐ {nGrup}
+        </button>
+        <button
+          className="sbtn wide"
+          disabled={nGrup < 2}
+          onClick={p.onGroup}
+          title="gabungkan objek bercetang jadi satu grup (seret satu = semua ikut)"
+        >
+          GABUNG{nGrup >= 2 ? ` ${nGrup}` : ''}
+        </button>
+        <button
+          className="sbtn wide"
+          disabled={nGrup === 0}
+          onClick={p.onUngroup}
+          title="lepas objek bercetang dari grupnya"
+        >
+          LEPAS
+        </button>
+      </div>
+      {grupCount > 0 && <div className="olhint">{grupCount} grup aktif</div>}
+
+      {p.locked && <div className="olhint">scene terkunci — buka kunci untuk mengedit</div>}
 
       {p.objects.length === 0 && (
         <div className="olhint">belum ada objek. pakai + LANTAI / + DINDING / + TAMBAH</div>
@@ -77,6 +115,8 @@ export default function ObjectList(p: Props) {
       <div className="ollist">
         {p.objects.map(o => {
           const sel = o.id === p.selectedId
+          const checked = p.multi.includes(o.id)
+          const frozen = o.kunci === 'warna' || o.kunci === 'semua'
           return (
             <div
               key={o.id}
@@ -84,36 +124,53 @@ export default function ObjectList(p: Props) {
               onClick={() => p.onSelect(o.id)}
               title={`${o.id} · e ${o.pos.e} w ${o.pos.w} z ${o.pos.z} · ${o.size.e}×${o.size.w}×${o.size.z}`}
             >
-              <span className="olsw" style={{ background: colorOf(o) }} />
-              <span className="olname">{o.label || o.id}</span>
-              <span className="oltag">{roleTag(o)}</span>
-              <span className="oltag">{LAYER_TAG[o.layer ?? 'main'] ?? 'M'}</span>
-              <span className="olpos">{o.pos.e},{o.pos.w}</span>
-              <button
-                className="olbtn"
-                title="bidik kamera ke objek ini"
-                onClick={ev => { ev.stopPropagation(); p.onFocus(o.id) }}
-              >◎</button>
-              <button
-                className={confirmDel === o.id ? 'olbtn del' : 'olbtn'}
-                title={confirmDel === o.id ? 'ketuk lagi untuk menghapus' : 'hapus objek'}
-                onClick={ev => {
-                  ev.stopPropagation()
-                  if (confirmDel === o.id) { p.onDelete(o.id); setConfirmDel(null) }
-                  else {
-                    setConfirmDel(o.id)
-                    setTimeout(() => setConfirmDel(c => (c === o.id ? null : c)), 2500)
-                  }
-                }}
-              >{confirmDel === o.id ? '!' : '🗑'}</button>
+              <div className="olline">
+                <button
+                  className={checked ? 'olchk on' : 'olchk'}
+                  onClick={ev => { ev.stopPropagation(); p.onToggle(o.id) }}
+                  title="centang untuk digabung jadi grup"
+                >
+                  {checked ? '☑' : '☐'}
+                </button>
+                <span className="olsw" style={{ background: colorOf(o) }} />
+                <span className="olname">{o.label || o.id}</span>
+                <button
+                  className="olbtn"
+                  title="bidik kamera ke objek ini"
+                  onClick={ev => { ev.stopPropagation(); p.onFocus(o.id) }}
+                >◎</button>
+                <button
+                  className={o.kunci ? 'olbtn lock on' : 'olbtn lock'}
+                  title="status kunci: bebas → warna saja → total"
+                  onClick={ev => { ev.stopPropagation(); p.onCycleKunci(o.id) }}
+                >{KUNCI_TAG[o.kunci ?? ''] ?? '🔓'}</button>
+                <button
+                  className={confirmDel === o.id ? 'olbtn del' : 'olbtn'}
+                  disabled={frozen}
+                  title={frozen ? 'objek terkunci' : confirmDel === o.id ? 'ketuk lagi untuk menghapus' : 'hapus objek'}
+                  onClick={ev => {
+                    ev.stopPropagation()
+                    if (frozen) return
+                    if (confirmDel === o.id) { p.onDelete(o.id); setConfirmDel(null) }
+                    else {
+                      setConfirmDel(o.id)
+                      setTimeout(() => setConfirmDel(c => (c === o.id ? null : c)), 2500)
+                    }
+                  }}
+                >{confirmDel === o.id ? '!' : '🗑'}</button>
+              </div>
+              <div className="olmeta">
+                <span className="oltag">{roleTag(o)}</span>
+                <span className="oltag">{LAYER_TAG[o.layer ?? 'main'] ?? 'M'}</span>
+                {o.grup && <span className="oltag grup">{o.grup.replace('grup-', 'G')}</span>}
+                <span className="olpos">e{o.pos.e} w{o.pos.w}</span>
+              </div>
             </div>
           )
         })}
       </div>
 
-      <div className="olfoot">
-        ketuk baris = pilih · ◎ = bidik · 🗑 dua kali = hapus
-      </div>
+      <div className="olfoot">ketuk = pilih · ☐ = centang · ◎ = bidik · 🔒 = kunci</div>
     </div>
   )
 }

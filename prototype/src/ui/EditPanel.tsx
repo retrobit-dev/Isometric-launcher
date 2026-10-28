@@ -8,6 +8,7 @@ interface Props {
   onMove: (de: number, dw: number) => void
   onResize: (de: number, dw: number, dz: number) => void
   onCycleStyle: () => void
+  onCycleKunci: () => void
   onCycleLayer: () => void
   onRotate: () => void
   onDuplicate: () => void
@@ -31,6 +32,7 @@ function NumField(p: {
   value: number
   min: number
   onChange: (v: number) => void
+  disabled?: boolean
 }) {
   const [text, setText] = useState(p.value.toFixed(1))
   const [focused, setFocused] = useState(false)
@@ -52,7 +54,7 @@ function NumField(p: {
   return (
     <div className="row">
       <span className="rl">{p.label}</span>
-      <button className="sbtn" onClick={() => commit(String(p.value - 0.1))}>−</button>
+      <button className="sbtn" disabled={p.disabled} onClick={() => commit(String(p.value - 0.1))}>−</button>
       <input
         className="rinput"
         inputMode="decimal"
@@ -68,7 +70,7 @@ function NumField(p: {
         }}
         aria-label={`${p.label} objek (bisa diketik)`}
       />
-      <button className="sbtn" onClick={() => commit(String(p.value + 0.1))}>+</button>
+      <button className="sbtn" disabled={p.disabled} onClick={() => commit(String(p.value + 0.1))}>+</button>
     </div>
   )
 }
@@ -81,6 +83,12 @@ export default function EditPanel(p: Props) {
   const matIdx = keys.indexOf(styleName)
   const rot = o.rot ?? 0
   const refl = o.refleksi !== false
+  // KUNCI per objek (permintaan user): 'warna' = semua mati kecuali material,
+  // 'semua' = mati total. `frozen` mematikan geometri, `noColor` mematikan warna.
+  const kunci = o.kunci
+  const frozen = kunci === 'warna' || kunci === 'semua'
+  const noColor = kunci === 'semua'
+  const kunciLabel = kunci === 'warna' ? 'WARNA SAJA' : kunci === 'semua' ? 'TOTAL' : 'BEBAS'
 
   // --- panel bisa DIGESER (permintaan user) supaya tidak menutupi objek ---
   const [pos, setPos] = useState({ x: 10, y: 10 })
@@ -114,6 +122,7 @@ export default function EditPanel(p: Props) {
           className="pinput"
           value={o.label}
           onChange={ev => p.onChange({ label: ev.target.value })}
+          disabled={frozen}
           aria-label="label objek"
         />
         <button className="sbtn" onClick={p.onClose}>✕</button>
@@ -122,31 +131,37 @@ export default function EditPanel(p: Props) {
         <NumField
           label="posisi e" value={o.pos.e} min={-99}
           onChange={v => p.onChange({ pos: { ...o.pos, e: v } })}
+          disabled={frozen}
         />
         <NumField
           label="posisi w" value={o.pos.w} min={-99}
           onChange={v => p.onChange({ pos: { ...o.pos, w: v } })}
+          disabled={frozen}
         />
         <NumField
           label="posisi z" value={o.pos.z} min={0}
           onChange={v => p.onChange({ pos: { ...o.pos, z: v } })}
+          disabled={frozen}
         />
         <NumField
           label="panjang" value={o.size.e} min={0.1}
           onChange={v => p.onChange({ size: { ...o.size, e: v } })}
+          disabled={frozen}
         />
         <NumField
           label="lebar" value={o.size.w} min={0.1}
           onChange={v => p.onChange({ size: { ...o.size, w: v } })}
+          disabled={frozen}
         />
         <NumField
           label="tinggi" value={o.size.z} min={0.1}
           onChange={v => p.onChange({ size: { ...o.size, z: v } })}
+          disabled={frozen}
         />
       </div>
       <div className="row">
         <span className="rl">rotasi</span>
-        <button className="sbtn wide" onClick={p.onRotate} title="putar objek 90° (menukar panjang & lebar)">
+        <button className="sbtn wide" disabled={frozen} onClick={p.onRotate} title="putar objek 90° (menukar panjang & lebar)">
           {rot * 90}° ⟳
         </button>
       </div>
@@ -154,6 +169,7 @@ export default function EditPanel(p: Props) {
         <span className="rl">refleksi</span>
         <button
           className={refl ? 'sbtn wide on' : 'sbtn wide'}
+          disabled={frozen}
           onClick={() => p.onChange({ refleksi: !refl })}
           title="pantulan objek ini di lantai"
         >
@@ -165,6 +181,7 @@ export default function EditPanel(p: Props) {
           <span className="rl">sisi</span>
           <button
             className="sbtn wide"
+            disabled={frozen}
             onClick={() => p.onChange({ side: o.side === 'kiri' ? 'kanan' : 'kiri' })}
             title="kiri = dinding DB (bidang e), kanan = dinding DT (bidang w)"
           >
@@ -174,7 +191,7 @@ export default function EditPanel(p: Props) {
       )}
       <div className="row">
         <span className="rl">{isFloor ? 'pola' : 'material'}</span>
-        <button className="sbtn wide" onClick={p.onCycleStyle}>
+        <button className="sbtn wide" disabled={noColor} onClick={p.onCycleStyle}>
           {styleName}{matIdx >= 0 ? ` (${matIdx + 1}/${keys.length})` : ''} ⟳
         </button>
       </div>
@@ -182,6 +199,7 @@ export default function EditPanel(p: Props) {
         <span className="rl">peran</span>
         <button
           className={o.role === 'lantai' ? 'sbtn wide on' : 'sbtn wide'}
+          disabled={frozen}
           onClick={() => p.onChange(
             o.role === 'lantai'
               ? { role: undefined }
@@ -200,16 +218,32 @@ export default function EditPanel(p: Props) {
         </button>
       </div>
       <div className="row">
+        <span className="rl">kunci</span>
+        <button
+          className={kunci ? 'sbtn wide on' : 'sbtn wide'}
+          onClick={p.onCycleKunci}
+          title="BEBAS = semua bisa diubah · WARNA SAJA = posisi/ukuran/rotasi/hapus dikunci, material tetap bisa diganti · TOTAL = terkunci semua"
+        >
+          {kunciLabel} ⟳
+        </button>
+      </div>
+      <div className="row">
         <span className="rl">layer</span>
-        <button className="sbtn wide" onClick={p.onCycleLayer}>
+        <button className="sbtn wide" disabled={frozen} onClick={p.onCycleLayer}>
           {(o.layer ?? 'main').toUpperCase()} ⟳
         </button>
       </div>
       <div className="row">
         <button className="sbtn wide" onClick={p.onDuplicate}>DUPLIKAT</button>
-        <button className="sbtn wide danger" onClick={p.onDelete}>HAPUS</button>
+        <button className="sbtn wide danger" disabled={frozen} onClick={p.onDelete}>HAPUS</button>
       </div>
-      <div className="phint">seret judul panel untuk memindahkan · angka bisa diketik (Enter)</div>
+      <div className="phint">
+        {kunci === 'warna'
+          ? 'terkunci: hanya material yang bisa diubah'
+          : kunci === 'semua'
+            ? 'terkunci total — ubah baris KUNCI untuk membuka'
+            : 'seret judul panel untuk memindahkan · angka bisa diketik (Enter)'}
+      </div>
     </div>
   )
 }

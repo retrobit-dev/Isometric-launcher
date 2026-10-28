@@ -120,6 +120,9 @@ export function validateScene(data: unknown): Scene | null {
       ...(ob.role === 'lantai' || ob.role === 'dinding' ? { role: ob.role } : {}),
       ...(ob.side === 'kiri' || ob.side === 'kanan' ? { side: ob.side } : {}),
       layer: ob.layer === 'underlay' || ob.layer === 'overlay' ? ob.layer : 'main',
+      // grup & kunci ikut dipertahankan saat import/normalisasi
+      ...(typeof ob.grup === 'string' && ob.grup ? { grup: ob.grup } : {}),
+      ...(ob.kunci === 'warna' || ob.kunci === 'semua' ? { kunci: ob.kunci } : {}),
     })
   }
   const m = d.meta as Partial<Scene['meta']> | undefined
