@@ -31,11 +31,15 @@ Referensi malam-biru berupa **crop** (kamera di dalam ruangan), sehingga ukuran 
 
 ## 1b. Framing kamera
 
+Zoom dikendalikan **pinch in/out** (kontinu, rentang ×0.5 – ×6); setiap nilai zoom
+membulatkan langkah piksel ke integer agar pixel-art tetap tajam.
+Tombol **ZOOM ×n** hanya menampilkan level saat ini dan **mereset ke default** saat diketuk.
+
 | Zoom | Kegunaan |
 |---|---|
-| ×1 / ×1.625 | peta diorama seluruh ruangan |
+| ×0.5 – ×1.6 | peta diorama seluruh ruangan |
 | **×2 (default)** | **full-bleed seperti crop referensi**: dinding melewati tepi atas, lantai melewati tepi bawah |
-| ×2.5 / ×4 / ×6 | pandangan dekat untuk presisi edit |
+| ×2.5 – ×6 | pandangan dekat untuk presisi edit |
 
 ## 2. Mata arah (nama arah utama)
 

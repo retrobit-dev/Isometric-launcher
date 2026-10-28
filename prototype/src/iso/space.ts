@@ -23,23 +23,29 @@ export const ROOM = {
   WALL_Z: 10,   // tinggi dinding      = 5.0 m
 }
 
-// Level zoom: dipilih agar HW/HH/ZH selalu integer (pixel-art tajam)
-// x2 = full-bleed seperti crop referensi (dinding lewat atas, lantai lewat bawah)
-export const ZOOM_LEVELS = [1, 1.625, 2, 2.5, 4, 6]
-export const DEFAULT_ZOOM_IDX = 2
+// Zoom kontinu via pinch: berapa pun nilainya, HW/HH/ZH dibulatkan integer
+// supaya pixel-art tetap tajam (tidak ada jitter antar tile).
+export const DEFAULT_Q = 2 // full-bleed seperti crop referensi
 export const DEFAULT_CENTER = { e: 2.25, w: 1.5 }
+export const Q_MIN = 0.5
+export const Q_MAX = 6
 
-export const CAM = { Q: ZOOM_LEVELS[DEFAULT_ZOOM_IDX], CE: DEFAULT_CENTER.e, CW: DEFAULT_CENTER.w }
+export const CAM = { Q: DEFAULT_Q, CE: DEFAULT_CENTER.e, CW: DEFAULT_CENTER.w }
 
-export let HW = (TILE_W / 2) * CAM.Q
-export let HH = (TILE_H / 2) * CAM.Q
-export let ZH = Z_PX * CAM.Q
+export let HW = 32
+export let HH = 16
+export let ZH = 32
 
 export function setZoom(q: number) {
-  CAM.Q = q
-  HW = (TILE_W / 2) * q
-  HH = (TILE_H / 2) * q
-  ZH = Z_PX * q
+  CAM.Q = Math.min(Q_MAX, Math.max(Q_MIN, q))
+  HW = Math.min(160, Math.max(8, Math.round(16 * CAM.Q)))
+  HH = Math.round(HW / 2)
+  ZH = HW
+}
+
+// Level zoom saat ini (untuk tampilan tombol/chip)
+export function zoomValue(): number {
+  return Math.round((HW / 16) * 100) / 100
 }
 
 const clamp = (v: number, lo: number, hi: number) => Math.min(hi, Math.max(lo, v))
@@ -50,7 +56,7 @@ export function setCenter(e: number, w: number) {
 }
 
 export function resetView() {
-  setZoom(ZOOM_LEVELS[DEFAULT_ZOOM_IDX])
+  setZoom(DEFAULT_Q)
   setCenter(DEFAULT_CENTER.e, DEFAULT_CENTER.w)
 }
 

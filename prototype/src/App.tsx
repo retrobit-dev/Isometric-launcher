@@ -1,7 +1,7 @@
 import { useEffect, useRef, useState } from 'react'
 import {
-  CAM, DEFAULT_ZOOM_IDX, IH, IW, ROOM, ZOOM_LEVELS,
-  resetView, setCenter, setZoom, unpx, zoneName,
+  CAM, DEFAULT_Q, IH, IW, ROOM,
+  resetView, setCenter, setZoom, unpx, zoomValue, zoneName,
 } from './iso/space'
 import { drawScene } from './iso/room'
 import { bboxOf, sortedObjects } from './iso/box'
@@ -35,7 +35,7 @@ export default function App() {
   const [grid, setGrid] = useState(false)
   const [dev, setDev] = useState(true)
   const [rot, setRot] = useState<Rot>('auto')
-  const [zoomIdx, setZoomIdx] = useState(DEFAULT_ZOOM_IDX)
+  const [, forceZoomLabel] = useState(0) // refresh label tombol ZOOM saat pinch
   const [selectedId, setSelectedId] = useState<string | null>(null)
   const [modal, setModal] = useState<'export' | 'import' | null>(null)
   const [showPalette, setShowPalette] = useState(false)
@@ -50,14 +50,29 @@ export default function App() {
   const gridRef = useRef(grid); gridRef.current = grid
   const dragRef = useRef<{ id: string; e0: number; w0: number; ge: number; gw: number; moved: boolean } | null>(null)
   const panRef = useRef<{ ce: number; cw: number; ge: number; gw: number; moved: boolean } | null>(null)
+  const pointersRef = useRef<Map<number, { x: number; y: number }>>(new Map())
+  const pinchRef = useRef<{ d0: number; q0: number } | null>(null)
 
   useEffect(() => { saveDraft(scene) }, [scene])
-  useEffect(() => { setZoom(ZOOM_LEVELS[zoomIdx]) }, [zoomIdx])
 
   useEffect(() => {
     const onResize = () => setVp({ w: window.innerWidth, h: window.innerHeight })
     window.addEventListener('resize', onResize)
     return () => window.removeEventListener('resize', onResize)
+  }, [])
+
+  // pinch trackpad desktop = ctrl+wheel; listener non-passive agar bisa preventDefault
+  useEffect(() => {
+    const cv = canvasRef.current
+    if (!cv) return
+    const onWheel = (ev: WheelEvent) => {
+      if (!ev.ctrlKey) return
+      ev.preventDefault()
+      setZoom(CAM.Q * (1 - ev.deltaY * 0.012))
+      forceZoomLabel(v => v + 1)
+    }
+    cv.addEventListener('wheel', onWheel, { passive: false })
+    return () => cv.removeEventListener('wheel', onWheel)
   }, [])
 
   useEffect(() => {
@@ -100,6 +115,19 @@ export default function App() {
   }
 
   const onDown = (ev: React.PointerEvent<HTMLCanvasElement>) => {
+    pointersRef.current.set(ev.pointerId, { x: ev.clientX, y: ev.clientY })
+    // jari kedua turun = mulai pinch-zoom, batalkan drag/pan
+    if (pointersRef.current.size === 2) {
+      const [p1, p2] = [...pointersRef.current.values()]
+      pinchRef.current = {
+        d0: Math.hypot(p1.x - p2.x, p1.y - p2.y),
+        q0: CAM.Q,
+      }
+      dragRef.current = null
+      panRef.current = null
+      ev.currentTarget.setPointerCapture(ev.pointerId)
+      return
+    }
     const { sx, sy } = toInternal(ev)
     const g = unpx(sx, sy)
     if (modeRef.current === 'edit' && !lockedRef.current) {
@@ -117,6 +145,21 @@ export default function App() {
   }
 
   const onMove = (ev: React.PointerEvent<HTMLCanvasElement>) => {
+    const pts = pointersRef.current
+    if (pts.has(ev.pointerId)) pts.set(ev.pointerId, { x: ev.clientX, y: ev.clientY })
+
+    // pinch in/out = zoom out/in (satu-satunya kendali zoom selain tombol reset)
+    const pinch = pinchRef.current
+    if (pinch && pts.size >= 2) {
+      const [p1, p2] = [...pts.values()]
+      const d = Math.hypot(p1.x - p2.x, p1.y - p2.y)
+      if (pinch.d0 > 0 && d > 0) {
+        setZoom(pinch.q0 * (d / pinch.d0))
+        forceZoomLabel(v => v + 1)
+      }
+      return
+    }
+
     const { sx, sy } = toInternal(ev)
     const g = unpx(sx, sy)
     setHover({ e: snap(g.e), w: snap(g.w) })
@@ -143,7 +186,15 @@ export default function App() {
     }
   }
 
-  const onUp = () => {
+  const onUp = (ev: React.PointerEvent<HTMLCanvasElement>) => {
+    const wasPinch = pinchRef.current !== null
+    pointersRef.current.delete(ev.pointerId)
+    if (pointersRef.current.size < 2) pinchRef.current = null
+    if (wasPinch) {
+      dragRef.current = null
+      panRef.current = null
+      return // selesai pinch bukan ketukan: jangan batal-pilih
+    }
     if (dragRef.current && !dragRef.current.moved) {
       /* ketukan tanpa geser = pilih (sudah saat onDown) */
     }
@@ -268,7 +319,7 @@ export default function App() {
               onPointerDown={onDown}
               onPointerMove={onMove}
               onPointerUp={onUp}
-              onPointerLeave={() => { setHover(null); onUp() }}
+              onPointerLeave={ev => { setHover(null); onUp(ev) }}
             />
             <div className="glare" />
             {dev && (
@@ -276,7 +327,7 @@ export default function App() {
                 <span>
                   {hover ? `(e=${hover.e}, w=${hover.w}) · ${zoneName(hover.e, hover.w)}` : `${scene.objects.length} objek`}
                 </span>
-                <span>zoom ×{ZOOM_LEVELS[zoomIdx]}</span>
+                <span>zoom ×{zoomValue()}</span>
                 <span className={locked ? 'on' : ''}>{locked ? `terkunci ${savedAt ?? ''}` : 'draf'}</span>
               </div>
             )}
@@ -288,10 +339,10 @@ export default function App() {
         <span>{DEVICE.name} · {DEVICE.res} · {DEVICE.inch} · {DEVICE.hz} · {DEVICE.os}</span>
         <span>
           {editable
-            ? 'mode edit: seret objek = pindah · seret lantai = geser kamera · ketuk objek = panel'
+            ? 'mode edit: seret objek = pindah · seret lantai = geser kamera · pinch = zoom · ketuk objek = panel'
             : locked
               ? 'layar terkunci: inilah versi yang diterapkan ke aplikasi'
-              : 'mode lihat: seret lantai = geser kamera'}
+              : 'mode lihat: seret lantai = geser kamera · pinch = zoom'}
         </span>
       </div>
 
@@ -309,8 +360,13 @@ export default function App() {
             {mode === 'edit' && <button className="tbtn" onClick={addObject}>+ TAMBAH</button>}
           </>
         )}
-        <button className="tbtn" onClick={() => setZoomIdx(i => Math.max(0, i - 1))} aria-label="zoom out">ZOOM −</button>
-        <button className="tbtn" onClick={() => setZoomIdx(i => Math.min(ZOOM_LEVELS.length - 1, i + 1))} aria-label="zoom in">ZOOM +</button>
+        <button
+          className="tbtn"
+          title="zoom dikendalikan pinch in/out; ketuk untuk reset ke default"
+          onClick={() => { setZoom(DEFAULT_Q); forceZoomLabel(v => v + 1) }}
+        >
+          ZOOM ×{zoomValue()}
+        </button>
         <button className="tbtn" onClick={resetView}>TENGAH</button>
         <button className={grid ? 'tbtn on' : 'tbtn'} onClick={() => setGrid(v => !v)}>GRID</button>
         <button className={showPalette ? 'tbtn on' : 'tbtn'} onClick={() => setShowPalette(v => !v)}>PALET</button>

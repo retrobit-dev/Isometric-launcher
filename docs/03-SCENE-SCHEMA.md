@@ -54,7 +54,7 @@
 | Tambah objek | Tombol **TAMBAH** (balok baru 2×1×1 di tengah zona interaktif) |
 | Edit objek | Ketuk objek → panel: posisi, ukuran, material (cycle), label |
 | Hapus / duplikat | Tombol di panel objek |
-| **Zoom in/out** | Tombol **ZOOM −/+**: 6 level (×0.75 peta ruangan → ×2.5 detail). Semua level memakai langkah piksel integer agar pixel-art tetap tajam |
+| **Zoom in/out** | **Pinch in/out** di layar (kontinu ×0.5 – ×6, langkah piksel tetap integer). Tombol **ZOOM ×n** = indikator level + ketuk untuk reset ke default ×2 |
 | **Pan kamera** | Seret area kosong (mode apa pun) menggeser tengah kamera; **TENGAH** mengembalikan pandangan default |
 | **SIMPAN & KUNCI** | Mengunci scene: edit dinonaktifkan, `meta.locked=true` + `savedAt` dicatat. **Hanya scene terkunci yang sah diterapkan ke aplikasi** |
 | Buka kunci | Tombol 🔒 → kembali ke draf untuk diedit (versi terkunci tetap tersimpan) |
@@ -72,7 +72,7 @@ Menu **Setting → Editor Ruang** dengan kemampuan identik:
 5. **Import/Export `scene.json`** (berbagi layout antar perangkat / dari preview web)
 6. **Reset ke bawaan**
 7. **Undo satu langkah** (minimum), konfirmasi sebelum hapus
-8. **Zoom & pan**: pinch-zoom 6 level + tombol ZOOM −/+, drag satu jari di area kosong = pan, tombol TENGAH = reset pandangan
+8. **Zoom & pan**: pinch-zoom kontinu + tombol ZOOM (indikator & reset), drag satu jari di area kosong = pan, tombol TENGAH = reset pandangan
 9. **SIMPAN & KUNCI**: setelah disimpan, home mengunci layout (edit hanya dari Setting); badge jam simpan tampil di Editor Ruang; aplikasi menolak memuat scene dengan `meta.locked=false`
 Persistensi app: file `scene.json` di internal storage; aset bawaan di-bundle sebagai fallback.
 Mode edit di app hanya reachable dari Setting (bukan dari home) agar layar home tetap bersih.
