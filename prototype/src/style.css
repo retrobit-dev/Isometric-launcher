@@ -104,3 +104,45 @@ html, body, #root {
   text-align: center;
   padding: 0 12px;
 }
+
+/* toolbar tombol sentuh — satu-satunya cara mengontrol preview */
+.toolbar {
+  position: fixed;
+  left: 50%;
+  bottom: 10px;
+  transform: translateX(-50%);
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+  justify-content: center;
+  padding: 0 8px;
+}
+
+.tbtn {
+  min-height: 40px;
+  padding: 8px 14px;
+  font: 12px/1 ui-monospace, 'Courier New', monospace;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: #cfd3e4;
+  background: #171a26;
+  border: 1px solid #2c3348;
+  border-bottom-color: #0a0c12;
+  border-radius: 4px;
+  box-shadow: 0 2px 0 #0a0c12;
+  cursor: pointer;
+  touch-action: manipulation;
+  -webkit-tap-highlight-color: transparent;
+  user-select: none;
+}
+
+.tbtn:active {
+  transform: translateY(1px);
+  box-shadow: 0 1px 0 #0a0c12;
+}
+
+.tbtn.on {
+  color: #14161f;
+  background: #d9a05b;
+  border-color: #b07f3f;
+}

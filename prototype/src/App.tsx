@@ -12,11 +12,15 @@ const DEVICE = {
 const DEV_RES_W = 2560
 const BEZEL = 16
 
+// rotasi bingkai: auto (ikut orientasi viewport) / tegak / putar
+type Rot = 'auto' | 'tegak' | 'putar'
+const ROT_NEXT: Record<Rot, Rot> = { auto: 'tegak', tegak: 'putar', putar: 'auto' }
+
 export default function App() {
   const canvasRef = useRef<HTMLCanvasElement>(null)
   const [grid, setGrid] = useState(false)
   const [dev, setDev] = useState(true)
-  const [rotLock, setRotLock] = useState<boolean | null>(null)
+  const [rot, setRot] = useState<Rot>('auto')
   const [vp, setVp] = useState({ w: window.innerWidth, h: window.innerHeight })
   const [hover, setHover] = useState<{ e: number; w: number } | null>(null)
   const gridRef = useRef(grid)
@@ -24,17 +28,8 @@ export default function App() {
 
   useEffect(() => {
     const onResize = () => setVp({ w: window.innerWidth, h: window.innerHeight })
-    const onKey = (ev: KeyboardEvent) => {
-      if (ev.key === 'g' || ev.key === 'G') setGrid(v => !v)
-      if (ev.key === 'd' || ev.key === 'D') setDev(v => !v)
-      if (ev.key === 'r' || ev.key === 'R') setRotLock(v => v === null ? false : !v)
-    }
     window.addEventListener('resize', onResize)
-    window.addEventListener('keydown', onKey)
-    return () => {
-      window.removeEventListener('resize', onResize)
-      window.removeEventListener('keydown', onKey)
-    }
+    return () => window.removeEventListener('resize', onResize)
   }, [])
 
   useEffect(() => {
@@ -61,13 +56,12 @@ export default function App() {
   }
 
   // --- bingkai tablet: landscape terkunci, auto-rotate di viewport portrait ---
-  const portrait = vp.h > vp.w
-  const rotated = rotLock ?? portrait
+  const rotated = rot === 'putar' || (rot === 'auto' && vp.h > vp.w)
   const availW = rotated ? vp.h : vp.w
   const availH = rotated ? vp.w : vp.h
   const screenW = Math.max(
     280,
-    Math.floor(Math.min((availW * 0.92) - BEZEL * 2, ((availH * 0.86) - BEZEL * 2) * 1.6)),
+    Math.floor(Math.min((availW * 0.92) - BEZEL * 2, ((availH * 0.80) - BEZEL * 2) * 1.6)),
   )
   const screenH = Math.round(screenW / 1.6)
   const frameW = screenW + BEZEL * 2
@@ -105,7 +99,6 @@ export default function App() {
                     ? `(e=${hover.e}, w=${hover.w}) · zona ${zoneName(hover.e, hover.w)}`
                     : `ruangan ${ROOM.E}×${ROOM.W} · dinding ${ROOM.WALL_Z}z`}
                 </span>
-                <span className={grid ? 'on' : ''}>[G] grid {grid ? 'AKTIF' : 'off'}</span>
               </div>
             )}
           </div>
@@ -115,9 +108,27 @@ export default function App() {
       <div className="caption">
         <span>{DEVICE.name} · {DEVICE.res} · {DEVICE.inch} · {DEVICE.hz} · {DEVICE.os}</span>
         <span>landscape terkunci · skala preview ×{previewScale.toFixed(2)} (1 px di sini ≈ {(1 / previewScale).toFixed(1)} px perangkat)</span>
-        <span>
-          [G] grid · [D] overlay dev · [R] rotasi {rotLock === null ? 'auto' : rotLock ? 'paksa putar' : 'paksa tegak'}
-        </span>
+      </div>
+
+      {/* semua kontrol berupa tombol — tanpa shortcut keyboard */}
+      <div className="toolbar">
+        <button
+          className={grid ? 'tbtn on' : 'tbtn'}
+          onClick={() => setGrid(v => !v)}
+          aria-pressed={grid}
+        >
+          GRID {grid ? 'AKTIF' : 'MATI'}
+        </button>
+        <button
+          className={dev ? 'tbtn on' : 'tbtn'}
+          onClick={() => setDev(v => !v)}
+          aria-pressed={dev}
+        >
+          KOORDINAT {dev ? 'AKTIF' : 'MATI'}
+        </button>
+        <button className="tbtn" onClick={() => setRot(r => ROT_NEXT[r])}>
+          ROTASI: {rot.toUpperCase()}
+        </button>
       </div>
     </div>
   )
