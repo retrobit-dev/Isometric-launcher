@@ -6,7 +6,6 @@ import {
 import { drawScene } from './iso/room'
 import { bboxOf, sortedObjects } from './iso/box'
 import { FLOOR_DEFAULT, FLOOR_KEYS, MATERIAL_KEYS } from './iso/palette'
-import { seedScene } from './scene/seed'
 import { loadDraft, loadLocked, saveDraft, saveLocked, validateScene } from './scene/store'
 import { type Scene, type SceneObject } from './scene/types'
 import EditPanel from './ui/EditPanel'
@@ -439,11 +438,6 @@ export default function App() {
             {mode === 'edit' && (
               <button className="tbtn" onClick={addWalls} title="buat 2 dinding (kiri & kanan) mengikuti tepi belakang lantai">
                 + DINDING
-              </button>
-            )}
-            {mode === 'edit' && (
-              <button className="tbtn" onClick={() => { setScene(seedScene()); setSelectedId(null) }} title="muat 8 balok placeholder dari daftar objek">
-                SEED
               </button>
             )}
           </>
