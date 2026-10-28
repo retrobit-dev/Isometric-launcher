@@ -38,9 +38,9 @@ Tombol **SIMPAN & KUNCI** mengunci **objek saja**: layout beku untuk diterapkan 
 | `room` | objek | **baca-saja / terkunci permanen** (docs/03 §0); nilai dari import diabaikan & diganti `ROOM_FIXED` |
 | `id` | string | kebab-case, unik (docs/01 §9) |
 | `label` | string | nama tampil untuk tooltip/panel |
-| `pos.e / pos.w` | number | koordinat grid (docs/01 §4), kelipatan 0.5 |
-| `pos.z` | number | tinggi dasar dari lantai, satuan z |
-| `size.e / size.w / size.z` | number | ukuran dalam tile & z, minimum 0.5 |
+| `pos.e / pos.w` | number | koordinat grid (docs/01 §4), kelipatan 0.1 |
+| `pos.z` | number | tinggi dasar dari lantai, satuan z, kelipatan 0.1 |
+| `size.e / size.w / size.z` | number | ukuran dalam tile & z, minimum 0.1, kelipatan 0.1 |
 | `style` | string \| {top,left,right} | nama material (daftar §2) atau 3 warna eksplisit |
 | `app` | string \| null | binding tindakan/app (null = dekorasi); diisi fase app |
 | `layer` | `underlay` \| `main` \| `overlay` | urutan gambar: underlay = di bawah objek main (karpet, bayangan, decal lantai); main = default, urutan kedalaman normal; overlay = di atas semua (lampu gantung, balok plafon, tanaman menjulang). Tiap layer tetap diurutkan kedalaman isometrik internal |
@@ -62,12 +62,12 @@ Tombol **SIMPAN & KUNCI** mengunci **objek saja**: layout beku untuk diterapkan 
 
 | Aksi | Cara |
 |---|---|
-| Ubah layout | Mode EDIT → **seret objek** (snap 0.5 tile) atau stepper ±0.5 di panel |
+| Ubah layout | Mode EDIT → **seret objek** (snap 0.1 tile) atau stepper ±0.1 di panel |
 | Tambah objek | Tombol **TAMBAH** (balok baru 2×1×1 di tengah zona interaktif) |
 | Edit objek | Ketuk objek → panel: posisi, ukuran, material (cycle), label, **layer (cycle UNDER/MAIN/OVER)** |
 | Hapus / duplikat | Tombol di panel objek |
 | **Zoom in/out** | **Pinch in/out** di layar (kontinu ×0.5 – ×6, langkah piksel tetap integer). Tombol **ZOOM ×n** = indikator level + ketuk untuk reset ke default ×2 |
-| **Pan kamera** | Seret area kosong (mode apa pun) menggeser tengah kamera; **TENGAH** mengembalikan pandangan default |
+| **Pan kamera** | Seret area kosong (mode apa pun) menggeser tengah kamera **tanpa batas — ruangan boleh dibawa ke mana pun di kanvas**; **TENGAH** mengembalikan pandangan default |
 | **SIMPAN & KUNCI** | Mengunci scene: edit dinonaktifkan, `meta.locked=true` + `savedAt` dicatat. **Hanya scene terkunci yang sah diterapkan ke aplikasi** |
 | Buka kunci | Tombol 🔒 → kembali ke draf untuk diedit (versi terkunci tetap tersimpan) |
 | Import / Export | Toolbar: export = unduh + salin `scene.json` (nama file menandai draf/terkunci); import = tempel JSON |

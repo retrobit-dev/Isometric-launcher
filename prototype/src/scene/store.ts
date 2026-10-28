@@ -46,9 +46,9 @@ export function validateScene(data: unknown): Scene | null {
       label: typeof ob.label === 'string' ? ob.label : ob.id,
       pos: { e: num(ob.pos.e), w: num(ob.pos.w), z: num(ob.pos.z) },
       size: {
-        e: Math.max(0.5, num(ob.size.e)),
-        w: Math.max(0.5, num(ob.size.w)),
-        z: Math.max(0.5, num(ob.size.z)),
+        e: Math.max(0.1, num(ob.size.e)),
+        w: Math.max(0.1, num(ob.size.w)),
+        z: Math.max(0.1, num(ob.size.z)),
       },
       style: typeof ob.style === 'string' || (typeof ob.style === 'object' && ob.style !== null)
         ? ob.style as SceneObject['style']

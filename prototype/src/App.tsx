@@ -24,7 +24,7 @@ const BEZEL = 16
 type Rot = 'auto' | 'tegak' | 'putar'
 const ROT_NEXT: Record<Rot, Rot> = { auto: 'tegak', tegak: 'putar', putar: 'auto' }
 
-const snap = (v: number) => Math.round(v * 2) / 2
+const snap = (v: number) => Math.round(v * 10) / 10 // kelipatan 0.1 (permintaan user)
 const clamp = (v: number, lo: number, hi: number) => Math.min(hi, Math.max(lo, v))
 
 export default function App() {
@@ -392,9 +392,9 @@ export default function App() {
           })}
           onResize={(de, dw, dz) => patchObject(selected.id, {
             size: {
-              e: clamp(selected.size.e + de, 0.5, 12),
-              w: clamp(selected.size.w + dw, 0.5, 12),
-              z: clamp(selected.size.z + dz, 0.5, 6),
+              e: clamp(Math.round((selected.size.e + de) * 10) / 10, 0.1, 40),
+              w: clamp(Math.round((selected.size.w + dw) * 10) / 10, 0.1, 40),
+              z: clamp(Math.round((selected.size.z + dz) * 10) / 10, 0.1, 12),
             },
           })}
           onCycleStyle={() => {

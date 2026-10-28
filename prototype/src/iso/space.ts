@@ -51,9 +51,11 @@ export function zoomValue(): number {
 
 const clamp = (v: number, lo: number, hi: number) => Math.min(hi, Math.max(lo, v))
 
+// Pan kamera TIDAK dibatasi: ruangan boleh digeser ke mana pun di kanvas
+// (permintaan user: jangan batasi perpindahan ruangan)
 export function setCenter(e: number, w: number) {
-  CAM.CE = clamp(e, 0, ROOM.E)
-  CAM.CW = clamp(w, 0, ROOM.W)
+  CAM.CE = e
+  CAM.CW = w
 }
 
 export function resetView() {

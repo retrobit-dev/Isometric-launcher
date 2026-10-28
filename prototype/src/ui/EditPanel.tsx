@@ -40,12 +40,12 @@ export default function EditPanel(p: Props) {
         <button className="sbtn" onClick={p.onClose}>✕</button>
       </div>
       <div className="pgrid">
-        <Step label="e" value={o.pos.e.toFixed(1)} dec={() => p.onMove(-0.5, 0)} inc={() => p.onMove(0.5, 0)} />
-        <Step label="w" value={o.pos.w.toFixed(1)} dec={() => p.onMove(0, -0.5)} inc={() => p.onMove(0, 0.5)} />
-        <Step label="tinggi z" value={o.pos.z.toFixed(1)} dec={() => p.onChange({ pos: { ...o.pos, z: Math.max(0, o.pos.z - 0.5) } })} inc={() => p.onChange({ pos: { ...o.pos, z: o.pos.z + 0.5 } })} />
-        <Step label="panjang" value={o.size.e.toFixed(1)} dec={() => p.onResize(-0.5, 0, 0)} inc={() => p.onResize(0.5, 0, 0)} />
-        <Step label="lebar" value={o.size.w.toFixed(1)} dec={() => p.onResize(0, -0.5, 0)} inc={() => p.onResize(0, 0.5, 0)} />
-        <Step label="tinggi" value={o.size.z.toFixed(1)} dec={() => p.onResize(0, 0, -0.5)} inc={() => p.onResize(0, 0, 0.5)} />
+        <Step label="e" value={o.pos.e.toFixed(1)} dec={() => p.onMove(-0.1, 0)} inc={() => p.onMove(0.1, 0)} />
+        <Step label="w" value={o.pos.w.toFixed(1)} dec={() => p.onMove(0, -0.1)} inc={() => p.onMove(0, 0.1)} />
+        <Step label="tinggi z" value={o.pos.z.toFixed(1)} dec={() => p.onChange({ pos: { ...o.pos, z: Math.max(0, o.pos.z - 0.1) } })} inc={() => p.onChange({ pos: { ...o.pos, z: o.pos.z + 0.1 } })} />
+        <Step label="panjang" value={o.size.e.toFixed(1)} dec={() => p.onResize(-0.1, 0, 0)} inc={() => p.onResize(0.1, 0, 0)} />
+        <Step label="lebar" value={o.size.w.toFixed(1)} dec={() => p.onResize(0, -0.1, 0)} inc={() => p.onResize(0, 0.1, 0)} />
+        <Step label="tinggi" value={o.size.z.toFixed(1)} dec={() => p.onResize(0, 0, -0.1)} inc={() => p.onResize(0, 0, 0.1)} />
       </div>
       <div className="row">
         <span className="rl">material</span>
