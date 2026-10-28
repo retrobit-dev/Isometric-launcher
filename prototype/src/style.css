@@ -89,20 +89,6 @@ html, body, #root {
 }
 .chip .on { color: #d9a05b; }
 
-.caption {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: 2px;
-  font: 11px/1.5 ui-monospace, 'Courier New', monospace;
-  letter-spacing: 0.05em;
-  color: #7d8298;
-  text-transform: uppercase;
-  user-select: none;
-  text-align: center;
-  padding: 0 12px;
-}
-
 .toolbar {
   display: flex;
   gap: 4px;

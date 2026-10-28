@@ -12,53 +12,36 @@
 | 1 tile lantai | 32 × 16 px internal (rasio isometrik 2:1) |
 | 1 satuan tinggi (`z`) | 16 px internal |
 
-## 1a. Skala fisik (dikunci dari referensi malam-biru)
+## 1a. Skala fisik — TIDAK ADA ATURAN (dihapus 2026-10-28)
 
-> **RUANGAN TERKUNCI PERMANEN** sejak kesepakatan terakhir: nilai di bawah beku.
-> Editor/import/reset tidak dapat mengubahnya; perubahan hanya lewat kode developer
-> atas permintaan eksplisit user (docs/03 §0).
+> 🧹 **SEMUA ATURAN RUANGAN DIHAPUS** atas permintaan user:
+> "Hapus semua aturan ruangan. nanti saya beri referensi baru untuk ruangan
+> yang saya inginkan."
 >
-> 🔒 **ZOOM + POSISI TERKUNCI — 2026-10-28 (permintaan user: "tetap kunci").
-> `VIEW_LOCKED = true` di `iso/space.ts`, komposisi dari pengaturan user:
-> **zoom ×0.88 (HW 14, HH 7) di pusat (−1.2, 1.3)**. Saat kunci kode aktif,
-> `VIEW_FIXED` **selalu menang** atas localStorage → tampilan identik di semua
-> perangkat & setelah reload.
-> Selama kunci aktif: pan, pinch, roda tetikus, tombol ZOOM, dan TENGAH **tidak
-> memindahkan atau memperbesar ruangan**. Editor objek tetap berfungsi.
-> **Kunci ruangan (dimensi/palet) juga dibuka sementara** (`ROOM_TEMP_UNLOCKED = true`)
-> untuk fase penyamaan dengan referensi.
-> Catatan: posisi kamera tetap disimpan otomatis (`isola-kamera-v1`) supaya
-> hot-reload tidak menggeser apa pun, tetapi selama `VIEW_LOCKED = true` nilai
-> itu tidak dipakai.
+> Yang **tidak berlaku lagi**:
+> - kunci dimensi ruangan (`ROOM_TEMP_UNLOCKED`, `ROOM_FIXED` sebagai pemaksa)
+> - kunci zoom & posisi kamera (`VIEW_LOCKED`, `VIEW_FIXED` sebagai pemaksa)
+> - aturan perpanjangan dinding/lantai (`EXT_E = 6`, `EXT_W = 7` → kini **0**)
+> - amendemen #1 (+6 tile ke selatan) dan amendemen #2 sebagai aturan beku
 >
-> **PERPANJANGAN DINDING + LANTAI (permintaan user 2026-10-28):** "perpanjang
-> dinding untuk menutup area kosong, lantai mengikuti dinding, sehingga hasil
-> akhirnya adalah area kosong kecil di sudut kiri bawah." Konstanta `EXT_E = 6`
-> dan `EXT_W = 7` (`iso/space.ts`): dinding & lantai **digambar** sampai
-> 26 × 26 (E+6, W+7), sedangkan **ruangan sebenarnya tetap 20 × 19** untuk
-> penempatan objek, grid, dan zona. Pada komposisi terkunci, void turun dari
-> **17,8 % → 0,08 %** dan yang tersisa hanya segitiga kecil di sudut kiri bawah.
+> Yang **masih berlaku**: nilai-nilai di bawah hanya **nilai awal** (bawaan kode),
+> bebas diubah kapan saja tanpa izin khusus. `scene.json` yang di-import boleh
+> menentukan `room` sendiri (`ROOM_FROM_FILE = true`).
 >
-> **Amendemen #1 (permintaan eksplisit user):** ruangan diperpanjang +6 tile ke selatan
-> menjadi 20 × 19 — **tetap berlaku**.
-> **Amendemen #2:** volume balok (slab tebal 1.5 z + dinding bervolume 0.4 tile)
-> **dibatalkan atas permintaan user** — slab & dinding tipis kembali seperti semula.
-> Nilai di tabel ini beku kembali.
+> Nilai awal saat ini (belum tentu final — menunggu referensi baru user):
 
-| Besaran | Nilai dunia | Satuan kita |
+| Besaran | Nilai awal | Satuan |
 |---|---|---|
+| Ruangan (DT × DB) | E = 20, W = 19 | tile |
+| Tinggi dinding | WALL_Z = 12 | z |
 | 1 tile lantai | 60 cm × 60 cm | 1 tile |
 | 1 satuan tinggi | 50 cm | 1 z |
-| Ruangan (DT × DB) | 12.0 m × 11.4 m (±137 m²) | **E = 20, W = 19** |
-| Tinggi dinding | 6.0 m (loft sangat tinggi, sesuai permintaan) | **WALL_Z = 12** |
-| Tinggi pintu | 2.0 m | 4 z |
-| Tinggi meja kerja | 75 cm | 1.5 z |
-| Tinggi rak buku berdiri | 1.8 m | 3.6 z |
-| Tinggi lampu berdiri | 1.5 m | 3 z |
+| Palet | `malam-biru` | — |
+| Lantai | ubin persegi 1×1 tile, 3 tone, nat gelap | — |
+| Dinding | navy datar + plint kayu 0.18 z | — |
 
-Referensi berupa **crop** (kamera di dalam ruangan), sehingga ukuran total ruangan adalah keputusan desain: 20 × 19 tile agar (a) lantai memotong tepi bawah seperti referensi, dan (b) densitas slot app cukup untuk launcher. Skala tile-vs-furnitur tetap mengikuti referensi: meja ≈ 3.5 tile, rak ≈ 2.5 tile.
-
-**Palet ruangan: `malam-biru`** (diekstrak langsung dari `Screenshot_20261028_203752.jpg`) — dinding **navy datar** (kiri `#232e48` sisi teduh, kanan `#2a3552` sisi cahaya), **plint kayu** (`#5e4038` / `#7d5140`, tinggi 0.18 z) seperti di referensi, lantai **ubin persegi 1×1 tile** (bukan papan) 3 tone `#4e557d / #4a5178 / #565b86` dengan nat gelap `#373a5e`, slab diorama hampir hitam (`#171a2b / #1d2134`). Dinding dirender selalu melewati tepi atas layar (tidak ada ruang kosong di atas); tinggi fungsional untuk objek tetap 12 z. Seluruh warna ruangan & 22 material objek terlihat di tombol **PALET** pada preview.
+Dinding tetap dirender melewati tepi atas layar (`zTop` dihitung otomatis) supaya
+tidak ada ruang kosong di atas.
 
 ## 1b. Framing kamera
 
@@ -68,7 +51,7 @@ Tombol **ZOOM ×n** hanya menampilkan level saat ini dan **mereset ke default** 
 
 | Zoom | Kegunaan |
 |---|---|
-| **×2.5 (default)** | **komposisi gambar referensi user**: puncak belakang lantai di (324,182) ≈ (0.51 W, 0.455 H), ubin diamond 80×40 px, dasar dinding memotong tepi kiri y≈344 & kanan y≈340, lantai memotong tepi bawah |
+| **×0.88 (acuan)** | komposisi terakhir dari user: HW 14, HH 7, pusat (−1.2, 1.3) — dipakai tombol ZOOM/TENGAH |
 | ×0.5 – ×1.5 | peta diorama seluruh ruangan |
 | ×3 – ×6 | pandangan dekat untuk presisi edit |
 
@@ -78,12 +61,11 @@ referensi → **80×40 px** di kanvas (320×160 px di layar 2560), nat 1 px.
 Karena internal 640×400 adalah tepat ¼ dari 2560×1600, seluruh komposisi ini
 mendarat identik di panel MatePad Mini.
 
-> **POSISI KAMERA: TERKUNCI (zoom & posisi).** Urutan posisi saat halaman dibuka:
-> (1) posisi terkunci (`isola-posisi-terkunci-v1`), (2) posisi kamera terakhir
-> (`isola-kamera-v1`), (3) `VIEW_FIXED` (Q 2.5, pusat 0.4/0.5). Saat kunci kode
-> aktif dan belum ada posisi tersimpan, posisi terakhir otomatis direkam sebagai
-> posisi terkunci — jadi tidak perlu screenshot. Tombol ZOOM & TENGAH hanya
-> mengembalikan ke posisi terkunci (tidak membuat zoom/geser baru).
+> **KAMERA: bebas, tanpa kunci.** Posisi kamera disimpan otomatis
+> (`isola-kamera-v2`) dan dipulihkan saat halaman dibuka, jadi tidak kembali ke
+> tengah. Tombol ZOOM & TENGAH mengembalikan ke komposisi acuan ×0.88 di
+> (−1.2, 1.3) — sekadar titik awal, bukan kunci: pan & pinch bebas kapan saja.
+> Kunci zoom/posisi (`VIEW_LOCKED`) **dihapus** bersama aturan ruangan lain.
 > Komposisi dibekukan sebagai `VIEW_FIXED` (`iso/space.ts`): **Q = 2.5**
 > (HW 40, HH 20, ZH 40), pusat kamera **(0.4, 0.5)**. Konsekuensinya:
 > ZOOM/TENGAH, tombol reset, reload preview, dan aplikasi nanti **selalu**

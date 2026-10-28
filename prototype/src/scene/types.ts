@@ -1,10 +1,8 @@
 // Skema scene: lihat docs/03-SCENE-SCHEMA.md
 //
-// RUANGAN TERKUNCI PERMANEN (keputusan user): dimensi, tinggi dinding, dan
-// palet tidak dapat diedit oleh editor, import, maupun reset. Perubahan
-// ruangan hanya lewat perubahan kode oleh developer atas permintaan eksplisit.
-// STATUS SAAT INI: DIBUKA (permintaan user 2026-10-28 "buka kunci"). Dimensi &
-// palet ruangan bebas diubah; kunci dipasang lagi lewat permintaan eksplisit.
+// RUANGAN: TIDAK ADA ATURAN/KUNCI (permintaan user 2026-10-28 "hapus semua
+// aturan ruangan, nanti saya beri referensi baru"). Dimensi, tinggi dinding,
+// dan palet bebas diubah kapan saja; nilai di bawah hanya nilai bawaan.
 export interface RoomDims {
   readonly e: number
   readonly w: number
@@ -19,9 +17,10 @@ export const ROOM_FIXED: RoomDims = {
   palette: 'malam-biru',
 }
 
-// Kunci ruangan. true = dibuka sementara (import boleh menimpa dimensi ruangan).
-// false = TERKUNCI: nilai `room` dari file import selalu diganti ROOM_FIXED.
-export const ROOM_TEMP_UNLOCKED = true
+// ATURAN RUANGAN DIHAPUS (permintaan user 2026-10-28): tidak ada lagi kunci.
+// Nilai `room` dari file import selalu dipakai apa adanya (divalidasi), dan
+// ROOM_FIXED hanya dipakai sebagai nilai bawaan saat file tidak menyebutnya.
+export const ROOM_FROM_FILE = true
 
 export type Layer = 'underlay' | 'main' | 'overlay'
 
@@ -39,8 +38,7 @@ export interface SceneObject {
 }
 
 export interface SceneMeta {
-  // mengunci OBJEK saja (sementara — bisa dibuka lagi); ruangan terkunci permanen
-  // (kecuali sedang dibuka sementara lewat ROOM_TEMP_UNLOCKED)
+  // mengunci OBJEK saja (sementara — bisa dibuka lagi)
   locked: boolean
   savedAt: string | null
 }

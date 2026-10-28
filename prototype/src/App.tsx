@@ -1,25 +1,17 @@
 import { useEffect, useRef, useState } from 'react'
 import {
-  CAM, IH, IW, ROOM, VIEW_LOCKED,
-  lockCurrentView, lockedView, resetView, setCenter, setZoom, unlockView, viewFrozen,
-  unpx, zoomValue, zoneName,
+  CAM, IH, IW, ROOM,
+  resetView, setCenter, setZoom, unpx, zoomValue, zoneName,
 } from './iso/space'
 import { drawScene } from './iso/room'
 import { bboxOf, sortedObjects } from './iso/box'
 import { MATERIAL_KEYS } from './iso/palette'
 import { seedScene } from './scene/seed'
 import { emptyRoom, loadDraft, loadLocked, saveDraft, saveLocked, validateScene } from './scene/store'
-import { ROOM_TEMP_UNLOCKED, type Scene, type SceneObject } from './scene/types'
+import { type Scene, type SceneObject } from './scene/types'
 import EditPanel from './ui/EditPanel'
 import PalettePanel from './ui/PalettePanel'
 
-const DEVICE = {
-  name: 'HUAWEI MatePad Mini',
-  res: '2560 × 1600',
-  inch: '8.8″',
-  hz: '120 Hz',
-  os: 'HarmonyOS 4.x',
-}
 const DEV_RES_W = 2560
 const BEZEL = 16
 
@@ -38,7 +30,6 @@ export default function App() {
   const [dev, setDev] = useState(true)
   const [rot, setRot] = useState<Rot>('auto')
   const [, forceZoomLabel] = useState(0) // refresh label tombol ZOOM saat pinch
-  const [viewLocked, setViewLocked] = useState(() => viewFrozen())
   const [selectedId, setSelectedId] = useState<string | null>(null)
   const [modal, setModal] = useState<'export' | 'import' | null>(null)
   const [showPalette, setShowPalette] = useState(false)
@@ -289,8 +280,8 @@ export default function App() {
   const rotated = rot === 'putar' || (rot === 'auto' && vp.h > vp.w)
   const availW = rotated ? vp.h : vp.w
   const availH = rotated ? vp.w : vp.h
-  // ruang cadangan untuk caption + toolbar agar tidak menimpa bingkai
-  const RESERVED = 108
+  // ruang cadangan untuk toolbar saja (keterangan di bawah tablet sudah dihapus)
+  const RESERVED = 68
   const screenW = Math.max(
     240,
     Math.floor(Math.min((availW * 0.94) - BEZEL * 2, ((availH - RESERVED) - BEZEL * 2) * 1.6)),
@@ -336,31 +327,11 @@ export default function App() {
                 </span>
                 <span>zoom ×{zoomValue()}</span>
                 <span className={locked ? 'on' : ''}>{locked ? `terkunci ${savedAt ?? ''}` : 'draf'}</span>
-                <span className={ROOM_TEMP_UNLOCKED ? 'on' : ''}>
-                  {ROOM_TEMP_UNLOCKED
-                    ? `ruang: TERBUKA sementara · ${ROOM.E}×${ROOM.W}×${ROOM.WALL_Z}z`
-                    : 'ruang: terkunci'}
-                </span>
-                <span className={viewLocked ? 'on' : ''}>
-                  {viewLocked
-                    ? `zoom+posisi TERKUNCI ×${zoomValue()} (${CAM.CE.toFixed(1)}, ${CAM.CW.toFixed(1)})`
-                    : `posisi bebas ×${zoomValue()}`}
-                </span>
+                <span>{`kamera ×${zoomValue()} (${CAM.CE.toFixed(1)}, ${CAM.CW.toFixed(1)})`}</span>
               </div>
             )}
           </div>
         </div>
-      </div>
-
-      <div className="caption">
-        <span>{DEVICE.name} · {DEVICE.res} · {DEVICE.inch} · {DEVICE.hz} · {DEVICE.os}</span>
-        <span>
-          {editable
-            ? 'mode edit: seret objek = pindah · seret lantai = geser kamera · pinch = zoom · ketuk objek = panel'
-            : locked
-              ? 'layar terkunci: inilah versi yang diterapkan ke aplikasi'
-              : 'mode lihat: seret lantai = geser kamera · pinch = zoom'}
-        </span>
       </div>
 
       <div className="toolbar">
@@ -384,28 +355,12 @@ export default function App() {
         )}
         <button
           className="tbtn"
-          title={VIEW_LOCKED
-            ? 'zoom & posisi dikunci — ketuk untuk kembali ke posisi terkunci'
-            : 'zoom dikendalikan pinch in/out; ketuk untuk reset ke default'}
+          title="zoom dikendalikan pinch in/out; ketuk untuk reset ke komposisi acuan"
           onClick={() => { resetView(); forceZoomLabel(v => v + 1) }}
         >
           ZOOM ×{zoomValue()}
         </button>
         <button className="tbtn" onClick={resetView}>TENGAH</button>
-        <button
-          className={viewLocked ? 'tbtn on' : 'tbtn'}
-          title={VIEW_LOCKED
-            ? 'zoom & posisi dikunci di kode — buka lewat permintaan ke developer'
-            : 'rekam / lepas posisi kamera yang sedang tampil'}
-          onClick={() => {
-            if (VIEW_LOCKED) return
-            if (viewLocked) { unlockView(); setViewLocked(false) }
-            else { lockCurrentView(); setViewLocked(true) }
-            forceZoomLabel(v => v + 1)
-          }}
-        >
-          {VIEW_LOCKED ? '🔒 ZOOM+POSISI TERKUNCI' : viewLocked ? '🔓 POSISI TERKUNCI' : '📌 KUNCI POSISI INI'}
-        </button>
         <button className={grid ? 'tbtn on' : 'tbtn'} onClick={() => setGrid(v => !v)}>GRID</button>
         <button className={showPalette ? 'tbtn on' : 'tbtn'} onClick={() => setShowPalette(v => !v)}>PALET</button>
         <button className={refleksi ? 'tbtn on' : 'tbtn'} onClick={() => setRefleksi(v => !v)} title="pantulan objek di lantai kayu">REFLEKSI</button>

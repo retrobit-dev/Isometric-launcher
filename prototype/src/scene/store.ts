@@ -1,4 +1,4 @@
-import { ROOM_FIXED, ROOM_TEMP_UNLOCKED, type Scene, type SceneObject } from './types'
+import { ROOM_FROM_FILE, ROOM_FIXED, type Scene, type SceneObject } from './types'
 
 // v4: ruangan saja (fase penyamaan ruangan dengan referensi; objek menyusul)
 const DRAFT_KEY = 'isola-draft-v4'
@@ -69,9 +69,8 @@ export function validateScene(data: unknown): Scene | null {
   }
   const m = d.meta as Partial<Scene['meta']> | undefined
   const r = d.room as Partial<Scene['room']> | undefined
-  // kunci ruangan dibuka sementara -> nilai room dari file boleh dipakai,
-  // kalau tidak (terkunci) selalu diganti konstanta ROOM_FIXED
-  const room = ROOM_TEMP_UNLOCKED && r
+  // tanpa aturan ruangan: nilai room dari file dipakai apa adanya (divalidasi)
+  const room = ROOM_FROM_FILE && r
     ? {
         e: Math.max(2, num(r.e) || ROOM_FIXED.e),
         w: Math.max(2, num(r.w) || ROOM_FIXED.w),

@@ -3,19 +3,21 @@
 > Status: **disepakati** · File pertukaran: `scene.json`
 > Prinsip: **satu skema, tiga editor** — editor preview (web), Setting di dalam app (Android), dan file aset bawaan. Ketiganya membaca/menulis JSON yang sama, sehingga layout yang Anda susun di preview berlaku identik di aplikasi.
 
-## 0. Kunci ruangan (PERMANEN — dibuka sementara 2026-10-28)
+## 0. Ruangan — TIDAK ADA ATURAN (dihapus 2026-10-28)
 
-Ruangan **terkunci permanen** sejak kesepakatan terakhir: `E = 20`, `W = 19`, `WALL_Z = 12`, palet `malam-biru`, dinding tipis, slab alas tipis (10 px).
+Atas permintaan user ("hapus semua aturan ruangan, nanti saya beri referensi
+baru"), seluruh penguncian ruangan dihapus:
 
-> ✅ **TERKUNCI (2026-10-28)** — `ROOM_TEMP_UNLOCKED = false` dan
-> `VIEW_LOCKED = true`. Nilai `room` pada file import selalu diganti konstanta
-> `ROOM_FIXED`, dan kamera selalu kembali ke `VIEW_FIXED` (×2.5; pusat 0.4/0.5).
-> Nilai terkunci = sama persis dengan tampilan preview saat kunci dipasang.
-- **Amendemen #1**: perpanjangan +6 tile ke selatan (20 × 19) — tetap berlaku
-- **Amendemen #2**: volume balok (slab tebal + dinding bervolume) dibatalkan atas permintaan user; slab & dinding tipis kembali
-- Editor preview, tombol RESET, dan IMPORT **tidak dapat mengubah ruangan** — nilai `room` pada file yang di-import selalu diganti konstanta `ROOM_FIXED`
-- Perubahan ruangan hanya mungkin lewat perubahan kode oleh developer, atas permintaan eksplisit user
-- Field `room` tetap ada di `scene.json` sebagai metadata baca-saja (validasi versi)
+- `ROOM_FIXED` **bukan lagi pemaksa** — hanya nilai bawaan. Import `scene.json`
+  boleh menentukan `room` sendiri (`ROOM_FROM_FILE = true`, tetap divalidasi:
+  angka positif, palet dari konstanta).
+- Kunci zoom/posisi kamera (`VIEW_LOCKED`) dihapus; kamera bebas dan tersimpan
+  otomatis di localStorage (`isola-kamera-v2`).
+- Perpanjangan visual dinding/lantai (`EXT_E`/`EXT_W`) diset **0**.
+- **Kunci objek** (`meta.locked`, §0a) **tetap ada** — itu fitur terpisah.
+
+Nilai awal saat ini (bebas diubah, menunggu referensi baru):
+`E = 20`, `W = 19`, `WALL_Z = 12`, palet `malam-biru`.
 
 ## 0a. Kunci objek (SEMENTARA)
 
