@@ -47,9 +47,14 @@ Tombol **ZOOM ×n** hanya menampilkan level saat ini dan **mereset ke default** 
 
 | Zoom | Kegunaan |
 |---|---|
-| ×0.5 – ×1.6 | peta diorama seluruh ruangan |
-| **×2 (default)** | **full-bleed seperti crop referensi**: dinding melewati tepi atas, lantai melewati tepi bawah |
-| ×2.5 – ×6 | pandangan dekat untuk presisi edit |
+| **×1.05 (default)** | **komposisi referensi user**: puncak belakang lantai ≈(318,199) di tengah kanvas, lantai mengisi separuh bawah, memotong tepi kiri y≈358 & kanan y≈360, bawah terpotong; dinding melewati tepi atas |
+| ×0.5 – ×1 | peta diorama seluruh ruangan |
+| ×1.5 – ×6 | pandangan dekat untuk presisi edit |
+
+Komposisi default mengikuti mockup user 1280×800 yang diskalakan ke kanvas
+internal 640×400 (÷2): ubin diamond ±68×36 px (skala 1280: referensi ±64×42 —
+rasio engine 2:1 isometrik, tinggi 42 tidak dapat dicapai tanpa skew), nat tiap
+±34 px horizontal / ±18 px vertikal pada skala 1280.
 
 ## 2. Mata arah (nama arah utama)
 

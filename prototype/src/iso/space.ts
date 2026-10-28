@@ -1,9 +1,10 @@
 // Konvensi ruang: lihat docs/01-KONVENSI-RUANG.md
 // Resolusi internal 640x400; final = x4 = 2560x1600 (MatePad Mini landscape)
 //
-// KAMERA: posisi tengah (CE, CW) + zoom Q. Pada Q default 1.625 kamera
-// full-bleed (ruangan menutup layar). Zoom out = peta seluruh ruangan;
-// zoom in = pandangan dekat untuk penempatan presisi.
+// KAMERA: posisi tengah (CE, CW) + zoom Q. Default mengikuti komposisi
+// referensi user: puncak belakang lantai ≈ tengah kanvas, lantai mengisi
+// separuh bawah. Zoom out = peta seluruh ruangan; zoom in = pandangan dekat
+// untuk penempatan presisi.
 
 export const SCALE = 4
 export const IW = 640
@@ -26,8 +27,11 @@ export const ROOM = {
 
 // Zoom kontinu via pinch: berapa pun nilainya, HW/HH/ZH dibulatkan integer
 // supaya pixel-art tetap tajam (tidak ada jitter antar tile).
-export const DEFAULT_Q = 2 // full-bleed seperti crop referensi
-export const DEFAULT_CENTER = { e: 8.75, w: 0 }
+// Default = komposisi referensi user (mockup 1280x800, diskalakan ke 640x400):
+// lantai mengisi separuh bawah kanvas, puncak belakang diamond ≈(318,199),
+// memotong tepi kiri y≈358 & kanan y≈360, bawah terpotong tepi layar.
+export const DEFAULT_Q = 1.05 // HW 17px, HH 9px — tile ≈68x36 pada skala 1280
+export const DEFAULT_CENTER = { e: 0.1, w: 0 }
 export const Q_MIN = 0.5
 export const Q_MAX = 6
 
