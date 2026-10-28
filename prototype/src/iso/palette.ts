@@ -65,32 +65,42 @@ export interface FloorMat {
   grout: string
   skirtL: string
   skirtR: string
+  /** panjang papan dalam tile (default 4) — papan panjang = kesan kayu */
+  plank?: number
+  /** warna serat kayu (grain) yang digambar tipis di atas papan */
+  grain?: string
 }
 
 export const FLOOR_MATERIALS: Record<string, FloorMat> = {
   // kayu oak hangat — papan selang-seling (default lantai)
   'lantai-kayu': {
     pattern: 'papan',
-    tones: ['#b08050', '#a87a4c', '#b98756'],
-    grout: '#8a6238',
+    tones: ['#b98a58', '#b3824e', '#bf9060'],
+    grout: '#8f6a44',
     skirtL: '#7a5530',
     skirtR: '#86603a',
+    plank: 4,
+    grain: '#a1743f',
   },
   // kayu terang — papan selang-seling
   'lantai-kayu-terang': {
     pattern: 'papan',
-    tones: ['#c99a63', '#bd8f5c', '#d2a26b'],
-    grout: '#9a7040',
+    tones: ['#d3a771', '#cb9d66', '#dab27c'],
+    grout: '#a67c4c',
     skirtL: '#8a6238',
     skirtR: '#94683c',
+    plank: 4,
+    grain: '#bb8d58',
   },
   // kayu gelap — papan selang-seling
   'lantai-kayu-gelap': {
     pattern: 'papan',
-    tones: ['#8a5c3c', '#7d5235', '#96653f'],
-    grout: '#5c3d28',
+    tones: ['#8a5c3c', '#815537', '#94633f'],
+    grout: '#5f4029',
     skirtL: '#4a3222',
     skirtR: '#553a28',
+    plank: 4,
+    grain: '#6f482d',
   },
   // ubin persegi biru-ungu (palet malam-biru)
   'lantai-ubin': {

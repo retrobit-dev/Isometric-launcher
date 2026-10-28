@@ -54,8 +54,9 @@ export const Q_MIN = 0.5
 export const Q_MAX = 6
 
 // --- penyimpanan posisi kamera -------------------------------------------
-// v3: kamera lama (panned jauh) dibuang sekali agar ruangan baru pasti terlihat
-const CAM_KEY = 'isola-kamera-v3'
+// v4: nilai kamera lama (x0.88) dibuang; mulai dari komposisi acuan x1.
+// Setiap perubahan pan/zoom tetap disimpan (supaya tidak balik ke tengah).
+const CAM_KEY = 'isola-kamera-v4'
 
 function readView(): ViewState | null {
   try {
