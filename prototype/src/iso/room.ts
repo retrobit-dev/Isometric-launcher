@@ -67,7 +67,7 @@ function floor(ctx: CanvasRenderingContext2D) {
   }
   for (let e = 0; e <= E; e++) line(ctx, px(e, 0), px(e, W), PAL.grout)
   for (let w = 0; w <= W; w++) line(ctx, px(0, w), px(E, w), PAL.grout)
-  const SK = 5
+  const SK = 10 // ketebalan slab lantai (diorama, seperti referensi)
   const bL = px(0, W), sL = px(E, W), tR = px(E, 0)
   poly(ctx, [bL, sL, { x: sL.x, y: sL.y + SK }, { x: bL.x, y: bL.y + SK }], PAL.skirtL)
   poly(ctx, [tR, sL, { x: sL.x, y: sL.y + SK }, { x: tR.x, y: tR.y + SK }], PAL.skirtR)
@@ -82,23 +82,24 @@ function overlays(ctx: CanvasRenderingContext2D, grid: boolean, edit: boolean) {
     ctx.fillStyle = PAL.hud
     const onScreen = (p: P) => p.x > -20 && p.x < IW + 20 && p.y > -10 && p.y < IH + 10
     ctx.textAlign = 'left'
-    for (let e = 2; e <= E; e += 2) {
+    for (let e = 1; e <= E; e += 1) {
       const p = px(e, 0)
       if (onScreen(p)) ctx.fillText(String(e), p.x + 3, p.y + 9)
     }
     ctx.textAlign = 'right'
-    for (let w = 2; w <= W; w += 2) {
+    for (let w = 1; w <= W; w += 1) {
       const p = px(0, w)
       if (onScreen(p)) ctx.fillText(String(w), p.x - 3, p.y + 9)
     }
     ctx.textAlign = 'center'
-    ctx.fillText('DT', px(9, 0, 3.2).x, px(9, 0, 3.2).y)
-    ctx.fillText('DB', px(0, 9, 3.2).x, px(0, 9, 3.2).y)
+    ctx.fillText('DT', px(6, 0, 3.2).x, px(6, 0, 3.2).y)
+    ctx.fillText('DB', px(0, 6, 3.2).x, px(0, 6, 3.2).y)
   }
   if (edit) {
-    // batas zona interaktif t = 12.5 (docs/03 §3)
-    line(ctx, px(12.5, 0), px(12.5, W), PAL.zone, [3, 3])
-    line(ctx, px(0, 12.5), px(E, 12.5), PAL.zone, [3, 3])
+    // batas zona: strip 1.5 tile menempel dinding = zona objek dinding/dekor
+    // (docs/03 §3); objek interaktif/app hidup di t >= 1.5
+    line(ctx, px(1.5, 0), px(1.5, W), PAL.zone, [3, 3])
+    line(ctx, px(0, 1.5), px(E, 1.5), PAL.zone, [3, 3])
   }
 }
 

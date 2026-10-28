@@ -40,12 +40,11 @@
 `wood`, `wood-dark`, `metal`, `paper`, `teal`, `cream`, `amber`, `slate`, `crimson`, `sage`
 (masing-masing = 3 tone: top / left / right, sesuai arah cahaya dari jendela DT)
 
-## 3. Aturan zona (disepakati)
+## 3. Aturan zona (disepakati, direvisi sesuai skala referensi)
 
-- **Zona interaktif: `t = 2..12`** sepanjang DT/DB dan area tengah与之 — semua objek ber-`app` wajib di sini
-- **Zona dekoratif: `t > 13`** — objek tanpa `app` (tanaman, tumpukan buku, bayangan)
-- Editor menampilkan **batas zona amber putus-putus** di `e = 12.5` dan `w = 12.5` sebagai pengingat
-- Alasan: area `t > 13` berada di luar bidang layar kamera full-bleed; app yang ditaruh sana tidak terlihat tanpa orbit
+- **Strip dinding `t < 1.5`** sepanjang DT/DB: khusus objek menempel dinding (jam, kalender, poster, jendela, papan) dan dekor — editor menandai batasnya dengan garis amber putus-putus di `t = 1.5`
+- **Zona interaktif app: `t ≥ 1.5`** sampai dinding seberang — karena framing default (×2.5) memperlihatkan seluruh ruangan, tidak ada area yang tersembunyi di luar layar
+- Objek ber-`app` wajib di zona interaktif; objek dinding ber-`app` (jam, kalender) exempt karena statusnya menempel dinding dan selalu terlihat
 
 ## 4. Fitur editor (preview web — sudah ada)
 

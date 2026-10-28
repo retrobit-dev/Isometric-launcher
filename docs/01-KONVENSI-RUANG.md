@@ -1,6 +1,6 @@
 # 01 — Konvensi Ruang, Arah & Lokasi
 
-> Status: **diajukan untuk disepakati** · Berlaku untuk: prototipe web DAN aplikasi Android nanti.
+> Status: **aktif** · Berlaku untuk: prototipe web DAN aplikasi Android nanti.
 > Semua instruksi layout ("taruh meja di …", "geser rak ke …") memakai bahasa ini.
 
 ## 1. Resolusi & satuan
@@ -11,7 +11,31 @@
 | Resolusi final | × 4 = **2560 × 1600** (MatePad Mini, landscape) |
 | 1 tile lantai | 32 × 16 px internal (rasio isometrik 2:1) |
 | 1 satuan tinggi (`z`) | 16 px internal |
-| Ukuran ruangan default | **E = 11 tile, W = 8 tile, tinggi dinding 5.5 z** *(menunggu kesepakatan)* |
+
+## 1a. Skala fisik (dikunci dari referensi ruangan)
+
+| Besaran | Nilai dunia | Satuan kita |
+|---|---|---|
+| 1 tile lantai | 60 cm × 60 cm | 1 tile |
+| 1 satuan tinggi | 50 cm | 1 z |
+| Ruangan (DT × DB) | 6.0 m × 5.4 m (±32 m²) | **E = 10, W = 9** |
+| Tinggi dinding | 3.25 m | **WALL_Z = 6.5** |
+| Tinggi pintu | 2.0 m | 4 z |
+| Tinggi meja kerja | 75 cm | 1.5 z |
+| Tinggi rak buku berdiri | 1.8 m | 3.6 z |
+| Tinggi lampu berdiri | 1.5 m | 3 z |
+
+Proporsi ruangan mengikuti gambar referensi (ruang isometrik): dinding kanan (DT) lebih panjang dari kiri (DB), rasio ≈ 1.1 : 1, tinggi dinding ≈ 1.6× tinggi pintu.
+
+## 1b. Framing kamera
+
+| Zoom | Kegunaan |
+|---|---|
+| ×1 / ×1.625 | peta ruangan menyeluruh |
+| **×2.5 (default)** | **framing referensi**: diorama, lebar penuh tepi-ke-tepi, slab lantai terlihat di bawah |
+| ×4 / ×6 | pandangan dekat untuk presisi edit |
+
+Catatan jujur: ruangan seukuran referensi (10 × 9 tile) tidak bisa full-bleed total di keempat tepi pada zoom wajar — sudut bawah memperlihatkan latar, persis seperti gambar referensi yang menampilkan ruangan sebagai diorama. Full-bleed penuh hanya mungkin di zoom ×6 (terlalu dekat untuk dijadikan default).
 
 ## 2. Mata arah (nama arah utama)
 
@@ -63,7 +87,7 @@ Sisi **S tidak berdinding** (sisi kamera).
 
 ## 6. Tinggi (`z`)
 
-`z=0` = permukaan lantai. Contoh acuan: meja ≈ 0.9 z · lemari ≈ 1.4 z · lampu berdiri ≈ 2.2 z · puncak dinding = 5.5 z.
+`z=0` = permukaan lantai · 1 z = 50 cm (docs/01 §1a). Contoh acuan: meja 1.5 z · lemari arsip 2.6 z · rak buku 3.6 z · lampu berdiri 3 z · puncak dinding 6.5 z.
 
 ## 7. Zona (instruksi kasar)
 
