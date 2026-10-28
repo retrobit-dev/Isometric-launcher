@@ -160,18 +160,23 @@ export default function EditPanel(p: Props) {
         />
       </div>
       <div className="row">
-        <span className="rl">rotasi</span>
-        <button className="sbtn wide" disabled={frozen} onClick={p.onRotate} title="putar objek 90° (menukar panjang & lebar)">
+        <span className="rl">rotasi objek</span>
+        <button
+          className="sbtn wide"
+          disabled={frozen}
+          onClick={p.onRotate}
+          title="memutar OBJEK INI 90° pada poros vertikalnya (bukan kamera/ruangan); rotasi ganjil menukar panjang & lebar"
+        >
           {rot * 90}° ⟳
         </button>
       </div>
       <div className="row">
-        <span className="rl">refleksi</span>
+        <span className="rl">refleksi objek</span>
         <button
           className={refl ? 'sbtn wide on' : 'sbtn wide'}
           disabled={frozen}
           onClick={() => p.onChange({ refleksi: !refl })}
-          title="pantulan objek ini di lantai"
+          title="pantulan/cermin bayangan OBJEK INI di permukaan lantai (bukan efek kamera)"
         >
           {refl ? 'AKTIF ✓' : 'MATI'}
         </button>

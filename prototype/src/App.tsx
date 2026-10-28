@@ -1,11 +1,11 @@
 import { useEffect, useRef, useState } from 'react'
 import {
-  ROOM, CAM, IH, IW,
+  CAM, IH, IW,
   setCenter, setZoom, unpx, zoomValue, zoneName,
 } from './iso/space'
 import { drawScene } from './iso/room'
 import { bboxOf, sortedObjects } from './iso/box'
-import { FLOOR_DEFAULT, FLOOR_KEYS, MATERIAL_KEYS, WALL_DEFAULT, WALL_STYLE_KEYS } from './iso/palette'
+import { FLOOR_DEFAULT, FLOOR_KEYS, MATERIAL_KEYS, WALL_STYLE_KEYS } from './iso/palette'
 import { loadCandidates, loadDraft, loadLocked, saveDraftGuarded, saveLocked, validateScene } from './scene/store'
 import { type Scene, type SceneObject } from './scene/types'
 import EditPanel from './ui/EditPanel'
@@ -22,6 +22,8 @@ export default function App() {
   const canvasRef = useRef<HTMLCanvasElement>(null)
   const [scene, setScene] = useState<Scene>(() => loadDraft())
   const [locked, setLocked] = useState<boolean>(() => loadLocked() !== null)
+  // preview SELALU dibuka dalam mode LIHAT (permintaan user 2026-10-28);
+  // mode EDIT hanya aktif setelah user mengetuk tombol MODE.
   const [mode, setMode] = useState<'lihat' | 'edit'>('lihat')
   const [, forceZoomLabel] = useState(0) // refresh chip KOORDINAT saat pinch zoom
   const [selectedId, setSelectedId] = useState<string | null>(null)
@@ -270,46 +272,6 @@ export default function App() {
     setSelectedId(id)
   }
 
-  // + DINDING: buat 2 dinding (kiri/DB & kanan/DT) mengikuti tepi belakang
-  // lantai yang ada. Tidak ada lantai -> pakai batas ruangan (0,0).
-  const addWalls = () => {
-    const floor = sceneRef.current.objects.find(o => o.role === 'lantai')
-    const e0 = floor ? floor.pos.e : 0
-    const w0 = floor ? floor.pos.w : 0
-    const se = floor ? floor.size.e : ROOM.E
-    const sw = floor ? floor.size.w : ROOM.W
-    const z0 = floor ? floor.pos.z : 0
-    const H = ROOM.WALL_Z
-    const stamp = Date.now().toString(36).slice(-4)
-
-    const wallKiri: SceneObject = {
-      id: `dinding-kiri-${stamp}`,
-      label: 'Dinding Kiri (DB)',
-      pos: { e: e0, w: w0, z: z0 },
-      size: { e: 0.2, w: sw, z: H },
-      style: WALL_DEFAULT,
-      app: null,
-      layer: 'main',
-      role: 'dinding',
-      side: 'kiri',
-      refleksi: false,
-    }
-    const wallKanan: SceneObject = {
-      id: `dinding-kanan-${stamp}`,
-      label: 'Dinding Kanan (DT)',
-      pos: { e: e0, w: w0, z: z0 },
-      size: { e: se, w: 0.2, z: H },
-      style: WALL_DEFAULT,
-      app: null,
-      layer: 'main',
-      role: 'dinding',
-      side: 'kanan',
-      refleksi: false,
-    }
-    setScene(s => ({ ...s, objects: [...s.objects, wallKiri, wallKanan] }))
-    setSelectedId(wallKiri.id)
-  }
-
   const duplicateObject = (id: string) => {
     const src = sceneRef.current.objects.find(o => o.id === id)
     if (!src) return
@@ -322,6 +284,9 @@ export default function App() {
         // salinan berdiri sendiri: lepas dari grup & dari kunci objek asal
         grup: undefined,
         kunci: undefined,
+        // permintaan user 2026-10-28: hasil duplikat SELALU layer overlay
+        // supaya langsung terlihat di atas objek lain
+        layer: 'overlay',
       }],
     }))
     setSelectedId(nid)
@@ -576,11 +541,6 @@ export default function App() {
               MODE: {mode.toUpperCase()}
             </button>
             {mode === 'edit' && <button className="tbtn" onClick={addObject}>+ TAMBAH</button>}
-            {mode === 'edit' && (
-              <button className="tbtn" onClick={addWalls} title="buat 2 dinding (kiri & kanan) mengikuti tepi belakang lantai">
-                + DINDING
-              </button>
-            )}
             <button
               className={showList ? 'tbtn on' : 'tbtn'}
               onClick={() => setShowList(v => !v)}
