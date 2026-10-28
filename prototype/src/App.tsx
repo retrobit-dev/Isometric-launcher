@@ -102,10 +102,16 @@ export default function App() {
   }
 
   const hitTest = (sx: number, sy: number): SceneObject | null => {
+    // objek lantai (role 'lantai') dicek TERAKHIR supaya tidak menelan klik
+    // objek yang berdiri di atasnya
     const sorted = sortedObjects(sceneRef.current.objects)
-    for (let i = sorted.length - 1; i >= 0; i--) {
-      const b = bboxOf(sorted[i])
-      if (sx >= b.x0 && sx <= b.x1 && sy >= b.y0 && sy <= b.y1) return sorted[i]
+    const solid = sorted.filter(o => o.role !== 'lantai')
+    const floors = sorted.filter(o => o.role === 'lantai')
+    for (const list of [solid, floors]) {
+      for (let i = list.length - 1; i >= 0; i--) {
+        const b = bboxOf(list[i])
+        if (sx >= b.x0 && sx <= b.x1 && sy >= b.y0 && sy <= b.y1) return list[i]
+      }
     }
     return null
   }
@@ -250,6 +256,27 @@ export default function App() {
   }
 
   const exportJSON = () => JSON.stringify(scene, null, 2)
+
+  // SALIN JSON: satu ketuk ke clipboard (permintaan user)
+  const [copied, setCopied] = useState(false)
+  const copyJSON = async () => {
+    const text = exportJSON()
+    try {
+      await navigator.clipboard.writeText(text)
+    } catch {
+      // fallback untuk browser/konteks tanpa izin clipboard
+      const ta = document.createElement('textarea')
+      ta.value = text
+      ta.style.position = 'fixed'
+      ta.style.opacity = '0'
+      document.body.appendChild(ta)
+      ta.select()
+      try { document.execCommand('copy') } catch { /* abaikan */ }
+      document.body.removeChild(ta)
+    }
+    setCopied(true)
+    setTimeout(() => setCopied(false), 1600)
+  }
 
   const downloadScene = () => {
     const blob = new Blob([exportJSON()], { type: 'application/json' })
@@ -427,6 +454,11 @@ export default function App() {
               spellCheck={false}
             />
             <div className="mfoot">
+              {modal === 'export' && (
+                <button className="sbtn wide" onClick={copyJSON}>
+                  {copied ? 'TERSALIN ✓' : 'SALIN JSON'}
+                </button>
+              )}
               {modal === 'export' && <button className="sbtn wide" onClick={downloadScene}>UNDUH FILE</button>}
               {modal === 'import' && <button className="sbtn wide" onClick={applyImport}>TERAPKAN</button>}
               <button className="sbtn wide" onClick={() => setModal(null)}>TUTUP</button>

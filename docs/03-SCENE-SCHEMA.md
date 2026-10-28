@@ -106,7 +106,9 @@ rak, dan lemari di DB. Penyimpanan draft naik ke key `isola-draft-v3` /
 | Tambah objek | Tombol **TAMBAH** (balok baru 2×1×1 di tengah zona interaktif) |
 | Edit objek | Ketuk objek → panel: posisi, ukuran, material (cycle), label, **layer (cycle UNDER/MAIN/OVER)** |
 | Hapus / duplikat | Tombol di panel objek |
+| **Peran objek** | Tombol **JADIKAN LANTAI** di panel objek: objek digambar sebagai **ubin datar** seluas `pos e..e+size.e × w..w+size.w` (bukan balok), `z` otomatis 0, memakai palet lantai + nat + slab. Tombol yang sama mengembalikannya jadi balok. Field `role: 'lantai'` disimpan di `scene.json` |
 | **Input angka** | Posisi (e, w, z) dan ukuran (panjang, lebar, tinggi) bisa **diketik langsung** di panel objek: ketuk field, ketik angka, **Enter** = terapkan (Esc = batal, ↑/↓ = ±0.1). Nilai dibulatkan ke kelipatan **0.1**; tombol −/+ tetap ada |
+| **SALIN JSON** | Di modal EXPORT: satu ketuk menyalin seluruh `scene.json` ke clipboard (fallback `execCommand` bila Clipboard API diblokir), label berubah `TERSALIN ✓` |
 | **Zoom in/out** | **Pinch in/out** di layar (kontinu ×0.5 – ×6, langkah piksel tetap integer). Tombol **ZOOM ×n** = indikator level + ketuk untuk reset ke komposisi terkunci ×2.5 (`VIEW_FIXED` + `VIEW_LOCKED`, docs/01 §1b) |
 | **Pan kamera** | Seret area kosong (mode apa pun) menggeser tengah kamera **tanpa batas — ruangan boleh dibawa ke mana pun di kanvas**; **TENGAH** mengembalikan pandangan default |
 | **SIMPAN & KUNCI** | Mengunci scene: edit dinonaktifkan, `meta.locked=true` + `savedAt` dicatat. **Hanya scene terkunci yang sah diterapkan ke aplikasi** |

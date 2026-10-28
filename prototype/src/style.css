@@ -210,6 +210,7 @@ html, body, #root {
 .sbtn:active { background: #262c40; }
 .sbtn.wide { flex: 1; }
 .sbtn.danger { color: #e4b1ab; border-color: #6d3a35; background: #2a1715; }
+.sbtn.on { color: #e8c48a; border-color: #7a5c2e; background: #2b2416; }
 
 /* panel palet warna */
 .palpanel {

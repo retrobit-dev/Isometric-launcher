@@ -31,6 +31,10 @@ export interface SceneObject {
   size: { e: number; w: number; z: number }
   style: string | { top: string; left: string; right: string }
   app: string | null
+  // role 'lantai' = objek ini BUKAN balok, melainkan bidang lantai ruangan:
+  // digambar sebagai ubin datar seluas (pos e..e+size.e, w..w+size.w),
+  // memakai palet lantai, dan diabaikan oleh renderer balok & refleksi.
+  role?: 'lantai'
   // underlay = di bawah objek main (karpet, bayangan, decal)
   // main     = urutan kedalaman normal (furniture/app)
   // overlay  = di atas semua (lampu gantung, balok plafon, tanaman menjulang)

@@ -120,6 +120,20 @@ export default function EditPanel(p: Props) {
         </button>
       </div>
       <div className="row">
+        <span className="rl">peran</span>
+        <button
+          className={o.role === 'lantai' ? 'sbtn wide on' : 'sbtn wide'}
+          onClick={() => p.onChange({
+            role: o.role === 'lantai' ? undefined : 'lantai',
+            // jadikan lantai -> turunkan ke dasar
+            ...(o.role === 'lantai' ? {} : { pos: { ...o.pos, z: 0 } }),
+          })}
+          title="lantai = digambar sebagai ubin datar seluas objek ini"
+        >
+          {o.role === 'lantai' ? 'LANTAI ✓ (balik ke balok)' : 'JADIKAN LANTAI'}
+        </button>
+      </div>
+      <div className="row">
         <span className="rl">layer</span>
         <button className="sbtn wide" onClick={p.onCycleLayer}>
           {(o.layer ?? 'main').toUpperCase()} ⟳

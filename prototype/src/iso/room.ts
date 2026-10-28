@@ -133,15 +133,28 @@ function drawReflections(ctx: CanvasRenderingContext2D, objects: SceneObject[]) 
   const W = ROOM.W + EXT_W
   ctx.save()
   ctx.beginPath()
-  const f0 = px(0, 0), f1 = px(E, 0), f2 = px(E, W), f3 = px(0, W)
-  ctx.moveTo(f0.x, f0.y)
-  ctx.lineTo(f1.x, f1.y)
-  ctx.lineTo(f2.x, f2.y)
-  ctx.lineTo(f3.x, f3.y)
-  ctx.closePath()
+  const floors = objects.filter(x => x.role === 'lantai' && x.size.e > 0 && x.size.w > 0)
+  if (floors.length) {
+    // bidang pantul = batas objek lantai
+    for (const f of floors) {
+      const a = px(f.pos.e, f.pos.w, f.pos.z)
+      const b = px(f.pos.e + f.size.e, f.pos.w, f.pos.z)
+      const c = px(f.pos.e + f.size.e, f.pos.w + f.size.w, f.pos.z)
+      const d = px(f.pos.e, f.pos.w + f.size.w, f.pos.z)
+      ctx.moveTo(a.x, a.y); ctx.lineTo(b.x, b.y); ctx.lineTo(c.x, c.y); ctx.lineTo(d.x, d.y)
+      ctx.closePath()
+    }
+  } else {
+    const f0 = px(0, 0), f1 = px(E, 0), f2 = px(E, W), f3 = px(0, W)
+    ctx.moveTo(f0.x, f0.y)
+    ctx.lineTo(f1.x, f1.y)
+    ctx.lineTo(f2.x, f2.y)
+    ctx.lineTo(f3.x, f3.y)
+    ctx.closePath()
+  }
   ctx.clip()
   ctx.globalAlpha = 0.12
-  const reflectable = objects.filter(x => (x.layer ?? 'main') !== 'underlay')
+  const reflectable = objects.filter(x => (x.layer ?? 'main') !== 'underlay' && x.role !== 'lantai')
   for (const obj of sortedObjects(reflectable)) {
     const zh = obj.size.z * 0.6
     drawBox(ctx, {
@@ -151,6 +164,43 @@ function drawReflections(ctx: CanvasRenderingContext2D, objects: SceneObject[]) 
     })
   }
   ctx.restore()
+}
+
+// Objek ber-role 'lantai': digambar sebagai bidang ubin datar (bukan balok).
+// Luasnya = (pos.e .. pos.e+size.e, pos.w .. pos.w+size.w), tingginya pos.z
+// (0 = menempel lantai dasar). Ubin 1x1 dipotong rapi ke batas bidang.
+function drawFloorObjects(ctx: CanvasRenderingContext2D, objects: SceneObject[]) {
+  const tones = [PAL.floorBase, PAL.floorAlt, PAL.floorC]
+  for (const o of objects) {
+    if (o.role !== 'lantai') continue
+    const e0 = o.pos.e, e1 = o.pos.e + o.size.e
+    const w0 = o.pos.w, w1 = o.pos.w + o.size.w
+    const z = o.pos.z
+    if (e1 <= e0 || w1 <= w0) continue
+
+    for (let we = Math.floor(w0); we < Math.ceil(w1); we++) {
+      for (let ee = Math.floor(e0); ee < Math.ceil(e1); ee++) {
+        const a = Math.max(ee, e0), b = Math.min(ee + 1, e1)
+        const c = Math.max(we, w0), d = Math.min(we + 1, w1)
+        if (b <= a || d <= c) continue
+        poly(ctx, [px(a, c, z), px(b, c, z), px(b, d, z), px(a, d, z)],
+          tones[(ee * 7 + we * 13) % 3])
+      }
+    }
+    // nat: garis tiap 1 tile, dipotong ke batas bidang
+    const wLines: number[] = []
+    for (let ww = Math.ceil(w0); ww < w1; ww++) wLines.push(ww)
+    for (const ww of [w0, ...wLines, w1]) line(ctx, px(e0, ww, z), px(e1, ww, z), PAL.grout)
+    const eLines: number[] = []
+    for (let ee = Math.ceil(e0); ee < e1; ee++) eLines.push(ee)
+    for (const ee of [e0, ...eLines, e1]) line(ctx, px(ee, w0, z), px(ee, w1, z), PAL.grout)
+
+    // tebal slab di dua sisi depan (sama seperti lantai ruangan)
+    const SK = 10
+    const bL = px(e0, w1, z), bR = px(e1, w1, z), tR = px(e1, w0, z)
+    poly(ctx, [bL, bR, { x: bR.x, y: bR.y + SK }, { x: bL.x, y: bL.y + SK }], PAL.skirtL)
+    poly(ctx, [tR, bR, { x: bR.x, y: bR.y + SK }, { x: tR.x, y: tR.y + SK }], PAL.skirtR)
+  }
 }
 
 export function drawScene(ctx: CanvasRenderingContext2D, o: DrawOpts) {
@@ -164,12 +214,16 @@ export function drawScene(ctx: CanvasRenderingContext2D, o: DrawOpts) {
   }
   overlays(ctx, o.grid, o.edit)
 
+  // lantai dari objek (role 'lantai') digambar paling bawah
+  drawFloorObjects(ctx, o.objects)
+
   // tiga lapis: underlay (bawah) -> main -> overlay (atas),
   // masing-masing tetap diurutkan kedalaman agar isometrik benar
   const layerOf = (x: SceneObject) => x.layer ?? 'main'
-  for (const obj of sortedObjects(o.objects.filter(x => layerOf(x) === 'underlay'))) drawBox(ctx, obj)
-  for (const obj of sortedObjects(o.objects.filter(x => layerOf(x) === 'main'))) drawBox(ctx, obj)
-  for (const obj of sortedObjects(o.objects.filter(x => layerOf(x) === 'overlay'))) drawBox(ctx, obj)
+  const solid = o.objects.filter(x => x.role !== 'lantai')
+  for (const obj of sortedObjects(solid.filter(x => layerOf(x) === 'underlay'))) drawBox(ctx, obj)
+  for (const obj of sortedObjects(solid.filter(x => layerOf(x) === 'main'))) drawBox(ctx, obj)
+  for (const obj of sortedObjects(solid.filter(x => layerOf(x) === 'overlay'))) drawBox(ctx, obj)
 
   if (o.selectedId) {
     const sel = o.objects.find(x => x.id === o.selectedId)
@@ -188,5 +242,6 @@ export function drawScene(ctx: CanvasRenderingContext2D, o: DrawOpts) {
 
   // refleksi digambar SETELAH crispify agar alpha samar tidak ikut ter-threshold
   // (butuh lantai sebagai bidang pantul; tanpa lantai refleksi dilewati)
-  if (o.refleksi && ROOM_VISIBLE) drawReflections(ctx, o.objects)
+  const hasFloorObj = o.objects.some(x => x.role === 'lantai')
+  if (o.refleksi && (ROOM_VISIBLE || hasFloorObj)) drawReflections(ctx, o.objects)
 }

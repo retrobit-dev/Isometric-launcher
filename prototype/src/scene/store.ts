@@ -1,8 +1,10 @@
 import { ROOM_FROM_FILE, ROOM_FIXED, type Scene, type SceneObject } from './types'
 
 // v4: ruangan saja (fase penyamaan ruangan dengan referensi; objek menyusul)
-const DRAFT_KEY = 'isola-draft-v4'
-const LOCKED_KEY = 'isola-locked-v4'
+// v5: objek bisa berperan sebagai LANTAI ruangan (role 'lantai')
+const DRAFT_KEY = 'isola-draft-v5'
+const LOCKED_KEY = 'isola-locked-v5'
+const PREV_DRAFT_KEY = 'isola-draft-v4'
 
 export function emptyRoom(): Scene {
   return {
@@ -14,7 +16,22 @@ export function emptyRoom(): Scene {
 }
 
 export function loadDraft(): Scene {
-  return read(DRAFT_KEY) ?? emptyRoom()
+  return read(DRAFT_KEY) ?? migratePrevDraft() ?? emptyRoom()
+}
+
+// Migrasi sekali jalan dari draft v4: objek berupa "lempeng" besar & tipis
+// (mis. yang dibuat user: 17.2 x 22.8 x 0.5) diubah menjadi LANTAI ruangan:
+// role 'lantai' + z diturunkan ke 0. Objek lain dibiarkan apa adanya.
+function migratePrevDraft(): Scene | null {
+  const prev = read(PREV_DRAFT_KEY)
+  if (!prev) return null
+  const objects = prev.objects.map(o => {
+    const isSlab = o.size.e >= 8 && o.size.w >= 8 && o.size.z <= 1.5
+    return isSlab ? { ...o, role: 'lantai' as const, pos: { ...o.pos, z: 0 } } : o
+  })
+  const migrated: Scene = { ...prev, objects }
+  write(DRAFT_KEY, migrated)
+  return migrated
 }
 export function saveDraft(scene: Scene) { write(DRAFT_KEY, scene) }
 
@@ -64,6 +81,7 @@ export function validateScene(data: unknown): Scene | null {
         ? ob.style as SceneObject['style']
         : 'wood',
       app: typeof ob.app === 'string' ? ob.app : null,
+      ...(ob.role === 'lantai' ? { role: 'lantai' as const } : {}),
       layer: ob.layer === 'underlay' || ob.layer === 'overlay' ? ob.layer : 'main',
     })
   }
