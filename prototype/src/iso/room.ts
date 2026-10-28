@@ -159,7 +159,7 @@ function drawReflections(ctx: CanvasRenderingContext2D, objects: SceneObject[]) 
   const reflectable = objects.filter(
     x => (x.layer ?? 'main') !== 'underlay'
       && x.role !== 'lantai' && x.role !== 'dinding'
-      && x.refleksi !== false,
+      && x.pantulan !== false,
   )
   for (const obj of sortedObjects(reflectable)) {
     const zh = obj.size.z * 0.6

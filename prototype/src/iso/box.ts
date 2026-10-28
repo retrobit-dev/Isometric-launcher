@@ -37,7 +37,9 @@ export function drawBox(ctx: CanvasRenderingContext2D, o: SceneObject) {
   const { e, w, z } = o.pos
   const { se, sw } = footprintOf(o)
   const sz = o.size.z
-  const c = colorsOf(o)
+  const c0 = colorsOf(o)
+  // REFLEKSI objek = cermin: sisi kiri & kanan bertukar (arah cahaya terbalik)
+  const c = o.refleksi ? { top: c0.top, left: c0.right, right: c0.left } : c0
   const t00 = px(e, w, z + sz)
   const t10 = px(e + se, w, z + sz)
   const t11 = px(e + se, w + sw, z + sz)

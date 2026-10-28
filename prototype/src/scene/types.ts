@@ -44,8 +44,12 @@ export interface SceneObject {
   // rotasi terhadap sumbu z, kelipatan 90 derajat (0..3). Rotasi ganjil
   // menukar panjang/lebar (footprint) sehingga balok berputar 90/270 derajat.
   rot?: 0 | 1 | 2 | 3
-  // pantulan objek ini di lantai (default ON bila tidak diisi)
+  // REFLEKSI OBJEK = objek dicerminkan (mirror): warna sisi kiri & kanan
+  // bertukar sehingga arah cahaya/bentuk objek terbalik. Berlaku untuk OBJEK
+  // ini saja, bukan kamera atau ruangan. Default OFF.
   refleksi?: boolean
+  // PANTULAN = bayangan cermin objek ini di permukaan lantai. Default ON.
+  pantulan?: boolean
   // underlay = di bawah objek main (karpet, bayangan, decal)
   // main     = urutan kedalaman normal (furniture/app)
   // overlay  = di atas semua (lampu gantung, balok plafon, tanaman menjulang)

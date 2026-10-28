@@ -82,7 +82,8 @@ export default function EditPanel(p: Props) {
   const keys = isFloor ? FLOOR_KEYS : o.role === 'dinding' ? WALL_STYLE_KEYS : MATERIAL_KEYS
   const matIdx = keys.indexOf(styleName)
   const rot = o.rot ?? 0
-  const refl = o.refleksi !== false
+  const cermin = o.refleksi === true          // objek dicerminkan (mirror)
+  const pantul = o.pantulan !== false         // bayangan objek di lantai
   // KUNCI per objek (permintaan user): 'warna' = semua mati kecuali material,
   // 'semua' = mati total. `frozen` mematikan geometri, `noColor` mematikan warna.
   const kunci = o.kunci
@@ -173,12 +174,23 @@ export default function EditPanel(p: Props) {
       <div className="row">
         <span className="rl">refleksi objek</span>
         <button
-          className={refl ? 'sbtn wide on' : 'sbtn wide'}
+          className={cermin ? 'sbtn wide on' : 'sbtn wide'}
           disabled={frozen}
-          onClick={() => p.onChange({ refleksi: !refl })}
-          title="pantulan/cermin bayangan OBJEK INI di permukaan lantai (bukan efek kamera)"
+          onClick={() => p.onChange({ refleksi: !cermin })}
+          title="OBJEK INI dicerminkan (mirror): sisi kiri & kanan bertukar, arah cahaya terbalik — bukan efek kamera"
         >
-          {refl ? 'AKTIF ✓' : 'MATI'}
+          {cermin ? 'CERMIN ✓' : 'NORMAL'}
+        </button>
+      </div>
+      <div className="row">
+        <span className="rl">pantulan</span>
+        <button
+          className={pantul ? 'sbtn wide on' : 'sbtn wide'}
+          disabled={frozen}
+          onClick={() => p.onChange({ pantulan: !pantul })}
+          title="bayangan cermin OBJEK INI di permukaan lantai"
+        >
+          {pantul ? 'AKTIF ✓' : 'MATI'}
         </button>
       </div>
       {o.role === 'dinding' && (
