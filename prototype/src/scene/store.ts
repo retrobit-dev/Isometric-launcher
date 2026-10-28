@@ -75,6 +75,102 @@ export function loadLocked(): Scene | null {
 }
 export function saveLocked(scene: Scene) { write(LOCKED_KEY, scene) }
 
+// ---------------------------------------------------------------------------
+// PERLINDUNGAN DATA (permintaan user 2026-10-28: "kenapa tiba-tiba objek
+// hilang? bisa kembalikan?"). Draf disimpan otomatis pada setiap perubahan,
+// sehingga satu kondisi buruk (draf kosong/rusak, import salah, reload di
+// browser lain) bisa menimpa scene yang sudah susah payah dibuat.
+//   • BACKUP : scene non-kosong terakhir (tidak pernah ditimpa scene kosong)
+//   • RIWAYAT: 12 cuplikan terakhir (maks. satu per 20 detik, atau segera bila
+//              jumlah objek berubah) agar beberapa langkah bisa dimundurkan
+// Keduanya dibaca lewat loadHistory()/loadCandidates() untuk panel PULIHKAN.
+// ---------------------------------------------------------------------------
+const BACKUP_KEY = 'isola-cadangan-v1'
+const HIST_KEY = 'isola-riwayat-v1'
+const HIST_MAX = 12
+const HIST_GAP_MS = 20000
+
+export interface Snapshot {
+  t: string
+  n: number
+  scene: Scene
+}
+
+let lastHistAt = 0
+
+function pushHistory(scene: Scene) {
+  try {
+    const raw = localStorage.getItem(HIST_KEY)
+    const list: Snapshot[] = raw ? (JSON.parse(raw) as Snapshot[]) : []
+    const last = list[list.length - 1]
+    const now = Date.now()
+    const countChanged = !last || last.n !== scene.objects.length
+    if (!countChanged && now - lastHistAt < HIST_GAP_MS) return
+    list.push({ t: new Date(now).toISOString(), n: scene.objects.length, scene })
+    while (list.length > HIST_MAX) list.shift()
+    localStorage.setItem(HIST_KEY, JSON.stringify(list))
+    lastHistAt = now
+  } catch {
+    /* storage penuh/private — riwayat dilewati */
+  }
+}
+
+/** simpan draf + cadangan non-kosong + cuplikan riwayat */
+export function saveDraftGuarded(scene: Scene) {
+  if (scene.objects.length > 0) write(BACKUP_KEY, scene)
+  pushHistory(scene)
+  write(DRAFT_KEY, scene)
+}
+
+/** cuplikan riwayat terbaru -> terlama */
+export function loadHistory(): Snapshot[] {
+  try {
+    const raw = localStorage.getItem(HIST_KEY)
+    if (!raw) return []
+    const list = JSON.parse(raw) as Snapshot[]
+    return Array.isArray(list) ? [...list].reverse() : []
+  } catch {
+    return []
+  }
+}
+
+/** semua sumber yang bisa dipulihkan: cadangan, riwayat, versi terkunci, draf lama */
+export function loadCandidates(): { label: string; n: number; scene: Scene }[] {
+  const out: { label: string; n: number; scene: Scene }[] = []
+
+  const backup = read(BACKUP_KEY)
+  if (backup && backup.objects.length > 0) {
+    out.push({ label: 'cadangan (scene non-kosong terakhir)', n: backup.objects.length, scene: backup })
+  }
+
+  for (const s of loadHistory()) {
+    // cuplikan kosong tidak ditawarkan (tidak ada gunanya dipulihkan)
+    if (s.n === 0) continue
+    const jam = s.t.slice(11, 19)
+    out.push({ label: `riwayat ${jam}`, n: s.n, scene: s.scene })
+  }
+
+  const locked = read(LOCKED_KEY)
+  if (locked && locked.objects.length > 0) {
+    out.push({ label: 'scene terkunci (SIMPAN & KUNCI)', n: locked.objects.length, scene: locked })
+  }
+
+  const draft = read(DRAFT_KEY)
+  if (draft && draft.objects.length > 0) {
+    out.push({ label: 'draf aktif sekarang', n: draft.objects.length, scene: draft })
+  }
+
+  for (const key of PREV_DRAFT_KEYS) {
+    const prev = read(key)
+    if (prev && prev.objects.length > 0) {
+      out.push({ label: `draf lama ${key}`, n: prev.objects.length, scene: prev })
+    }
+  }
+
+  return out
+}
+
+
 function read(key: string): Scene | null {
   try {
     const raw = localStorage.getItem(key)

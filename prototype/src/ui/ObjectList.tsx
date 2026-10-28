@@ -1,6 +1,7 @@
 import { useRef, useState } from 'react'
 import { MATERIALS, UNKNOWN_STYLE, floorMat, wallColors } from '../iso/palette'
-import type { SceneObject } from '../scene/types'
+import { loadCandidates } from '../scene/store'
+import type { Scene, SceneObject } from '../scene/types'
 
 interface Props {
   objects: SceneObject[]
@@ -17,6 +18,8 @@ interface Props {
   onUngroup: () => void
   onRenameGroup: (gid: string, nama: string) => void
   onCycleKunci: (id: string) => void
+  /** pasang kembali scene dari cadangan/riwayat (objek yang hilang) */
+  onRestore: (scene: Scene) => void
   onClose: () => void
 }
 
@@ -50,6 +53,8 @@ export default function ObjectList(p: Props) {
   const [confirmDel, setConfirmDel] = useState<string | null>(null)
   const [openFolders, setOpenFolders] = useState<string[]>([])
   const [editing, setEditing] = useState<string | null>(null)   // gid yang sedang di-rename
+  const [showRescue, setShowRescue] = useState(false)
+  const [rescue, setRescue] = useState<{ label: string; n: number; scene: any }[]>([])
   const [draft, setDraft] = useState('')
   const dragRef = useRef<{ dx: number; dy: number } | null>(null)
 
@@ -88,6 +93,11 @@ export default function ObjectList(p: Props) {
     } else {
       entries.push({ kind: 'obj', obj: o })
     }
+  }
+
+  const openRescue = () => {
+    setRescue(loadCandidates())
+    setShowRescue(v => !v)
   }
 
   const toggleFolder = (gid: string) =>
@@ -188,8 +198,34 @@ export default function ObjectList(p: Props) {
         >
           LEPAS
         </button>
+        <button
+          className={showRescue ? 'sbtn on' : 'sbtn'}
+          onClick={openRescue}
+          title="pulihkan objek yang hilang dari cadangan/riwayat"
+        >
+          ⟲
+        </button>
       </div>
       {grupCount > 0 && <div className="olhint">{grupCount} folder aktif</div>}
+
+      {showRescue && (
+        <div className="olrescue">
+          <div className="olhint">PULIHKAN — ketuk untuk memasang kembali</div>
+          {rescue.length === 0 && (
+            <div className="olhint">belum ada cadangan. cadangan dibuat otomatis saat ada objek.</div>
+          )}
+          {rescue.map((c, i) => (
+            <button
+              key={i}
+              className="sbtn wide"
+              onClick={() => { p.onRestore(c.scene); setShowRescue(false) }}
+              title={c.label}
+            >
+              {c.n} objek · {c.label}
+            </button>
+          ))}
+        </div>
+      )}
 
       {p.locked && <div className="olhint">scene terkunci — buka kunci untuk mengedit</div>}
 

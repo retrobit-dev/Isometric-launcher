@@ -494,3 +494,15 @@ html, body, #root {
 }
 
 .olrow.infolder { background: #141826; }
+
+/* panel PULIHKAN di dalam daftar objek */
+.olrescue {
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+  padding: 5px;
+  background: #141826;
+  border: 1px solid #3b3355;
+  border-radius: 4px;
+}
+.olrescue .sbtn { justify-content: flex-start; text-align: left; }

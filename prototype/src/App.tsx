@@ -6,7 +6,7 @@ import {
 import { drawScene } from './iso/room'
 import { bboxOf, sortedObjects } from './iso/box'
 import { FLOOR_DEFAULT, FLOOR_KEYS, MATERIAL_KEYS, WALL_DEFAULT, WALL_STYLE_KEYS } from './iso/palette'
-import { loadDraft, loadLocked, saveDraft, saveLocked, validateScene } from './scene/store'
+import { loadCandidates, loadDraft, loadLocked, saveDraftGuarded, saveLocked, validateScene } from './scene/store'
 import { type Scene, type SceneObject } from './scene/types'
 import EditPanel from './ui/EditPanel'
 import ObjectList from './ui/ObjectList'
@@ -47,7 +47,7 @@ export default function App() {
   const pointersRef = useRef<Map<number, { x: number; y: number }>>(new Map())
   const pinchRef = useRef<{ d0: number; q0: number } | null>(null)
 
-  useEffect(() => { saveDraft(scene) }, [scene])
+  useEffect(() => { saveDraftGuarded(scene) }, [scene])
 
   useEffect(() => {
     const onResize = () => setVp({ w: window.innerWidth, h: window.innerHeight })
@@ -358,6 +358,13 @@ export default function App() {
     patchObject(id, { kunci: next })
   }
 
+  // PULIHKAN: pasang kembali scene dari cadangan/riwayat (objek yang hilang)
+  const restoreScene = (sc: Scene) => {
+    setScene({ ...sc, meta: { locked: Boolean(sc.meta?.locked), savedAt: sc.meta?.savedAt ?? null } })
+    setLocked(false)
+    setSelectedId(null)
+  }
+
   const deleteObject = (id: string) => {
     setScene(s => ({ ...s, objects: s.objects.filter(o => o.id !== id) }))
     setSelectedId(null)
@@ -587,6 +594,7 @@ export default function App() {
           onRenameGroup={(gid, nama) => renameGroup(gid, nama)}
           onUngroup={ungroupSelected}
           onCycleKunci={id => cycleKunci(id)}
+          onRestore={sc => restoreScene(sc)}
           onClose={() => setShowList(false)}
         />
       )}
