@@ -1,0 +1,50 @@
+{
+  "version": 1,
+  "room": { "e": 20, "w": 19, "wallZ": 12, "palette": "malam-biru" },
+  "objects": [
+    {
+      "id": "lantai-idrj",
+      "label": "Lantai Ruangan",
+      "pos": { "e": 2.7, "w": 2.7, "z": 2.7 },
+      "size": { "e": 20, "w": 20, "z": 0.3 },
+      "style": "lantai-kayu-gelap",
+      "app": null, "rot": 0, "role": "lantai", "layer": "main",
+      "grup": "grup-1", "grupNama": "FOLDER 1"
+    },
+    {
+      "id": "dinding-kiri-db",
+      "label": "Dinding Kiri (DB)",
+      "pos": { "e": 2.7, "w": 2.7, "z": 2.7 },
+      "size": { "e": 0.2, "w": 20, "z": 12 },
+      "style": "dinding-navy",
+      "app": null, "rot": 0, "role": "dinding", "side": "kiri",
+      "refleksi": false, "layer": "main", "grup": "grup-1", "grupNama": "FOLDER 1"
+    },
+    {
+      "id": "dinding-kanan-dt",
+      "label": "Dinding Kanan (DT)",
+      "pos": { "e": 2.7, "w": 2.7, "z": 2.7 },
+      "size": { "e": 20, "w": 0.2, "z": 12 },
+      "style": "dinding-navy",
+      "app": null, "rot": 0, "role": "dinding", "side": "kanan",
+      "refleksi": false, "layer": "main", "grup": "grup-1", "grupNama": "FOLDER 1"
+    },
+    {
+      "id": "balok-1",
+      "label": "Balok 1",
+      "pos": { "e": 8, "w": 12, "z": 3 },
+      "size": { "e": 2, "w": 1, "z": 1 },
+      "style": "wood", "app": null, "rot": 0, "layer": "main",
+      "grup": "grup-1", "grupNama": "FOLDER 1"
+    },
+    {
+      "id": "balok-2",
+      "label": "Balok 2",
+      "pos": { "e": 11, "w": 12, "z": 3 },
+      "size": { "e": 1, "w": 1, "z": 1 },
+      "style": "chair-dark", "app": null, "rot": 0, "layer": "main",
+      "grup": "grup-1", "grupNama": "FOLDER 1"
+    }
+  ],
+  "meta": { "locked": false, "savedAt": null }
+}

@@ -85,6 +85,57 @@ export function saveLocked(scene: Scene) { write(LOCKED_KEY, scene) }
 //              jumlah objek berubah) agar beberapa langkah bisa dimundurkan
 // Keduanya dibaca lewat loadHistory()/loadCandidates() untuk panel PULIHKAN.
 // ---------------------------------------------------------------------------
+// ---------------------------------------------------------------------------
+// PENYIMPANAN CADANGAN DI SISI FILE (lewat dev-server, lihat vite.config.ts)
+// localStorage TIDAK bisa diandalkan di preview ini: origin host preview bisa
+// berubah, iframe pihak ketiga sering memblokir storage, dan mode privat
+// menghapusnya tiap browser ditutup. Jadi scene juga ditulis ke file workspace
+// (.isola-scene.json) supaya bertahan melewati restart browser & sandbox.
+// ---------------------------------------------------------------------------
+const API_SCENE = '/api/scene'
+
+/** apakah localStorage benar-benar bisa dipakai (bisa gagal tanpa suara) */
+export function storageWorks(): boolean {
+  try {
+    const k = '__isola_probe__'
+    localStorage.setItem(k, '1')
+    const ok = localStorage.getItem(k) === '1'
+    localStorage.removeItem(k)
+    return ok
+  } catch {
+    return false
+  }
+}
+
+/** scene terakhir di file server (null bila belum ada / gagal) */
+export async function loadSceneFile(): Promise<Scene | null> {
+  try {
+    const r = await fetch(API_SCENE, { cache: 'no-store' })
+    if (!r.ok) return null
+    const txt = await r.text()
+    if (!txt) return null
+    const data = JSON.parse(txt)
+    const raw = data && typeof data === 'object' && 'scene' in data ? data.scene : data
+    return validateScene(raw)
+  } catch {
+    return null
+  }
+}
+
+/** simpan scene ke file server (dipakai debounce oleh App) */
+export async function saveSceneFile(scene: Scene): Promise<boolean> {
+  try {
+    const r = await fetch(API_SCENE, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ savedAt: new Date().toISOString(), scene }),
+    })
+    return r.ok
+  } catch {
+    return false
+  }
+}
+
 const BACKUP_KEY = 'isola-cadangan-v1'
 const HIST_KEY = 'isola-riwayat-v1'
 const HIST_MAX = 12

@@ -6,7 +6,7 @@ import {
 import { drawScene } from './iso/room'
 import { bboxOf, sortedObjects } from './iso/box'
 import { FLOOR_DEFAULT, FLOOR_KEYS, MATERIAL_KEYS, WALL_STYLE_KEYS } from './iso/palette'
-import { loadCandidates, loadDraft, loadLocked, saveDraftGuarded, saveLocked, validateScene } from './scene/store'
+import { loadCandidates, loadDraft, loadLocked, loadSceneFile, saveDraftGuarded, saveLocked, saveSceneFile, storageWorks, validateScene } from './scene/store'
 import { type Scene, type SceneObject } from './scene/types'
 import EditPanel from './ui/EditPanel'
 import ObjectList from './ui/ObjectList'
@@ -37,6 +37,10 @@ export default function App() {
   const [undo, setUndo] = useState<{ scene: Scene; label: string } | null>(null)
   const [vp, setVp] = useState({ w: window.innerWidth, h: window.innerHeight })
   const [hover, setHover] = useState<{ e: number; w: number } | null>(null)
+  // status penyimpanan: 'browser' (localStorage jalan) atau 'file' (cadangan
+  // di server dev) — ditampilkan di chip supaya user tahu data aman atau tidak
+  const [simpan, setSimpan] = useState<'browser' | 'file'>('browser')
+  const [dimuat, setDimuat] = useState(false)
 
   const sceneRef = useRef(scene); sceneRef.current = scene
   const modeRef = useRef(mode); modeRef.current = mode
@@ -54,7 +58,34 @@ export default function App() {
   const pointersRef = useRef<Map<number, { x: number; y: number }>>(new Map())
   const pinchRef = useRef<{ d0: number; q0: number } | null>(null)
 
-  useEffect(() => { saveDraftGuarded(scene) }, [scene])
+  // autosave: localStorage (cepat) + file server (tahan restart browser)
+  useEffect(() => {
+    saveDraftGuarded(scene)
+    setSimpan(storageWorks() ? 'browser' : 'file')
+    const t = setTimeout(() => { void saveSceneFile(scene) }, 600)
+    return () => clearTimeout(t)
+  }, [scene])
+
+  // SAAT DIBUKA: kalau draf browser kosong/tidak ada, ambil dari file server.
+  // Ini yang membuat objek tidak lagi hilang setelah browser ditutup.
+  useEffect(() => {
+    let batal = false
+    void (async () => {
+      const dariFile = await loadSceneFile()
+      if (batal) return
+      const lokal = sceneRef.current
+      // pakai file hanya bila isinya lebih lengkap (jangan menimpa kerja lokal)
+      if (dariFile && dariFile.objects.length > lokal.objects.length) {
+        setUndo({ scene: lokal, label: 'scene sebelum dimuat dari file' })
+        setLocked(false)
+        setScene(dariFile)
+      }
+      setDimuat(true)
+    })()
+    return () => { batal = true }
+    // hanya sekali saat aplikasi dibuka
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [])
 
   // toast URUNGKAN hilang sendiri setelah 8 detik
   useEffect(() => {
@@ -522,6 +553,11 @@ export default function App() {
                   )
                 })()}
                 <span className={locked ? 'on' : ''}>{locked ? `terkunci ${savedAt ?? ''}` : 'draf'}</span>
+                <span className={simpan === 'browser' ? 'on' : ''}>
+                  {dimuat
+                    ? simpan === 'browser' ? 'simpan: browser + file' : 'simpan: file saja (browser diblokir)'
+                    : 'memuat…'}
+                </span>
                 <span>{`kamera ×${zoomValue()} (${CAM.CE.toFixed(1)}, ${CAM.CW.toFixed(1)})`}</span>
               </div>
             )}
