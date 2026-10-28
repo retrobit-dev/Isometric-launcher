@@ -32,7 +32,6 @@ export default function App() {
   const [selectedId, setSelectedId] = useState<string | null>(null)
   const [modal, setModal] = useState<'export' | 'import' | null>(null)
   const [showPalette, setShowPalette] = useState(false)
-  const [refleksi, setRefleksi] = useState(true)
   const [importText, setImportText] = useState('')
   const [vp, setVp] = useState({ w: window.innerWidth, h: window.innerHeight })
   const [hover, setHover] = useState<{ e: number; w: number } | null>(null)
@@ -42,7 +41,6 @@ export default function App() {
   const lockedRef = useRef(locked); lockedRef.current = locked
   const selRef = useRef(selectedId); selRef.current = selectedId
   const gridRef = useRef(grid); gridRef.current = grid
-  const refleksiRef = useRef(refleksi); refleksiRef.current = refleksi
   const dragRef = useRef<{ id: string; e0: number; w0: number; ge: number; gw: number; moved: boolean } | null>(null)
   const panRef = useRef<{ ce: number; cw: number; ge: number; gw: number; moved: boolean } | null>(null)
   const pointersRef = useRef<Map<number, { x: number; y: number }>>(new Map())
@@ -82,7 +80,6 @@ export default function App() {
         edit: modeRef.current === 'edit' && !lockedRef.current,
         objects: sceneRef.current.objects,
         selectedId: selRef.current,
-        refleksi: refleksiRef.current,
       })
       raf = requestAnimationFrame(loop)
     }
@@ -421,7 +418,6 @@ export default function App() {
         <button className="tbtn" onClick={resetView}>TENGAH</button>
         <button className={grid ? 'tbtn on' : 'tbtn'} onClick={() => setGrid(v => !v)}>GRID</button>
         <button className={showPalette ? 'tbtn on' : 'tbtn'} onClick={() => setShowPalette(v => !v)}>PALET</button>
-        <button className={refleksi ? 'tbtn on' : 'tbtn'} onClick={() => setRefleksi(v => !v)} title="pantulan objek di lantai kayu">REFLEKSI</button>
         <button className={dev ? 'tbtn on' : 'tbtn'} onClick={() => setDev(v => !v)}>KOORDINAT</button>
         <button className="tbtn" onClick={() => setRot(r => ROT_NEXT[r])}>ROTASI: {rot.toUpperCase()}</button>
         <button className="tbtn" onClick={() => { setImportText(exportJSON()); setModal('export') }}>EXPORT</button>
@@ -454,6 +450,10 @@ export default function App() {
             const cur = typeof selected.style === 'string' ? selected.style : ''
             const i = keys.indexOf(cur)
             patchObject(selected.id, { style: keys[(i + 1) % keys.length] })
+          }}
+          onRotate={() => {
+            const cur = selected.rot ?? 0
+            patchObject(selected.id, { rot: (((cur + 1) % 4) as 0 | 1 | 2 | 3) })
           }}
           onCycleLayer={() => {
             const order = ['underlay', 'main', 'overlay'] as const

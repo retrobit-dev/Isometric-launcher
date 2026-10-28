@@ -114,6 +114,8 @@ export function validateScene(data: unknown): Scene | null {
         ? ob.style as SceneObject['style']
         : 'wood',
       app: typeof ob.app === 'string' ? ob.app : null,
+      ...(ob.rot === 1 || ob.rot === 2 || ob.rot === 3 ? { rot: ob.rot } : { rot: 0 }),
+      ...(typeof ob.refleksi === 'boolean' ? { refleksi: ob.refleksi } : {}),
       ...(ob.role === 'lantai' ? { role: 'lantai' as const } : {}),
       layer: ob.layer === 'underlay' || ob.layer === 'overlay' ? ob.layer : 'main',
     })

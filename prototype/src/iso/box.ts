@@ -22,11 +22,20 @@ function colorsOf(o: SceneObject) {
   return o.style
 }
 
+// Footprint setelah rotasi: rotasi 90/270 derajat menukar panjang <-> lebar.
+export function footprintOf(o: SceneObject): { se: number; sw: number } {
+  const rot = o.rot ?? 0
+  return rot % 2 === 1
+    ? { se: o.size.w, sw: o.size.e }
+    : { se: o.size.e, sw: o.size.w }
+}
+
 // Balok iso prosedural: sisi kiri-depan, kanan-depan, lalu atas.
 // Semua sisi digambar penuh (siap untuk mode orbit 3D nanti).
 export function drawBox(ctx: CanvasRenderingContext2D, o: SceneObject) {
   const { e, w, z } = o.pos
-  const se = o.size.e, sw = o.size.w, sz = o.size.z
+  const { se, sw } = footprintOf(o)
+  const sz = o.size.z
   const c = colorsOf(o)
   const t00 = px(e, w, z + sz)
   const t10 = px(e + se, w, z + sz)
@@ -42,10 +51,11 @@ export function drawBox(ctx: CanvasRenderingContext2D, o: SceneObject) {
 
 export function bboxOf(o: SceneObject): Box {
   const { e, w, z } = o.pos
+  const { se, sw } = footprintOf(o)
   const pts = [
-    px(e, w, z + o.size.z), px(e + o.size.e, w, z + o.size.z),
-    px(e + o.size.e, w + o.size.w, z + o.size.z), px(e, w + o.size.w, z + o.size.z),
-    px(e + o.size.e, w, z), px(e + o.size.e, w + o.size.w, z), px(e, w + o.size.w, z),
+    px(e, w, z + o.size.z), px(e + se, w, z + o.size.z),
+    px(e + se, w + sw, z + o.size.z), px(e, w + sw, z + o.size.z),
+    px(e + se, w, z), px(e + se, w + sw, z), px(e, w + sw, z),
   ]
   const xs = pts.map(p => p.x)
   const ys = pts.map(p => p.y)
@@ -54,7 +64,8 @@ export function bboxOf(o: SceneObject): Box {
 
 // Kedalaman gambar: yang lebih dekat ke kamera (S) digambar terakhir
 export function depthOf(o: SceneObject): number {
-  return o.pos.e + o.size.e / 2 + o.pos.w + o.size.w / 2
+  const { se, sw } = footprintOf(o)
+  return o.pos.e + se / 2 + o.pos.w + sw / 2
 }
 
 export function sortedObjects(objects: SceneObject[]): SceneObject[] {

@@ -35,6 +35,11 @@ export interface SceneObject {
   // digambar sebagai ubin datar seluas (pos e..e+size.e, w..w+size.w),
   // memakai palet lantai, dan diabaikan oleh renderer balok & refleksi.
   role?: 'lantai'
+  // rotasi terhadap sumbu z, kelipatan 90 derajat (0..3). Rotasi ganjil
+  // menukar panjang/lebar (footprint) sehingga balok berputar 90/270 derajat.
+  rot?: 0 | 1 | 2 | 3
+  // pantulan objek ini di lantai (default ON bila tidak diisi)
+  refleksi?: boolean
   // underlay = di bawah objek main (karpet, bayangan, decal)
   // main     = urutan kedalaman normal (furniture/app)
   // overlay  = di atas semua (lampu gantung, balok plafon, tanaman menjulang)

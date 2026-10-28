@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import { FLOOR_DEFAULT, FLOOR_KEYS, MATERIAL_KEYS } from '../iso/palette'
 import type { SceneObject } from '../scene/types'
 
@@ -9,6 +9,7 @@ interface Props {
   onResize: (de: number, dw: number, dz: number) => void
   onCycleStyle: () => void
   onCycleLayer: () => void
+  onRotate: () => void
   onDuplicate: () => void
   onDelete: () => void
   onClose: () => void
@@ -78,9 +79,37 @@ export default function EditPanel(p: Props) {
   const styleName = typeof o.style === 'string' ? o.style : 'custom'
   const keys = isFloor ? FLOOR_KEYS : MATERIAL_KEYS
   const matIdx = keys.indexOf(styleName)
+  const rot = o.rot ?? 0
+  const refl = o.refleksi !== false
+
+  // --- panel bisa DIGESER (permintaan user) supaya tidak menutupi objek ---
+  const [pos, setPos] = useState({ x: 10, y: 10 })
+  const dragRef = useRef<{ dx: number; dy: number } | null>(null)
+
+  const onHeadDown = (ev: React.PointerEvent) => {
+    dragRef.current = { dx: ev.clientX - pos.x, dy: ev.clientY - pos.y }
+    ;(ev.currentTarget as HTMLElement).setPointerCapture(ev.pointerId)
+  }
+  const onHeadMove = (ev: React.PointerEvent) => {
+    const d = dragRef.current
+    if (!d) return
+    const x = Math.max(0, Math.min(window.innerWidth - 120, ev.clientX - d.dx))
+    const y = Math.max(0, Math.min(window.innerHeight - 40, ev.clientY - d.dy))
+    setPos({ x, y })
+  }
+  const onHeadUp = () => { dragRef.current = null }
+
   return (
-    <div className="panel">
-      <div className="phead">
+    <div className="panel" style={{ left: pos.x, top: pos.y }}>
+      <div
+        className="phead grab"
+        onPointerDown={onHeadDown}
+        onPointerMove={onHeadMove}
+        onPointerUp={onHeadUp}
+        onPointerCancel={onHeadUp}
+        title="seret untuk memindahkan panel"
+      >
+        <span className="pgrip" aria-hidden>⠿</span>
         <input
           className="pinput"
           value={o.label}
@@ -116,6 +145,22 @@ export default function EditPanel(p: Props) {
         />
       </div>
       <div className="row">
+        <span className="rl">rotasi</span>
+        <button className="sbtn wide" onClick={p.onRotate} title="putar objek 90° (menukar panjang & lebar)">
+          {rot * 90}° ⟳
+        </button>
+      </div>
+      <div className="row">
+        <span className="rl">refleksi</span>
+        <button
+          className={refl ? 'sbtn wide on' : 'sbtn wide'}
+          onClick={() => p.onChange({ refleksi: !refl })}
+          title="pantulan objek ini di lantai"
+        >
+          {refl ? 'AKTIF ✓' : 'MATI'}
+        </button>
+      </div>
+      <div className="row">
         <span className="rl">{isFloor ? 'pola' : 'material'}</span>
         <button className="sbtn wide" onClick={p.onCycleStyle}>
           {styleName}{matIdx >= 0 ? ` (${matIdx + 1}/${keys.length})` : ''} ⟳
@@ -137,7 +182,7 @@ export default function EditPanel(p: Props) {
                     : FLOOR_DEFAULT,
                 },
           )}
-          title="lantai = digambar sebagai ubin datar seluas objek ini"
+          title="lantai = digambar sebagai bidang datar seluas objek ini"
         >
           {o.role === 'lantai' ? 'LANTAI ✓ (balik ke balok)' : 'JADIKAN LANTAI'}
         </button>
@@ -152,7 +197,7 @@ export default function EditPanel(p: Props) {
         <button className="sbtn wide" onClick={p.onDuplicate}>DUPLIKAT</button>
         <button className="sbtn wide danger" onClick={p.onDelete}>HAPUS</button>
       </div>
-      <div className="phint">angka bisa diketik · Enter = terapkan · kelipatan 0.1</div>
+      <div className="phint">seret judul panel untuk memindahkan · angka bisa diketik (Enter)</div>
     </div>
   )
 }

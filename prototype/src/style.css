@@ -134,7 +134,10 @@ html, body, #root {
   display: flex;
   flex-direction: column;
   gap: 6px;
-  background: rgba(13, 15, 20, 0.92);
+  /* transparan agar objek di belakang panel tetap terlihat (permintaan user) */
+  background: rgba(13, 15, 20, 0.58);
+  backdrop-filter: blur(2px);
+  -webkit-backdrop-filter: blur(2px);
   border: 1px solid #2c3348;
   border-radius: 6px;
   font: 11px/1.4 ui-monospace, 'Courier New', monospace;
@@ -145,6 +148,8 @@ html, body, #root {
 }
 
 .phead { display: flex; gap: 6px; align-items: center; }
+.phead.grab { cursor: move; touch-action: none; user-select: none; }
+.pgrip { color: #7d8298; font-size: 12px; line-height: 1; cursor: move; }
 
 .pinput {
   flex: 1;

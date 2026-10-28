@@ -1,6 +1,6 @@
 import { CAM, CY, EXT_E, EXT_W, HH, IH, IW, ROOM, ROOM_VISIBLE, ZH, px, type P } from './space'
 import { PAL, floorMat } from './palette'
-import { drawBox, sortedObjects } from './box'
+import { drawBox, footprintOf, sortedObjects } from './box'
 import type { SceneObject } from '../scene/types'
 
 function poly(ctx: CanvasRenderingContext2D, pts: P[], color: string) {
@@ -123,7 +123,6 @@ export interface DrawOpts {
   edit: boolean
   objects: SceneObject[]
   selectedId: string | null
-  refleksi: boolean
 }
 
 // Refleksi lantai: bayangan cermin objek di bawah bidang lantai,
@@ -154,7 +153,10 @@ function drawReflections(ctx: CanvasRenderingContext2D, objects: SceneObject[]) 
   }
   ctx.clip()
   ctx.globalAlpha = 0.12
-  const reflectable = objects.filter(x => (x.layer ?? 'main') !== 'underlay' && x.role !== 'lantai')
+  // refleksi kini PER OBJEK (diatur dari editor objek), default ON
+  const reflectable = objects.filter(
+    x => (x.layer ?? 'main') !== 'underlay' && x.role !== 'lantai' && x.refleksi !== false,
+  )
   for (const obj of sortedObjects(reflectable)) {
     const zh = obj.size.z * 0.6
     drawBox(ctx, {
@@ -277,7 +279,7 @@ export function drawScene(ctx: CanvasRenderingContext2D, o: DrawOpts) {
     if (sel) {
       // sorot: garis dasar tile tempat objek berdiri
       const { e, w } = sel.pos
-      const se = sel.size.e, sw = sel.size.w
+      const { se, sw } = footprintOf(sel)
       line(ctx, px(e, w), px(e + se, w), PAL.zone)
       line(ctx, px(e + se, w), px(e + se, w + sw), PAL.zone)
       line(ctx, px(e + se, w + sw), px(e, w + sw), PAL.zone)
@@ -290,5 +292,5 @@ export function drawScene(ctx: CanvasRenderingContext2D, o: DrawOpts) {
   // refleksi digambar SETELAH crispify agar alpha samar tidak ikut ter-threshold
   // (butuh lantai sebagai bidang pantul; tanpa lantai refleksi dilewati)
   const hasFloorObj = o.objects.some(x => x.role === 'lantai')
-  if (o.refleksi && (ROOM_VISIBLE || hasFloorObj)) drawReflections(ctx, o.objects)
+  if (ROOM_VISIBLE || hasFloorObj) drawReflections(ctx, o.objects)
 }
