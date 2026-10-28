@@ -1,4 +1,4 @@
-import { CAM, CY, HH, HW, IH, IW, OX, ROOM, ZH, px, type P } from './space'
+import { CAM, CY, HH, IH, IW, ROOM, ZH, px, type P } from './space'
 import { PAL } from './palette'
 import { drawBox, sortedObjects } from './box'
 import type { SceneObject } from '../scene/types'
@@ -37,8 +37,8 @@ function crispify(ctx: CanvasRenderingContext2D) {
 
 const DADO_Z = 0.4   // tinggi plint
 
-function walls(ctx: CanvasRenderingContext2D, E: number, W: number) {
-  const { WALL_Z } = ROOM
+function walls(ctx: CanvasRenderingContext2D) {
+  const { E, W, WALL_Z } = ROOM
   // Dinding digambar sampai melewati tepi atas layar pada zoom/pan apa pun,
   // sehingga tidak ada ruang kosong di atas (permintaan user).
   // Tinggi fungsional untuk objek tetap WALL_Z; sisanya hanya visual.
@@ -58,7 +58,8 @@ function walls(ctx: CanvasRenderingContext2D, E: number, W: number) {
   line(ctx, px(0, 0, 0), px(0, 0, zTop), PAL.seam)
 }
 
-function floor(ctx: CanvasRenderingContext2D, E: number, W: number) {
+function floor(ctx: CanvasRenderingContext2D) {
+  const { E, W } = ROOM
   const tones = [PAL.floorBase, PAL.floorAlt, PAL.floorC]
   // Papan persegi panjang 2x1 tile, ditata selang-seling (running bond):
   // tiap baris digeser 1 tile relatif terhadap baris sebelumnya.
@@ -85,7 +86,8 @@ function floor(ctx: CanvasRenderingContext2D, E: number, W: number) {
   poly(ctx, [tR, sL, { x: sL.x, y: sL.y + SK }, { x: tR.x, y: tR.y + SK }], PAL.skirtR)
 }
 
-function overlays(ctx: CanvasRenderingContext2D, grid: boolean, edit: boolean, E: number, W: number) {
+function overlays(ctx: CanvasRenderingContext2D, grid: boolean, edit: boolean) {
+  const { E, W } = ROOM
   if (grid) {
     for (let e = 0; e <= E; e++) line(ctx, px(e, 0), px(e, W), PAL.grid)
     for (let w = 0; w <= W; w++) line(ctx, px(0, w), px(E, w), PAL.grid)
@@ -124,7 +126,8 @@ export interface DrawOpts {
 
 // Refleksi lantai: bayangan cermin objek di bawah bidang lantai,
 // dipadatkan 60% dan samar (alpha 12%), dipotong persis ke bentuk lantai.
-function drawReflections(ctx: CanvasRenderingContext2D, objects: SceneObject[], E: number, W: number) {
+function drawReflections(ctx: CanvasRenderingContext2D, objects: SceneObject[]) {
+  const { E, W } = ROOM
   ctx.save()
   ctx.beginPath()
   const f0 = px(0, 0), f1 = px(E, 0), f2 = px(E, W), f3 = px(0, W)
@@ -151,19 +154,9 @@ export function drawScene(ctx: CanvasRenderingContext2D, o: DrawOpts) {
   ctx.fillStyle = PAL.void
   ctx.fillRect(0, 0, IW, IH)
 
-  // Perpanjangan dinamis dinding+lantai menutup tepi kiri/kanan layar
-  // (permintaan user: tidak ada ruang kosong di kiri; lantai mengikuti dinding).
-  // Ruangan fungsional untuk objek tetap ROOM (20x19); perpanjangan hanya visual.
-  const M = 8
-  const reach = ((IH + M - CY) / HH + OX / HW) / 2
-  const needW = Math.ceil(CAM.CW + reach) + 1
-  const needE = Math.ceil(CAM.CE + reach) + 1
-  const Wd = Math.min(Math.max(ROOM.W, needW), ROOM.W + 40)
-  const Ed = Math.min(Math.max(ROOM.E, needE), ROOM.E + 40)
-
-  walls(ctx, Ed, Wd)
-  floor(ctx, Ed, Wd)
-  overlays(ctx, o.grid, o.edit, Ed, Wd)
+  walls(ctx)
+  floor(ctx)
+  overlays(ctx, o.grid, o.edit)
 
   // tiga lapis: underlay (bawah) -> main -> overlay (atas),
   // masing-masing tetap diurutkan kedalaman agar isometrik benar
@@ -188,5 +181,5 @@ export function drawScene(ctx: CanvasRenderingContext2D, o: DrawOpts) {
   crispify(ctx)
 
   // refleksi digambar SETELAH crispify agar alpha samar tidak ikut ter-threshold
-  if (o.refleksi) drawReflections(ctx, o.objects, Ed, Wd)
+  if (o.refleksi) drawReflections(ctx, o.objects)
 }
