@@ -70,19 +70,28 @@ export function drawShell(ctx: CanvasRenderingContext2D, grid: boolean) {
   // garis pertemuan dua dinding di pojok U
   line(ctx, px(0, 0, 0), px(0, 0, WALL_Z), PAL.seam)
 
-  // --- OVERLAY GRID (tombol G) + label arah ---
+  // --- OVERLAY GRID (tombol GRID) + tick koordinat ---
+  // Pojok U/T/S/B kini di luar layar (kamera full-bleed), jadi penanda
+  // diganti angka tick sepanjang garis dasar dinding DT & DB.
   if (grid) {
     for (let e = 0; e <= E; e++) line(ctx, px(e, 0), px(e, W), PAL.grid)
     for (let w = 0; w <= W; w++) line(ctx, px(0, w), px(E, w), PAL.grid)
-    ctx.font = '8px monospace'
+    ctx.font = '7px monospace'
     ctx.fillStyle = PAL.hud
+    ctx.textAlign = 'left'
+    const onScreen = (p: P) => p.x > -20 && p.x < IW + 20 && p.y > -10 && p.y < IH + 10
+    for (let e = 2; e <= E; e += 2) {
+      const p = px(e, 0)
+      if (onScreen(p)) ctx.fillText(String(e), p.x + 3, p.y + 9)
+    }
+    ctx.textAlign = 'right'
+    for (let w = 2; w <= W; w += 2) {
+      const p = px(0, w)
+      if (onScreen(p)) ctx.fillText(String(w), p.x - 3, p.y + 9)
+    }
     ctx.textAlign = 'center'
-    ctx.fillText('U', px(0, 0).x, px(0, 0).y - 6)
-    ctx.fillText('T', px(E, 0).x + 10, px(E, 0).y + 3)
-    ctx.fillText('S', px(E, W).x, px(E, W).y + 14)
-    ctx.fillText('B', px(0, W).x - 10, px(0, W).y + 3)
-    ctx.fillText('DT', px(E * 0.62, 0, 3).x, px(E * 0.62, 0, 3).y)
-    ctx.fillText('DB', px(0, W * 0.62, 3).x, px(0, W * 0.62, 3).y)
+    ctx.fillText('DT', px(9, 0, 3.2).x, px(9, 0, 3.2).y)
+    ctx.fillText('DB', px(0, 9, 3.2).x, px(0, 9, 3.2).y)
   }
 
   crispify(ctx)
