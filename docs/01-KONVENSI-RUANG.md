@@ -78,6 +78,10 @@ Tombol **ZOOM ×n** hanya menampilkan level saat ini dan **mereset ke default** 
 | **DT** | Dinding Timur | U → T | kanan | **jendela, pintu**, kalender |
 | **DB** | Dinding Barat | U → B | kiri | jam digital, poster, papan gabus |
 
+Catatan render: dinding & lantai **diperpanjang dinamis** seperlunya untuk menutup
+tepi kiri/kanan layar pada pan/zoom apa pun (lantai mengikuti dinding). Perpanjangan
+murni visual — ruangan fungsional untuk objek tetap 20 × 19.
+
 Sisi **S tidak berdinding** (sisi kamera).
 
 ## 4. Koordinat lantai `(e, w)`
