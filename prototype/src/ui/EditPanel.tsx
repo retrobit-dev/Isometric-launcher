@@ -14,6 +14,8 @@ interface Props {
   onDuplicate: () => void
   onDelete: () => void
   onClose: () => void
+  onSave: () => void
+  dirty: boolean
 }
 
 // semua nilai objek dalam kelipatan 0.1
@@ -94,6 +96,30 @@ export default function EditPanel(p: Props) {
   // --- panel bisa DIGESER (permintaan user) supaya tidak menutupi objek ---
   const [pos, setPos] = useState({ x: 10, y: 10 })
   const dragRef = useRef<{ dx: number; dy: number } | null>(null)
+  const boxRef = useRef<HTMLDivElement | null>(null)
+
+  // SIMPAN: jeda kecil supaya label tombol berubah TERSIMPAN lalu kembali
+  const [tersimpan, setTersimpan] = useState(false)
+  const savedTimer = useRef<number | null>(null)
+  useEffect(() => () => { if (savedTimer.current) window.clearTimeout(savedTimer.current) }, [])
+
+  // jaga panel tetap utuh di dalam layar (termasuk setelah layar diputar/di-resize)
+  const clampPos = (x: number, y: number) => {
+    const el = boxRef.current
+    const bw = el?.offsetWidth ?? 264
+    const bh = el?.offsetHeight ?? 360
+    return {
+      x: Math.max(4, Math.min(Math.max(4, window.innerWidth - bw - 4), x)),
+      y: Math.max(4, Math.min(Math.max(4, window.innerHeight - bh - 4), y)),
+    }
+  }
+
+  useEffect(() => {
+    const onResize = () => setPos(q => clampPos(q.x, q.y))
+    window.addEventListener('resize', onResize)
+    return () => window.removeEventListener('resize', onResize)
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [])
 
   const onHeadDown = (ev: React.PointerEvent) => {
     dragRef.current = { dx: ev.clientX - pos.x, dy: ev.clientY - pos.y }
@@ -102,14 +128,28 @@ export default function EditPanel(p: Props) {
   const onHeadMove = (ev: React.PointerEvent) => {
     const d = dragRef.current
     if (!d) return
-    const x = Math.max(0, Math.min(window.innerWidth - 120, ev.clientX - d.dx))
-    const y = Math.max(0, Math.min(window.innerHeight - 40, ev.clientY - d.dy))
-    setPos({ x, y })
+    setPos(clampPos(ev.clientX - d.dx, ev.clientY - d.dy))
   }
   const onHeadUp = () => { dragRef.current = null }
 
+  const simpan = () => {
+    // pastikan angka yang sedang diketik ikut tersimpan
+    const aktif = document.activeElement
+    if (aktif instanceof HTMLElement && aktif.closest('.panel') === boxRef.current) aktif.blur()
+    p.onSave()
+    setTersimpan(true)
+    if (savedTimer.current) window.clearTimeout(savedTimer.current)
+    savedTimer.current = window.setTimeout(() => setTersimpan(false), 2000)
+  }
+
   return (
-    <div className="panel" style={{ left: pos.x, top: pos.y }}>
+    <div
+      ref={boxRef}
+      className="panel"
+      style={{ left: pos.x, top: pos.y }}
+      role="dialog"
+      aria-label={`editor objek ${o.label}`}
+    >
       <div
         className="phead grab"
         onPointerDown={onHeadDown}
@@ -126,8 +166,9 @@ export default function EditPanel(p: Props) {
           disabled={frozen}
           aria-label="label objek"
         />
-        <button className="sbtn" onClick={p.onClose}>✕</button>
+        <button className="sbtn" onClick={p.onClose} aria-label="tutup panel">✕</button>
       </div>
+      <div className="pbody">
       <div className="pgrid">
         <NumField
           label="posisi e" value={o.pos.e} min={-99}
@@ -161,7 +202,7 @@ export default function EditPanel(p: Props) {
         />
       </div>
       <div className="row">
-        <span className="rl">rotasi objek</span>
+        <span className="rl">rotasi</span>
         <button
           className="sbtn wide"
           disabled={frozen}
@@ -172,7 +213,7 @@ export default function EditPanel(p: Props) {
         </button>
       </div>
       <div className="row">
-        <span className="rl">refleksi objek</span>
+        <span className="rl">refleksi</span>
         <button
           className={cermin ? 'sbtn wide on' : 'sbtn wide'}
           disabled={frozen}
@@ -250,7 +291,19 @@ export default function EditPanel(p: Props) {
           ? 'terkunci: hanya material yang bisa diubah'
           : kunci === 'semua'
             ? 'terkunci total — ubah baris KUNCI untuk membuka'
-            : 'seret judul panel untuk memindahkan · angka bisa diketik (Enter)'}
+            : p.dirty
+              ? 'ada perubahan belum disimpan — ketuk SIMPAN'
+              : 'perubahan langsung terlihat · ketuk SIMPAN untuk menyimpan sekarang'}
+      </div>
+      </div>
+      <div className="pfoot">
+        <button
+          className={tersimpan ? 'sbtn save ok' : p.dirty ? 'sbtn save dirty' : 'sbtn save'}
+          onClick={simpan}
+          title="simpan perubahan objek ini sekarang: browser + file scene.json (tidak mengunci scene)"
+        >
+          {tersimpan ? 'TERSIMPAN ✓' : p.dirty ? '💾 SIMPAN PERUBAHAN ●' : '💾 SIMPAN PERUBAHAN'}
+        </button>
       </div>
     </div>
   )

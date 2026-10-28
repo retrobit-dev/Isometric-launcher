@@ -40,6 +40,7 @@ export default function App() {
   // status penyimpanan: 'browser' (localStorage jalan) atau 'file' (cadangan
   // di server dev) — ditampilkan di chip supaya user tahu data aman atau tidak
   const [simpan, setSimpan] = useState<'browser' | 'file'>('browser')
+  const [panelDirty, setPanelDirty] = useState(false) // perubahan panel editor belum disimpan eksplisit
   const [dimuat, setDimuat] = useState(false)
   // KLIK OBJEK = HANYA INFO (permintaan user 2026-10-28: "objek dipilih dari
   // tombol objek, klik objek hanya memberi informasi nama objek").
@@ -160,6 +161,9 @@ export default function App() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [])
 
+  // ganti objek terpilih = mulai hitungan "belum disimpan" dari nol
+  useEffect(() => { setPanelDirty(false) }, [selectedId])
+
   // info objek hilang sendiri setelah 4 detik
   useEffect(() => {
     if (!info) return
@@ -219,8 +223,21 @@ export default function App() {
     return () => cancelAnimationFrame(raf)
   }, [])
 
-  const patchObject = (id: string, patch: Partial<SceneObject>) =>
+  const patchObject = (id: string, patch: Partial<SceneObject>) => {
     setScene(s => ({ ...s, objects: s.objects.map(o => (o.id === id ? { ...o, ...patch } : o)) }))
+    setPanelDirty(true) // ada perubahan di panel editor objek yang belum disimpan eksplisit
+  }
+
+  // SIMPAN di panel editor objek: tulis draf ke browser + file SEKARANG (tanpa menunggu
+  // autosave 600 ms) dan catat satu langkah riwayat. Tidak mengunci scene.
+  const simpanPanel = () => {
+    const s = sceneRef.current
+    flushHist()
+    saveDraftGuarded(s)
+    setSimpan(storageWorks() ? 'browser' : 'file')
+    void saveSceneFile(s)
+    setPanelDirty(false)
+  }
 
   const toInternal = (ev: React.PointerEvent<HTMLCanvasElement>) => {
     const rect = ev.currentTarget.getBoundingClientRect()
@@ -706,6 +723,8 @@ export default function App() {
       {editable && selected && (
         <EditPanel
           obj={selected}
+          dirty={panelDirty}
+          onSave={simpanPanel}
           onChange={patch => patchObject(selected.id, patch)}
           onMove={(de, dw) => patchObject(selected.id, {
             pos: {

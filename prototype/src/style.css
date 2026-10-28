@@ -129,11 +129,14 @@ html, body, #root {
   position: fixed;
   top: 10px;
   left: 10px;
-  width: 232px;
+  width: 268px;
+  max-height: calc(100vh - 12px);
+  max-height: calc(100dvh - 12px);
   padding: 8px;
   display: flex;
   flex-direction: column;
   gap: 6px;
+  overflow: hidden;
   /* transparan agar objek di belakang panel tetap terlihat (permintaan user) */
   background: rgba(13, 15, 20, 0.58);
   backdrop-filter: blur(2px);
@@ -147,7 +150,34 @@ html, body, #root {
   z-index: 20;
 }
 
-.phead { display: flex; gap: 6px; align-items: center; }
+.phead { display: flex; gap: 6px; align-items: center; flex: none; }
+
+/* isi panel: semua baris bisa digulir supaya TIDAK ADA yang terpotong
+   di luar layar (permintaan user: panel harus mampu menampilkan semuanya) */
+.pbody {
+  flex: 1 1 auto;
+  min-height: 0;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  padding-right: 2px;
+  scrollbar-width: thin;
+  scrollbar-color: #3c445e transparent;
+}
+.pbody::-webkit-scrollbar { width: 6px; }
+.pbody::-webkit-scrollbar-thumb { background: #3c445e; border-radius: 3px; }
+.pbody::-webkit-scrollbar-track { background: transparent; }
+
+/* footer panel: tombol SIMPAN selalu kelihatan walau isi digulir */
+.pfoot {
+  flex: none;
+  display: flex;
+  gap: 6px;
+  padding-top: 6px;
+  border-top: 1px solid #2c3348;
+}
 .phead.grab { cursor: move; touch-action: none; user-select: none; }
 .pgrip { color: #7d8298; font-size: 12px; line-height: 1; cursor: move; }
 
@@ -166,7 +196,7 @@ html, body, #root {
 .pgrid { display: flex; flex-direction: column; gap: 4px; }
 
 .row { display: flex; gap: 6px; align-items: center; }
-.rl { width: 62px; flex: none; color: #7d8298; }
+.rl { width: 66px; flex: none; color: #7d8298; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 .rv { width: 40px; text-align: center; color: #e8e2cf; }
 
 /* input angka yang bisa diketik langsung di panel editor objek */
@@ -216,6 +246,27 @@ html, body, #root {
 .sbtn.wide { flex: 1; }
 .sbtn.danger { color: #e4b1ab; border-color: #6d3a35; background: #2a1715; }
 .sbtn.on { color: #e8c48a; border-color: #7a5c2e; background: #2b2416; }
+
+/* tombol SIMPAN di panel editor objek */
+.sbtn.save {
+  width: 100%;
+  min-height: 30px;
+  font-size: 10px;
+  letter-spacing: 0.08em;
+  color: #cfd3e4;
+  background: #1d2130;
+  border: 1px solid #333a52;
+}
+.sbtn.save.dirty {
+  color: #14161f;
+  background: #d9a05b;
+  border-color: #b07f3f;
+}
+.sbtn.save.ok {
+  color: #14161f;
+  background: #8fbf8a;
+  border-color: #6f9c6b;
+}
 
 /* panel palet warna */
 .palpanel {
