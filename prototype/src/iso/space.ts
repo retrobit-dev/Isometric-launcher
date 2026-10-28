@@ -44,8 +44,9 @@ export interface ViewState {
 }
 
 // Komposisi acuan untuk tombol TENGAH / ZOOM reset (bukan kunci).
-// Diambil dari komposisi yang terakhir disetujui user: x0.88 di (-1.2, 1.3).
-export const VIEW_FIXED: ViewState = { q: 0.88, e: -1.2, w: 1.3 }
+// ZOOM x1 (permintaan user 2026-10-28: "zoom seharusnya x1") di (-1.2, 1.3):
+// HW 16, HH 8, ZH 16.
+export const VIEW_FIXED: ViewState = { q: 1, e: -1.2, w: 1.3 }
 export const DEFAULT_Q: number = VIEW_FIXED.q
 export const DEFAULT_CENTER: { e: number; w: number } = { e: VIEW_FIXED.e, w: VIEW_FIXED.w }
 
