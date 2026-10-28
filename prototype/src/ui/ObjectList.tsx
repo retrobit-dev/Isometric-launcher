@@ -1,4 +1,4 @@
-import { useRef, useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import { MATERIALS, UNKNOWN_STYLE, floorMat, wallColors } from '../iso/palette'
 import { loadCandidates } from '../scene/store'
 import type { Scene, SceneObject } from '../scene/types'
@@ -94,6 +94,15 @@ export default function ObjectList(p: Props) {
       entries.push({ kind: 'obj', obj: o })
     }
   }
+
+  // scene kosong = kemungkinan objek hilang -> langsung tawarkan pemulihan
+  useEffect(() => {
+    if (p.objects.length > 0) return
+    const c = loadCandidates()
+    if (c.length > 0) { setRescue(c); setShowRescue(true) }
+    // hanya saat panel pertama dibuka
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [])
 
   const openRescue = () => {
     setRescue(loadCandidates())
@@ -230,7 +239,9 @@ export default function ObjectList(p: Props) {
       {p.locked && <div className="olhint">scene terkunci — buka kunci untuk mengedit</div>}
 
       {p.objects.length === 0 && (
-        <div className="olhint">belum ada objek. pakai + DINDING / + TAMBAH / IMPORT</div>
+        <button className="sbtn wide danger" onClick={openRescue} title="cari objek di cadangan & riwayat">
+          OBJEK 0 — CARI CADANGAN ⟲
+        </button>
       )}
 
       <div className="ollist">

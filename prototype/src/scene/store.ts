@@ -167,7 +167,38 @@ export function loadCandidates(): { label: string; n: number; scene: Scene }[] {
     }
   }
 
+  // SISA PENYELAMATAN: sisir SEMUA key localStorage. Kalau ada JSON apa pun yang
+  // berisi array `objects`, tawarkan juga -> menangkap data yang tersimpan di
+  // key tak terduga (nama versi lama, hasil eksperimen, dsb).
+  try {
+    for (let i = 0; i < localStorage.length; i++) {
+      const key = localStorage.key(i)
+      if (!key) continue
+      const raw = localStorage.getItem(key)
+      if (!raw || raw[0] !== '{') continue
+      let data: unknown
+      try { data = JSON.parse(raw) } catch { continue }
+      const objs = (data as { objects?: unknown })?.objects
+      if (!Array.isArray(objs) || objs.length === 0) continue
+      const sc = validateScene(data)
+      if (!sc || sc.objects.length === 0) continue
+      const dup = out.some(o => {
+        const a = JSON.stringify(o.scene.objects)
+        const b = JSON.stringify(sc.objects)
+        return a === b
+      })
+      if (dup) continue
+      out.push({ label: `tersimpan di "${key}"`, n: sc.objects.length, scene: sc })
+    }
+  } catch {
+    /* localStorage tidak bisa disisir — abaikan */
+  }
   return out
+}
+
+/** true bila ada data yang bisa dipulihkan (dipakai untuk peringatan "objek 0") */
+export function hasRecoverable(): boolean {
+  return loadCandidates().length > 0
 }
 
 
