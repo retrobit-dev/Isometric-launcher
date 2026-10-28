@@ -54,48 +54,29 @@ export const DEFAULT_CENTER: { e: number; w: number } = { e: VIEW_FIXED.e, w: VI
 export const Q_MIN = 0.5
 export const Q_MAX = 6
 
-// --- penyimpanan posisi kamera -------------------------------------------
-// v5: nilai kamera lama (x0.88 / pusat -1.2,1.3) dibuang; mulai dari acuan
-// x1 di (0,0). Setiap pan/zoom berikutnya tetap disimpan otomatis.
-const CAM_KEY = 'isola-kamera-v5'
+// --- kamera: SELALU mulai dari acuan x1 (0,0) -----------------------------
+// Kamera TIDAK lagi dipulihkan dari localStorage (permintaan user 2026-10-28:
+// "buat kamera default x1 (0,0)"). Setiap kali halaman dibuka / reload /
+// hot-reload, kamera mulai persis di VIEW_FIXED. Pan & pinch tetap bebas
+// selama sesi berjalan, dan nilai lama yang tersimpan di browser dibersihkan.
+const LEGACY_CAM_KEYS = ['isola-kamera-v2', 'isola-kamera-v3', 'isola-kamera-v4', 'isola-kamera-v5']
 
-function readView(): ViewState | null {
+function clearLegacyCam() {
   try {
-    const raw = localStorage.getItem(CAM_KEY)
-    if (!raw) return null
-    const v = JSON.parse(raw) as Partial<ViewState>
-    if (typeof v.q !== 'number' || typeof v.e !== 'number' || typeof v.w !== 'number') return null
-    return { q: v.q, e: v.e, w: v.w }
+    for (const k of LEGACY_CAM_KEYS) localStorage.removeItem(k)
   } catch {
-    return null
+    /* abaikan */
   }
 }
+clearLegacyCam()
 
-function writeView(v: ViewState) {
-  try {
-    localStorage.setItem(CAM_KEY, JSON.stringify(v))
-  } catch {
-    /* storage penuh/private — kamera tetap jalan di memori */
-  }
-}
-
-const initialView: ViewState = readView() ?? VIEW_FIXED
+const initialView: ViewState = VIEW_FIXED
 
 export const CAM = { Q: initialView.q, CE: initialView.e, CW: initialView.w }
 
 export let HW = 32
 export let HH = 16
 export let ZH = 32
-
-let saveTimer: ReturnType<typeof setTimeout> | null = null
-function scheduleSaveCam() {
-  if (typeof window === 'undefined') return
-  if (saveTimer) return
-  saveTimer = setTimeout(() => {
-    saveTimer = null
-    writeView({ q: CAM.Q, e: CAM.CE, w: CAM.CW })
-  }, 250)
-}
 
 function applyZoom(q: number) {
   CAM.Q = Math.min(Q_MAX, Math.max(Q_MIN, q))
@@ -106,7 +87,6 @@ function applyZoom(q: number) {
 
 export function setZoom(q: number) {
   applyZoom(q)
-  scheduleSaveCam()
 }
 
 // Level zoom saat ini (untuk tampilan tombol/chip)
@@ -119,7 +99,6 @@ export function zoomValue(): number {
 export function setCenter(e: number, w: number) {
   CAM.CE = e
   CAM.CW = w
-  scheduleSaveCam()
 }
 
 /** Kembalikan kamera ke komposisi acuan. */
@@ -127,7 +106,6 @@ export function resetView() {
   applyZoom(VIEW_FIXED.q)
   CAM.CE = VIEW_FIXED.e
   CAM.CW = VIEW_FIXED.w
-  scheduleSaveCam()
 }
 
 // terapkan zoom awal (HW/HH/ZH) sesuai posisi awal
