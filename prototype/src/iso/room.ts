@@ -1,4 +1,4 @@
-import { IH, IW, ROOM, px, type P } from './space'
+import { CAM, CY, HH, IH, IW, ROOM, ZH, px, type P } from './space'
 import { PAL } from './palette'
 import { drawBox, sortedObjects } from './box'
 import type { SceneObject } from '../scene/types'
@@ -39,29 +39,45 @@ const DADO_Z = 0.4   // tinggi plint
 
 function walls(ctx: CanvasRenderingContext2D) {
   const { E, W, WALL_Z } = ROOM
-  // Dinding Barat (kiri): biru gelap polos + plint
-  poly(ctx, [px(0, 0, WALL_Z), px(0, W, WALL_Z), px(0, W, 0), px(0, 0, 0)], PAL.wallB)
+  // Dinding digambar sampai melewati tepi atas layar pada zoom/pan apa pun,
+  // sehingga tidak ada ruang kosong di atas (permintaan user).
+  // Tinggi fungsional untuk objek tetap WALL_Z; sisanya hanya visual.
+  const zTop = Math.max(
+    WALL_Z,
+    Math.ceil((CY + (Math.max(E, W) - CAM.CE - CAM.CW) * HH) / ZH) + 1,
+  )
+  // Dinding Barat (kiri): nude cerah + plint
+  poly(ctx, [px(0, 0, zTop), px(0, W, zTop), px(0, W, 0), px(0, 0, 0)], PAL.wallB)
   poly(ctx, [px(0, 0, DADO_Z), px(0, W, DADO_Z), px(0, W, 0), px(0, 0, 0)], PAL.trimB)
 
   // Dinding Timur (kanan)
-  poly(ctx, [px(0, 0, WALL_Z), px(E, 0, WALL_Z), px(E, 0, 0), px(0, 0, 0)], PAL.wallT)
+  poly(ctx, [px(0, 0, zTop), px(E, 0, zTop), px(E, 0, 0), px(0, 0, 0)], PAL.wallT)
   poly(ctx, [px(0, 0, DADO_Z), px(E, 0, DADO_Z), px(E, 0, 0), px(0, 0, 0)], PAL.trimT)
 
-  line(ctx, px(0, 0, 0), px(0, 0, WALL_Z), PAL.seam)
+  line(ctx, px(0, 0, 0), px(0, 0, zTop), PAL.seam)
 }
 
 function floor(ctx: CanvasRenderingContext2D) {
   const { E, W } = ROOM
   const tones = [PAL.floorBase, PAL.floorAlt, PAL.floorC]
-  for (let e = 0; e < E; e++) {
-    for (let w = 0; w < W; w++) {
-      // papan kayu: 3 tone staggered agar terlihat seperti parket asli
-      poly(ctx, [px(e, w), px(e + 1, w), px(e + 1, w + 1), px(e, w + 1)],
-        tones[(e * 7 + w * 13) % 3])
+  // Papan persegi panjang 2x1 tile, ditata selang-seling (running bond):
+  // tiap baris digeser 1 tile relatif terhadap baris sebelumnya.
+  for (let w = 0; w < W; w++) {
+    const off = w % 2 === 0 ? 0 : 1
+    for (let e0 = -off; e0 < E; e0 += 2) {
+      const a = Math.max(0, e0)
+      const b = Math.min(E, e0 + 2)
+      if (b <= a) continue
+      poly(ctx, [px(a, w), px(b, w), px(b, w + 1), px(a, w + 1)],
+        tones[(Math.abs(e0) * 7 + w * 13) % 3])
     }
   }
-  for (let e = 0; e <= E; e++) line(ctx, px(e, 0), px(e, W), PAL.grout)
+  // nat: garis panjang tiap baris + sambungan ujung papan
   for (let w = 0; w <= W; w++) line(ctx, px(0, w), px(E, w), PAL.grout)
+  for (let w = 0; w < W; w++) {
+    const off = w % 2 === 0 ? 0 : 1
+    for (let e = 2 - off; e < E; e += 2) line(ctx, px(e, w), px(e, w + 1), PAL.grout)
+  }
   const SK = 10 // ketebalan slab diorama
   const bL = px(0, W), sL = px(E, W), tR = px(E, 0)
   poly(ctx, [bL, sL, { x: sL.x, y: sL.y + SK }, { x: bL.x, y: bL.y + SK }], PAL.skirtL)

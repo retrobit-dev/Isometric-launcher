@@ -27,7 +27,7 @@
 
 Referensi malam-biru berupa **crop** (kamera di dalam ruangan), sehingga ukuran total ruangan adalah keputusan desain: dipilih 14 × 13 tile agar (a) full-bleed tercapai pada zoom default, dan (b) densitas slot app cukup untuk launcher. Skala tile-vs-furnitur tetap mengikuti referensi: meja ≈ 3.5 tile, rak ≈ 2.5 tile.
 
-**Palet ruangan: `kayu-nude`** — dinding **nude cerah** (kiri `#c6b4a2` sisi teduh, kanan `#d9c7b3` sisi cahaya), plint nude gelap, lantai **papan kayu oak** 3 tone staggered (`#b08050 / #a87a4c / #b98756`) dengan nat cokelat `#8a6238`, slab diorama kayu gelap. Seluruh warna ruangan & 22 material objek (termasuk hasil ekstraksi referensi malam-biru untuk objek) terlihat di tombol **PALET** pada preview.
+**Palet ruangan: `kayu-nude`** — dinding **nude cerah** (kiri `#c6b4a2` sisi teduh, kanan `#d9c7b3` sisi cahaya), plint nude gelap, lantai **papan kayu oak persegi panjang 2×1 tile ditata selang-seling** (running bond) 3 tone (`#b08050 / #a87a4c / #b98756`) dengan nat cokelat `#8a6238`, slab diorama kayu gelap. Dinding dirender selalu melewati tepi atas layar (tidak ada ruang kosong di atas); tinggi fungsional untuk objek tetap 12 z. Seluruh warna ruangan & 22 material objek terlihat di tombol **PALET** pada preview.
 
 ## 1b. Framing kamera
 
