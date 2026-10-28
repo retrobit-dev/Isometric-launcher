@@ -1,25 +1,26 @@
-// Palet "malam-biru" — diekstrak dari referensi ruang kerja malam pixel-art
-// (dinding biru gelap, lantai tile biru-ungu, kayu hangat, aksen amber lampu)
+// Palet "kayu-nude" — dinding nude cerah + lantai kayu oak hangat.
+// (Material objek tetap menyimpan hasil ekstraksi referensi malam-biru.)
 export const PAL = {
-  void: '#0b0d16',
+  void: '#1a1512',
 
-  // dinding biru gelap polos (kiri lebih gelap, kanan terkena cahaya lampu)
-  wallB: '#2b3149',
-  wallT: '#333a58',
-  trimB: '#20263c',   // plint
-  trimT: '#262c44',
-  seam: '#1b2033',    // pertemuan dua dinding
+  // dinding nude cerah (kiri sedikit lebih gelap = sisi teduh)
+  wallB: '#c6b4a2',
+  wallT: '#d9c7b3',
+  trimB: '#a08d7c',   // plint
+  trimT: '#af9c8b',
+  seam: '#93816f',    // pertemuan dua dinding
 
-  // lantai tile besar biru-ungu + nat
-  floorBase: '#50547a',
-  floorAlt: '#4a4e72',   // variasi tile jarang (seperti referensi)
-  grout: '#3b3e60',
-  skirtL: '#33365a',     // tebal slab diorama
-  skirtR: '#3b3e64',
+  // lantai papan kayu oak: 3 tone staggered + nat cokelat
+  floorBase: '#b08050',
+  floorAlt: '#a87a4c',
+  floorC: '#b98756',
+  grout: '#8a6238',
+  skirtL: '#7a5530',     // tebal slab diorama
+  skirtR: '#86603a',
 
   grid: 'rgba(255,255,255,0.30)',
-  zone: 'rgba(232,176,96,0.55)',
-  hud: '#cfd3e4',
+  zone: 'rgba(160,107,58,0.65)',
+  hud: '#3d3428',
 } as const
 
 // Material objek: 3 tone (top / left / right) sesuai arah cahaya lampu meja.
@@ -59,9 +60,10 @@ export const ROOM_PALETTE_SWATCHES: { name: string; hex: string }[] = [
   { name: 'dinding-kanan', hex: PAL.wallT },
   { name: 'plint-kiri', hex: PAL.trimB },
   { name: 'plint-kanan', hex: PAL.trimT },
-  { name: 'lantai', hex: PAL.floorBase },
-  { name: 'lantai-alt', hex: PAL.floorAlt },
-  { name: 'nat', hex: PAL.grout },
+  { name: 'kayu-a', hex: PAL.floorBase },
+  { name: 'kayu-b', hex: PAL.floorAlt },
+  { name: 'kayu-c', hex: PAL.floorC },
+  { name: 'nat-kayu', hex: PAL.grout },
   { name: 'slab-kiri', hex: PAL.skirtL },
   { name: 'slab-kanan', hex: PAL.skirtR },
 ]

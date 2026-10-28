@@ -19,7 +19,7 @@
 | 1 tile lantai | 60 cm × 60 cm | 1 tile |
 | 1 satuan tinggi | 50 cm | 1 z |
 | Ruangan (DT × DB) | 8.4 m × 7.8 m (±65 m²) | **E = 14, W = 13** |
-| Tinggi dinding | 5.0 m (gaya loft, sesuai permintaan) | **WALL_Z = 10** |
+| Tinggi dinding | 6.0 m (loft sangat tinggi, sesuai permintaan) | **WALL_Z = 12** |
 | Tinggi pintu | 2.0 m | 4 z |
 | Tinggi meja kerja | 75 cm | 1.5 z |
 | Tinggi rak buku berdiri | 1.8 m | 3.6 z |
@@ -27,7 +27,7 @@
 
 Referensi malam-biru berupa **crop** (kamera di dalam ruangan), sehingga ukuran total ruangan adalah keputusan desain: dipilih 14 × 13 tile agar (a) full-bleed tercapai pada zoom default, dan (b) densitas slot app cukup untuk launcher. Skala tile-vs-furnitur tetap mengikuti referensi: meja ≈ 3.5 tile, rak ≈ 2.5 tile.
 
-**Palet ruangan: `malam-biru`** — dinding biru gelap polos (kiri lebih gelap), lantai tile besar biru-ungu dengan nat dan variasi shade jarang, plint gelap, slab diorama. Seluruh warna ruangan & 22 material objek terlihat di tombol **PALET** pada preview.
+**Palet ruangan: `kayu-nude`** — dinding **nude cerah** (kiri `#c6b4a2` sisi teduh, kanan `#d9c7b3` sisi cahaya), plint nude gelap, lantai **papan kayu oak** 3 tone staggered (`#b08050 / #a87a4c / #b98756`) dengan nat cokelat `#8a6238`, slab diorama kayu gelap. Seluruh warna ruangan & 22 material objek (termasuk hasil ekstraksi referensi malam-biru untuk objek) terlihat di tombol **PALET** pada preview.
 
 ## 1b. Framing kamera
 

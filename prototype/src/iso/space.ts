@@ -16,11 +16,11 @@ export const Z_PX = 16
 // Ruangan: skala tile-vs-furnitur dari referensi malam-biru (meja ≈ 3.5 tile).
 // Ukuran total = keputusan desain: referensi berupa crop, dan ruangan besar
 // memberi densitas slot app yang cukup untuk launcher.
-// Dinding sengaja tinggi (gaya loft, sesuai permintaan "dinding lebih tinggi").
+// Dinding sengaja sangat tinggi (gaya loft, permintaan "lebih tinggi lagi").
 export const ROOM = {
   E: 14,        // tile ke arah Timur  = 8.4 m
   W: 13,        // tile ke arah Barat  = 7.8 m
-  WALL_Z: 10,   // tinggi dinding      = 5.0 m
+  WALL_Z: 12,   // tinggi dinding      = 6.0 m
 }
 
 // Zoom kontinu via pinch: berapa pun nilainya, HW/HH/ZH dibulatkan integer

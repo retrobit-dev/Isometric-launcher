@@ -52,12 +52,12 @@ function walls(ctx: CanvasRenderingContext2D) {
 
 function floor(ctx: CanvasRenderingContext2D) {
   const { E, W } = ROOM
+  const tones = [PAL.floorBase, PAL.floorAlt, PAL.floorC]
   for (let e = 0; e < E; e++) {
     for (let w = 0; w < W; w++) {
-      // variasi shade jarang seperti referensi (bukan checker kontras)
-      const alt = (e * 31 + w * 17) % 4 === 0
+      // papan kayu: 3 tone staggered agar terlihat seperti parket asli
       poly(ctx, [px(e, w), px(e + 1, w), px(e + 1, w + 1), px(e, w + 1)],
-        alt ? PAL.floorAlt : PAL.floorBase)
+        tones[(e * 7 + w * 13) % 3])
     }
   }
   for (let e = 0; e <= E; e++) line(ctx, px(e, 0), px(e, W), PAL.grout)

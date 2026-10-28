@@ -8,7 +8,7 @@
 ```json
 {
   "version": 1,
-  "room": { "e": 22, "w": 22, "wallZ": 6.5, "palette": "malam-biru" },
+  "room": { "e": 22, "w": 22, "wallZ": 6.5, "palette": "kayu-nude" },
   "objects": [
     {
       "id": "meja-guru",
