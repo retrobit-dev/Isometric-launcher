@@ -45,37 +45,26 @@ tidak ada ruang kosong di atas.
 
 ## 1b. Framing kamera
 
-Zoom dikendalikan **pinch in/out** (kontinu, rentang ×0.5 – ×6); setiap nilai zoom
-membulatkan langkah piksel ke integer agar pixel-art tetap tajam.
-Tombol **ZOOM ×n** hanya menampilkan level saat ini dan **mereset ke default** saat diketuk.
+Zoom **hanya** lewat gestur **pinch in/out** (kontinu, rentang ×0.5 – ×6); setiap
+nilai zoom membulatkan langkah piksel ke integer agar pixel-art tetap tajam.
+**Tombol ZOOM sudah dihapus** (permintaan user 2026-10-28: "hapus tombol zoom,
+tapi pertahankan fungsi pinch in dan pinch out") — tidak ada tombol zoom sama
+sekali di toolbar. Level zoom aktif bisa dibaca di chip **KOORDINAT**
+(`kamera ×1.0 (0.0, 0.0)`).
 
 | Zoom | Kegunaan |
 |---|---|
-| **×1 (acuan)** | HW 16, HH 8, ZH 16, pusat **(0, 0)** — puncak ruangan (e=0,w=0) tepat di tengah kanvas (320,200); dipakai tombol ZOOM/TENGAH |
+| **×1 (acuan/default)** | HW 16, HH 8, ZH 16, pusat **(0, 0)** — puncak ruangan (e=0,w=0) tepat di tengah kanvas (320,200) |
 | ×0.5 – ×1.5 | peta diorama seluruh ruangan |
 | ×3 – ×6 | pandangan dekat untuk presisi edit |
 
-Komposisi default = gambar referensi user `Screenshot_20261028_203752.jpg`
-(1122×706) diskalakan ke kanvas internal 640×400 (÷1.76): ubin 140×70 px di
-referensi → **80×40 px** di kanvas (320×160 px di layar 2560), nat 1 px.
-Karena internal 640×400 adalah tepat ¼ dari 2560×1600, seluruh komposisi ini
-mendarat identik di panel MatePad Mini.
-
-> **KAMERA: bebas, tanpa kunci.** Posisi kamera disimpan otomatis
-> (`isola-kamera-v2`) dan dipulihkan saat halaman dibuka, jadi tidak kembali ke
-> tengah. Tombol ZOOM & TENGAH mengembalikan ke komposisi acuan ×0.88 di
-> (−1.2, 1.3) — sekadar titik awal, bukan kunci: pan & pinch bebas kapan saja.
-> Kunci zoom/posisi (`VIEW_LOCKED`) **dihapus** bersama aturan ruangan lain.
-> Komposisi dibekukan sebagai `VIEW_FIXED` (`iso/space.ts`): **Q = 2.5**
-> (HW 40, HH 20, ZH 40), pusat kamera **(0.4, 0.5)**. Konsekuensinya:
-> ZOOM/TENGAH, tombol reset, reload preview, dan aplikasi nanti **selalu**
-> mendarat persis di komposisi ini. Pan & pinch masih boleh untuk bekerja,
-> tetapi bersifat sementara dan **tidak pernah disimpan**. Mengubah angka
-> komposisi = perubahan kode developer atas permintaan eksplisit user.
-> Chip KOORDINAT menampilkan `view: terkunci ×2.5` sebagai penanda.
->
-> Catatan: **kunci RUANGAN (dimensi)** masih dibuka sementara
-> (`ROOM_TEMP_UNLOCKED`) menunggu keputusan akhir soal tinggi dinding.
+> **KAMERA: mulai ×1 di (0,0), bebas bergerak.** Nilai kamera **tidak** disimpan
+> dan **tidak** dipulihkan dari localStorage (`isola-kamera-v2..v5` dibersihkan).
+> Setiap reload / hot-reload / aplikasi dibuka, kamera mendarat persis di
+> `VIEW_FIXED` (`iso/space.ts`): **Q = 1**, pusat **(0, 0)**. Selama sesi, pan
+> (drag satu jari di area kosong) dan pinch bebas tanpa batas; tombol **TENGAH**
+> mengembalikan kamera ke acuan ×1 (0,0). Tidak ada kunci zoom maupun kunci
+> posisi — keduanya sudah dihapus bersama aturan ruangan lain.
 
 ## 2. Mata arah (nama arah utama)
 

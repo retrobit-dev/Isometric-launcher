@@ -29,7 +29,7 @@ export default function App() {
   const [grid, setGrid] = useState(false)
   const [dev, setDev] = useState(true)
   const [rot, setRot] = useState<Rot>('auto')
-  const [, forceZoomLabel] = useState(0) // refresh label tombol ZOOM saat pinch
+  const [, forceZoomLabel] = useState(0) // refresh chip KOORDINAT saat pinch zoom
   const [selectedId, setSelectedId] = useState<string | null>(null)
   const [modal, setModal] = useState<'export' | 'import' | null>(null)
   const [showPalette, setShowPalette] = useState(false)
@@ -148,7 +148,8 @@ export default function App() {
     const pts = pointersRef.current
     if (pts.has(ev.pointerId)) pts.set(ev.pointerId, { x: ev.clientX, y: ev.clientY })
 
-    // pinch in/out = zoom out/in (satu-satunya kendali zoom selain tombol reset)
+    // pinch in/out = satu-satunya kendali zoom (tombol ZOOM sudah dihapus;
+    // TENGAH hanya mengembalikan kamera ke acuan x1 (0,0))
     const pinch = pinchRef.current
     if (pinch && pts.size >= 2) {
       const [p1, p2] = [...pts.values()]
@@ -442,13 +443,6 @@ export default function App() {
             )}
           </>
         )}
-        <button
-          className="tbtn"
-          title="zoom dikendalikan pinch in/out; ketuk untuk reset ke komposisi acuan"
-          onClick={() => { resetView(); forceZoomLabel(v => v + 1) }}
-        >
-          ZOOM ×{zoomValue()}
-        </button>
         <button className="tbtn" onClick={resetView}>TENGAH</button>
         <button className={grid ? 'tbtn on' : 'tbtn'} onClick={() => setGrid(v => !v)}>GRID</button>
         <button className={showPalette ? 'tbtn on' : 'tbtn'} onClick={() => setShowPalette(v => !v)}>PALET</button>

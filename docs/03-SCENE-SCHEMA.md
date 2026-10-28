@@ -104,7 +104,7 @@ objek di bawah ini tetap berlaku untuk objek yang Anda buat/import sendiri.
 | **ROTASI per objek** | Tombol **ROTASI** di panel objek: putar 0°→90°→180°→270° (`rot: 0..3`). Rotasi ganjil menukar panjang ↔ lebar (footprint, bbox, kedalaman, dan garis seleksi ikut menyesuaikan) |
 | **Panel editor** | Panel objek **transparan** (latar 58% + blur) agar objek di belakangnya tetap terlihat, dan bisa **digeser** dengan menyeret judul panel (ikon ⠿) |
 | **SALIN JSON** | Di modal EXPORT: satu ketuk menyalin seluruh `scene.json` ke clipboard (fallback `execCommand` bila Clipboard API diblokir), label berubah `TERSALIN ✓` |
-| **Zoom in/out** | **Pinch in/out** di layar (kontinu ×0.5 – ×6, langkah piksel tetap integer). Tombol **ZOOM ×n** = indikator level + ketuk untuk reset ke komposisi terkunci ×2.5 (`VIEW_FIXED` + `VIEW_LOCKED`, docs/01 §1b) |
+| **Zoom in/out** | **Pinch in/out** di layar (kontinu ×0.5 – ×6, langkah piksel tetap integer) — satu-satunya kendali zoom. **Tombol ZOOM sudah dihapus**; level zoom hanya bisa dibaca di chip KOORDINAT. Kamera selalu mulai ×1 di (0,0) dan tidak disimpan (`VIEW_FIXED`, docs/01 §1b) |
 | **Pan kamera** | Seret area kosong (mode apa pun) menggeser tengah kamera **tanpa batas — ruangan boleh dibawa ke mana pun di kanvas**; **TENGAH** mengembalikan pandangan default |
 | **SIMPAN & KUNCI** | Mengunci scene: edit dinonaktifkan, `meta.locked=true` + `savedAt` dicatat. **Hanya scene terkunci yang sah diterapkan ke aplikasi** |
 | Buka kunci | Tombol 🔒 → kembali ke draf untuk diedit (versi terkunci tetap tersimpan) |
@@ -123,7 +123,7 @@ Menu **Setting → Editor Ruang** dengan kemampuan identik:
 5. **Import/Export `scene.json`** (berbagi layout antar perangkat / dari preview web)
 6. **Reset ke bawaan**
 7. **Undo satu langkah** (minimum), konfirmasi sebelum hapus
-8. **Zoom & pan**: pinch-zoom kontinu + tombol ZOOM (indikator & reset), drag satu jari di area kosong = pan, tombol TENGAH = reset pandangan
+8. **Zoom & pan**: pinch-zoom kontinu (tanpa tombol zoom), drag satu jari di area kosong = pan, tombol TENGAH = kembali ke acuan ×1 (0,0)
 9. **SIMPAN & KUNCI (objek saja, sementara)**: setelah disimpan, home mengunci layout objek (edit hanya dari Setting); badge jam simpan tampil di Editor Ruang; kunci selalu bisa dibuka lagi dari Setting; aplikasi menolak memuat scene dengan `meta.locked=false`. Ruangan tidak pernah bisa diedit dari aplikasi (docs/03 §0)
 Persistensi app: file `scene.json` di internal storage; aset bawaan di-bundle sebagai fallback.
 Mode edit di app hanya reachable dari Setting (bukan dari home) agar layar home tetap bersih.
