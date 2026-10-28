@@ -1,3 +1,4 @@
+import { useEffect, useState } from 'react'
 import { MATERIAL_KEYS } from '../iso/palette'
 import type { SceneObject } from '../scene/types'
 
@@ -13,13 +14,60 @@ interface Props {
   onClose: () => void
 }
 
-function Step(props: { label: string; value: string; dec: () => void; inc: () => void }) {
+// semua nilai objek dalam kelipatan 0.1
+const snap = (v: number) => Math.round(v * 10) / 10
+
+/**
+ * Field angka yang bisa DIKETIK langsung (permintaan user 2026-10-28:
+ * "untuk editor objek bisakah angka diisi manual?") sekaligus tetap punya
+ * tombol − / + untuk penyesuaian 0.1.
+ *
+ * Nilai diketik disimpan sebagai teks lokal supaya mengetik "1." atau "-"
+ * tidak langsung dipaksa; commit terjadi saat Enter, blur, atau tombol ±.
+ */
+function NumField(p: {
+  label: string
+  value: number
+  min: number
+  onChange: (v: number) => void
+}) {
+  const [text, setText] = useState(p.value.toFixed(1))
+  const [focused, setFocused] = useState(false)
+
+  // sinkron dari luar (drag objek, tombol ±, ganti objek terpilih)
+  useEffect(() => {
+    if (!focused) setText(p.value.toFixed(1))
+  }, [p.value, focused])
+
+  const commit = (raw?: string) => {
+    const src = raw ?? text
+    const n = parseFloat(src.replace(',', '.'))
+    const v = Number.isFinite(n) ? snap(n) : p.value
+    const clamped = Math.max(p.min, v)
+    p.onChange(clamped)
+    setText(clamped.toFixed(1))
+  }
+
   return (
     <div className="row">
-      <span className="rl">{props.label}</span>
-      <button className="sbtn" onClick={props.dec}>−</button>
-      <span className="rv">{props.value}</span>
-      <button className="sbtn" onClick={props.inc}>+</button>
+      <span className="rl">{p.label}</span>
+      <button className="sbtn" onClick={() => commit(String(p.value - 0.1))}>−</button>
+      <input
+        className="rinput"
+        inputMode="decimal"
+        value={text}
+        onFocus={ev => { setFocused(true); ev.currentTarget.select() }}
+        onChange={ev => setText(ev.target.value)}
+        onBlur={() => { setFocused(false); commit() }}
+        onKeyDown={ev => {
+          if (ev.key === 'Enter') { commit(); ev.currentTarget.blur() }
+          if (ev.key === 'Escape') { setText(p.value.toFixed(1)); ev.currentTarget.blur() }
+          if (ev.key === 'ArrowUp') { ev.preventDefault(); commit(String(p.value + 0.1)) }
+          if (ev.key === 'ArrowDown') { ev.preventDefault(); commit(String(p.value - 0.1)) }
+        }}
+        aria-label={`${p.label} objek (bisa diketik)`}
+      />
+      <button className="sbtn" onClick={() => commit(String(p.value + 0.1))}>+</button>
     </div>
   )
 }
@@ -40,12 +88,30 @@ export default function EditPanel(p: Props) {
         <button className="sbtn" onClick={p.onClose}>✕</button>
       </div>
       <div className="pgrid">
-        <Step label="e" value={o.pos.e.toFixed(1)} dec={() => p.onMove(-0.1, 0)} inc={() => p.onMove(0.1, 0)} />
-        <Step label="w" value={o.pos.w.toFixed(1)} dec={() => p.onMove(0, -0.1)} inc={() => p.onMove(0, 0.1)} />
-        <Step label="tinggi z" value={o.pos.z.toFixed(1)} dec={() => p.onChange({ pos: { ...o.pos, z: Math.max(0, o.pos.z - 0.1) } })} inc={() => p.onChange({ pos: { ...o.pos, z: o.pos.z + 0.1 } })} />
-        <Step label="panjang" value={o.size.e.toFixed(1)} dec={() => p.onResize(-0.1, 0, 0)} inc={() => p.onResize(0.1, 0, 0)} />
-        <Step label="lebar" value={o.size.w.toFixed(1)} dec={() => p.onResize(0, -0.1, 0)} inc={() => p.onResize(0, 0.1, 0)} />
-        <Step label="tinggi" value={o.size.z.toFixed(1)} dec={() => p.onResize(0, 0, -0.1)} inc={() => p.onResize(0, 0, 0.1)} />
+        <NumField
+          label="posisi e" value={o.pos.e} min={-99}
+          onChange={v => p.onChange({ pos: { ...o.pos, e: v } })}
+        />
+        <NumField
+          label="posisi w" value={o.pos.w} min={-99}
+          onChange={v => p.onChange({ pos: { ...o.pos, w: v } })}
+        />
+        <NumField
+          label="posisi z" value={o.pos.z} min={0}
+          onChange={v => p.onChange({ pos: { ...o.pos, z: v } })}
+        />
+        <NumField
+          label="panjang" value={o.size.e} min={0.1}
+          onChange={v => p.onChange({ size: { ...o.size, e: v } })}
+        />
+        <NumField
+          label="lebar" value={o.size.w} min={0.1}
+          onChange={v => p.onChange({ size: { ...o.size, w: v } })}
+        />
+        <NumField
+          label="tinggi" value={o.size.z} min={0.1}
+          onChange={v => p.onChange({ size: { ...o.size, z: v } })}
+        />
       </div>
       <div className="row">
         <span className="rl">material</span>
@@ -63,6 +129,7 @@ export default function EditPanel(p: Props) {
         <button className="sbtn wide" onClick={p.onDuplicate}>DUPLIKAT</button>
         <button className="sbtn wide danger" onClick={p.onDelete}>HAPUS</button>
       </div>
+      <div className="phint">angka bisa diketik · Enter = terapkan · kelipatan 0.1</div>
     </div>
   )
 }

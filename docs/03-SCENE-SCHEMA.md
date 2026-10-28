@@ -19,6 +19,12 @@ baru"), seluruh penguncian ruangan dihapus:
 Nilai awal saat ini (bebas diubah, menunggu referensi baru):
 `E = 20`, `W = 19`, `WALL_Z = 12`, palet `malam-biru`.
 
+**RUANGAN DIHAPUS DARI TAMPILAN** (`ROOM_VISIBLE = false`, permintaan user
+2026-10-28 "hapus juga ruangan ini"): lantai, dinding, plint, slab, dan refleksi
+tidak digambar — kanvas kosong siap menerima referensi ruangan baru. Objek,
+grid, dan editor tetap berfungsi. Set `ROOM_VISIBLE = true` untuk memunculkan
+kembali.
+
 ## 0a. Kunci objek (SEMENTARA)
 
 Tombol **SIMPAN & KUNCI** mengunci **objek saja**: layout beku untuk diterapkan ke aplikasi, tetapi kunci selalu bisa dibuka lagi (preview: tombol 🔒; aplikasi: Setting → Editor Ruang). `meta.locked` + `meta.savedAt` mencatat status kunci objek.
@@ -100,6 +106,7 @@ rak, dan lemari di DB. Penyimpanan draft naik ke key `isola-draft-v3` /
 | Tambah objek | Tombol **TAMBAH** (balok baru 2×1×1 di tengah zona interaktif) |
 | Edit objek | Ketuk objek → panel: posisi, ukuran, material (cycle), label, **layer (cycle UNDER/MAIN/OVER)** |
 | Hapus / duplikat | Tombol di panel objek |
+| **Input angka** | Posisi (e, w, z) dan ukuran (panjang, lebar, tinggi) bisa **diketik langsung** di panel objek: ketuk field, ketik angka, **Enter** = terapkan (Esc = batal, ↑/↓ = ±0.1). Nilai dibulatkan ke kelipatan **0.1**; tombol −/+ tetap ada |
 | **Zoom in/out** | **Pinch in/out** di layar (kontinu ×0.5 – ×6, langkah piksel tetap integer). Tombol **ZOOM ×n** = indikator level + ketuk untuk reset ke komposisi terkunci ×2.5 (`VIEW_FIXED` + `VIEW_LOCKED`, docs/01 §1b) |
 | **Pan kamera** | Seret area kosong (mode apa pun) menggeser tengah kamera **tanpa batas — ruangan boleh dibawa ke mana pun di kanvas**; **TENGAH** mengembalikan pandangan default |
 | **SIMPAN & KUNCI** | Mengunci scene: edit dinonaktifkan, `meta.locked=true` + `savedAt` dicatat. **Hanya scene terkunci yang sah diterapkan ke aplikasi** |

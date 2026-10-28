@@ -31,6 +31,12 @@ export const ROOM = {
 export const EXT_E = 0
 export const EXT_W = 0
 
+// RUANGAN DIHAPUS dari tampilan (permintaan user 2026-10-28: "hapus juga
+// ruangan ini"). true = lantai, dinding, plint, slab, dan refleksi tidak
+// digambar sama sekali -> kanvas kosong, siap menerima referensi ruangan baru.
+// Objek & editor tetap berfungsi normal. Set false untuk memunculkan lagi.
+export const ROOM_VISIBLE = false
+
 export interface ViewState {
   q: number
   e: number

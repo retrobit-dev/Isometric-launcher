@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState } from 'react'
 import {
-  CAM, IH, IW, ROOM,
+  CAM, IH, IW,
   resetView, setCenter, setZoom, unpx, zoomValue, zoneName,
 } from './iso/space'
 import { drawScene } from './iso/room'
@@ -19,7 +19,6 @@ type Rot = 'auto' | 'tegak' | 'putar'
 const ROT_NEXT: Record<Rot, Rot> = { auto: 'tegak', tegak: 'putar', putar: 'auto' }
 
 const snap = (v: number) => Math.round(v * 10) / 10 // kelipatan 0.1 (permintaan user)
-const clamp = (v: number, lo: number, hi: number) => Math.min(hi, Math.max(lo, v))
 
 export default function App() {
   const canvasRef = useRef<HTMLCanvasElement>(null)
@@ -165,8 +164,9 @@ export default function App() {
     if (d) {
       const obj = sceneRef.current.objects.find(o => o.id === d.id)
       if (!obj) return
-      const ne = clamp(snap(d.e0 + (g.e - d.ge)), 0, ROOM.E - obj.size.e)
-      const nw = clamp(snap(d.w0 + (g.w - d.gw)), 0, ROOM.W - obj.size.w)
+      // tanpa aturan ruangan: posisi objek bebas (tidak dikurung ke 20x19)
+      const ne = snap(d.e0 + (g.e - d.ge))
+      const nw = snap(d.w0 + (g.w - d.gw))
       if (ne !== obj.pos.e || nw !== obj.pos.w) {
         d.moved = true
         patchObject(d.id, { pos: { ...obj.pos, e: ne, w: nw } })
@@ -223,7 +223,7 @@ export default function App() {
       ...s,
       objects: [...s.objects, {
         ...src, id: nid, label: `${src.label} (salinan)`,
-        pos: { ...src.pos, e: clamp(src.pos.e + 1, 0, ROOM.E - src.size.e), w: clamp(src.pos.w + 1, 0, ROOM.W - src.size.w) },
+        pos: { ...src.pos, e: snap(src.pos.e + 1), w: snap(src.pos.w + 1) },
       }],
     }))
     setSelectedId(nid)
@@ -379,15 +379,15 @@ export default function App() {
           onMove={(de, dw) => patchObject(selected.id, {
             pos: {
               ...selected.pos,
-              e: clamp(selected.pos.e + de, 0, ROOM.E - selected.size.e),
-              w: clamp(selected.pos.w + dw, 0, ROOM.W - selected.size.w),
+              e: Math.round((selected.pos.e + de) * 10) / 10,
+              w: Math.round((selected.pos.w + dw) * 10) / 10,
             },
           })}
           onResize={(de, dw, dz) => patchObject(selected.id, {
             size: {
-              e: clamp(Math.round((selected.size.e + de) * 10) / 10, 0.1, 40),
-              w: clamp(Math.round((selected.size.w + dw) * 10) / 10, 0.1, 40),
-              z: clamp(Math.round((selected.size.z + dz) * 10) / 10, 0.1, 12),
+              e: Math.max(0.1, Math.round((selected.size.e + de) * 10) / 10),
+              w: Math.max(0.1, Math.round((selected.size.w + dw) * 10) / 10),
+              z: Math.max(0.1, Math.round((selected.size.z + dz) * 10) / 10),
             },
           })}
           onCycleStyle={() => {

@@ -1,4 +1,4 @@
-import { CAM, CY, EXT_E, EXT_W, HH, IH, IW, ROOM, ZH, px, type P } from './space'
+import { CAM, CY, EXT_E, EXT_W, HH, IH, IW, ROOM, ROOM_VISIBLE, ZH, px, type P } from './space'
 import { PAL } from './palette'
 import { drawBox, sortedObjects } from './box'
 import type { SceneObject } from '../scene/types'
@@ -157,8 +157,11 @@ export function drawScene(ctx: CanvasRenderingContext2D, o: DrawOpts) {
   ctx.fillStyle = PAL.void
   ctx.fillRect(0, 0, IW, IH)
 
-  walls(ctx)
-  floor(ctx)
+  // ruangan dihapus sementara -> kanvas kosong, menunggu referensi baru user
+  if (ROOM_VISIBLE) {
+    walls(ctx)
+    floor(ctx)
+  }
   overlays(ctx, o.grid, o.edit)
 
   // tiga lapis: underlay (bawah) -> main -> overlay (atas),
@@ -184,5 +187,6 @@ export function drawScene(ctx: CanvasRenderingContext2D, o: DrawOpts) {
   crispify(ctx)
 
   // refleksi digambar SETELAH crispify agar alpha samar tidak ikut ter-threshold
-  if (o.refleksi) drawReflections(ctx, o.objects)
+  // (butuh lantai sebagai bidang pantul; tanpa lantai refleksi dilewati)
+  if (o.refleksi && ROOM_VISIBLE) drawReflections(ctx, o.objects)
 }

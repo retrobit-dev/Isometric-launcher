@@ -164,6 +164,35 @@ html, body, #root {
 .rl { width: 62px; flex: none; color: #7d8298; }
 .rv { width: 40px; text-align: center; color: #e8e2cf; }
 
+/* input angka yang bisa diketik langsung di panel editor objek */
+.rinput {
+  width: 56px;
+  flex: none;
+  padding: 4px 4px;
+  font: 11px/1 ui-monospace, 'Courier New', monospace;
+  text-align: center;
+  color: #e8e2cf;
+  background: #171a26;
+  border: 1px solid #333a52;
+  border-radius: 3px;
+  -moz-appearance: textfield;
+}
+.rinput:focus {
+  outline: none;
+  border-color: #d9a05b;
+  background: #1e2233;
+}
+.rinput::-webkit-outer-spin-button,
+.rinput::-webkit-inner-spin-button { -webkit-appearance: none; margin: 0; }
+
+.phint {
+  margin-top: 2px;
+  font-size: 9px;
+  letter-spacing: 0.04em;
+  color: #5d6379;
+  text-transform: none;
+}
+
 .sbtn {
   min-height: 24px;
   padding: 3px 7px;
