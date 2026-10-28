@@ -1,10 +1,12 @@
-import { EMPTY_SCENE, ROOM_FIXED, type Scene, type SceneObject } from './types'
+import { seedScene } from './seed'
+import { ROOM_FIXED, type Scene, type SceneObject } from './types'
 
-const DRAFT_KEY = 'isola-draft-v2'
-const LOCKED_KEY = 'isola-locked-v2'
+// v3: draft default kini berisi seed balok8 (8 kelompok placeholder)
+const DRAFT_KEY = 'isola-draft-v3'
+const LOCKED_KEY = 'isola-locked-v3'
 
 export function loadDraft(): Scene {
-  return read(DRAFT_KEY) ?? structuredClone(EMPTY_SCENE)
+  return read(DRAFT_KEY) ?? seedScene()
 }
 export function saveDraft(scene: Scene) { write(DRAFT_KEY, scene) }
 

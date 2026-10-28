@@ -6,8 +6,9 @@ import {
 import { drawScene } from './iso/room'
 import { bboxOf, sortedObjects } from './iso/box'
 import { MATERIAL_KEYS } from './iso/palette'
+import { seedScene } from './scene/seed'
 import { loadDraft, loadLocked, saveDraft, saveLocked, validateScene } from './scene/store'
-import { ROOM_FIXED, type Scene, type SceneObject } from './scene/types'
+import { type Scene, type SceneObject } from './scene/types'
 import EditPanel from './ui/EditPanel'
 import PalettePanel from './ui/PalettePanel'
 
@@ -276,7 +277,8 @@ export default function App() {
   }
 
   const resetScene = () => {
-    setScene({ version: 1, room: { ...ROOM_FIXED }, objects: [], meta: { locked: false, savedAt: null } })
+    // reset = kembali ke seed balok8 (bukan ruangan kosong)
+    setScene(seedScene())
     setSelectedId(null)
     resetView()
   }

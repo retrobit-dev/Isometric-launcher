@@ -48,6 +48,32 @@ Tombol **SIMPAN & KUNCI** mengunci **objek saja**: layout beku untuk diterapkan 
 | `meta.locked` | boolean | **true = OBJEK terkunci (sementara)** dan sah diterapkan ke aplikasi; false = draf objek. Ruangan tidak terpengaruh field ini (selalu terkunci) |
 | `meta.savedAt` | string \| null | timestamp ISO saat SIMPAN & KUNCI terakhir |
 
+## 1. Seed default objek — "balok8" (fase placeholder)
+
+Draft baru / tombol RESET memuat 8 kelompok balok placeholder dari daftar objek
+user (file `prototype/src/scene/seed.ts`). Posisi & ukuran = **usulan** dalam
+kelipatan 0.1, dikoreksi user lewat editor; material dipakai sebagai pembeda.
+
+| Kelompok | id | Posisi (e, w, z) | Ukuran (e×w×z) | Material | app |
+|---|---|---|---|---|---|
+| Meja guru | `meja-guru` | 9, 8.5, 0 | 3.5×2×1.2 | night-wood | — |
+| Laptop | `laptop-meja` | 10, 9, 1.2 | 1×0.7×0.3 | slate | komputer |
+| Kalkulator | `kalkulator-meja` | 11.5, 8.7, 1.2 | 0.6×0.4×0.2 | metal-light | kalkulator-grafik |
+| Rak materi | `rak-materi` | 0, 4, 0 | 0.8×3×4.5 | wood-dark | materi-matematika |
+| Papan jadwal | `papan-jadwal` | 0, 10, 4.5 | 0.3×6×3 | board | jadwal-mengajar |
+| Lemari arsip | `lemari-arsip` | 0, 15, 0 | 1.2×3.5×4 | wood | arsip-nilai |
+| Jam digital | `jam-digital` | 0, 2, 8.5 | 0.2×2×0.8 | slate | jam-countdown |
+| Kalender | `kalender-dt` | 16, 0, 4.5 | 1.5×0.2×1.5 | paper-night | kalender |
+| Jendela | `jendela-dt` | 5, 0, 4 | 4×0.3×3.5 | metal-light | cuaca |
+| Tirai | `tirai-dt` | 4.4, 0.1, 3.6 | 0.6×0.3×4.4 | curtain | — |
+| Pintu | `pintu-dt` | 18, 0, 0 | 1.8×0.3×4 | wood-dark | — |
+| Lampu baterai | `lampu-baterai` | 13, 7, 0 | 0.6×0.6×4 | lamp-amber | baterai |
+
+DT = dinding kanan (bidang w=0), DB = dinding kiri (bidang e=0). Jendela, tirai,
+pintu, dan kalender menempel di DT sesuai kesepakatan; jam digital, papan jadwal,
+rak, dan lemari di DB. Penyimpanan draft naik ke key `isola-draft-v3` /
+`isola-locked-v3` agar seed termuat (draft v2 lama diabaikan).
+
 ## 2. Material bawaan
 
 `wood`, `wood-dark`, `metal`, `paper`, `teal`, `cream`, `amber`, `slate`, `crimson`, `sage`
