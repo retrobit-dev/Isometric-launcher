@@ -122,8 +122,15 @@ export async function loadSceneFile(): Promise<Scene | null> {
   }
 }
 
-/** simpan scene ke file server (dipakai debounce oleh App) */
-export async function saveSceneFile(scene: Scene): Promise<boolean> {
+/**
+ * simpan scene ke file server (dipakai debounce oleh App).
+ * PENTING: scene KOSONG tidak pernah ditulis ke file. Kalau ditulis, satu
+ * kondisi buruk (draf browser kosong) akan MENGHAPUS cadangan terakhir —
+ * inilah penyebab objek "hilang" yang sesungguhnya. Dikosongkan hanya lewat
+ * aksi eksplisit (IMPORT yang memang kosong) dengan `izinkanKosong = true`.
+ */
+export async function saveSceneFile(scene: Scene, izinkanKosong = false): Promise<boolean> {
+  if (scene.objects.length === 0 && !izinkanKosong) return false
   try {
     const r = await fetch(API_SCENE, {
       method: 'POST',

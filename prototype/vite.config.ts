@@ -51,7 +51,25 @@ function sceneStore(): Plugin {
           }
           if (req.method === 'POST') {
             const body = await readBody(req)
-            JSON.parse(body) // validasi: harus JSON sah
+            const parsed = JSON.parse(body) // validasi: harus JSON sah
+            // PENGAMAN: scene KOSONG tidak boleh menimpa file yang masih berisi
+            // objek (kecuali diminta eksplisit ?allowEmpty=1). Inilah yang
+            // membuat objek tidak bisa "hilang" gara-gara draf browser kosong.
+            const baru = Array.isArray(parsed?.scene?.objects) ? parsed.scene.objects.length : -1
+            let lama = 0
+            if (fs.existsSync(FILE)) {
+              try {
+                const old = JSON.parse(fs.readFileSync(FILE, 'utf8'))
+                lama = Array.isArray(old?.scene?.objects) ? old.scene.objects.length : 0
+              } catch { lama = 0 }
+            }
+            const allowEmpty = String(req.url ?? '').includes('allowEmpty=1')
+            if (baru === 0 && lama > 0 && !allowEmpty) {
+              res.statusCode = 409
+              res.setHeader('Content-Type', 'application/json')
+              res.end(JSON.stringify({ ok: false, kept: lama, reason: 'scene kosong ditolak' }))
+              return
+            }
             fs.writeFileSync(FILE, body, 'utf8')
             res.statusCode = 200
             res.setHeader('Content-Type', 'application/json')

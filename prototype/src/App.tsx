@@ -41,19 +41,20 @@ export default function App() {
   // di server dev) — ditampilkan di chip supaya user tahu data aman atau tidak
   const [simpan, setSimpan] = useState<'browser' | 'file'>('browser')
   const [dimuat, setDimuat] = useState(false)
+  // KLIK OBJEK = HANYA INFO (permintaan user 2026-10-28: "objek dipilih dari
+  // tombol objek, klik objek hanya memberi informasi nama objek").
+  // Klik di kanvas tidak lagi memilih / menggeser objek apa pun.
+  const [info, setInfo] = useState<{ id: string; sx: number; sy: number } | null>(null)
+  // jumlah objek yang dipulihkan dari file server saat aplikasi dibuka
+  const [dipulihkan, setDipulihkan] = useState<number | null>(null)
 
   const sceneRef = useRef(scene); sceneRef.current = scene
   const modeRef = useRef(mode); modeRef.current = mode
   const lockedRef = useRef(locked); lockedRef.current = locked
   const selRef = useRef(selectedId); selRef.current = selectedId
-  // drag satu objek = drag seluruh anggota grupnya (jarak relatif tetap)
-  const dragRef = useRef<{
-    id: string
-    members: { id: string; e0: number; w0: number }[]
-    ge: number
-    gw: number
-    moved: boolean
-  } | null>(null)
+  // ketukan di kanvas: hanya untuk menampilkan INFO objek (tidak memilih,
+  // tidak menggeser). Geser objek dilakukan dari panel editor (angka e/w).
+  const tapRef = useRef<{ id: string | null; sx: number; sy: number } | null>(null)
   const panRef = useRef<{ ce: number; cw: number; ge: number; gw: number; moved: boolean } | null>(null)
   const pointersRef = useRef<Map<number, { x: number; y: number }>>(new Map())
   const pinchRef = useRef<{ d0: number; q0: number } | null>(null)
@@ -79,6 +80,7 @@ export default function App() {
         setUndo({ scene: lokal, label: 'scene sebelum dimuat dari file' })
         setLocked(false)
         setScene(dariFile)
+        setDipulihkan(dariFile.objects.length)
       }
       setDimuat(true)
     })()
@@ -86,6 +88,13 @@ export default function App() {
     // hanya sekali saat aplikasi dibuka
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [])
+
+  // info objek hilang sendiri setelah 4 detik
+  useEffect(() => {
+    if (!info) return
+    const t = setTimeout(() => setInfo(null), 4000)
+    return () => clearTimeout(t)
+  }, [info])
 
   // toast URUNGKAN hilang sendiri setelah 8 detik
   useEffect(() => {
@@ -150,14 +159,6 @@ export default function App() {
     }
   }
 
-  // id semua anggota grup dari objek ini (objek tanpa grup -> dirinya saja)
-  const grupOf = (o: SceneObject): string[] =>
-    o.grup ? sceneRef.current.objects.filter(x => x.grup === o.grup).map(x => x.id) : [o.id]
-
-  // objek terkunci: 'warna' & 'semua' sama-sama tidak boleh digeser/diubah
-  // bentuknya; 'semua' juga tidak boleh ganti warna.
-  const frozen = (o: SceneObject) => o.kunci === 'warna' || o.kunci === 'semua'
-
   const hitTest = (sx: number, sy: number): SceneObject | null => {
     // objek lantai (role 'lantai') dicek TERAKHIR supaya tidak menelan klik
     // objek yang berdiri di atasnya
@@ -175,45 +176,27 @@ export default function App() {
 
   const onDown = (ev: React.PointerEvent<HTMLCanvasElement>) => {
     pointersRef.current.set(ev.pointerId, { x: ev.clientX, y: ev.clientY })
-    // jari kedua turun = mulai pinch-zoom, batalkan drag/pan
+    // jari kedua turun = mulai pinch-zoom, batalkan pan
     if (pointersRef.current.size === 2) {
       const [p1, p2] = [...pointersRef.current.values()]
       pinchRef.current = {
         d0: Math.hypot(p1.x - p2.x, p1.y - p2.y),
         q0: CAM.Q,
       }
-      dragRef.current = null
+      tapRef.current = null
       panRef.current = null
       ev.currentTarget.setPointerCapture(ev.pointerId)
       return
     }
+
     const { sx, sy } = toInternal(ev)
     const g = unpx(sx, sy)
-    if (modeRef.current === 'edit' && !lockedRef.current) {
-      const hit = hitTest(sx, sy)
-      if (hit) {
-        setSelectedId(hit.id)
-        // objek terkunci hanya bisa dipilih, tidak bisa digeser. Grup yang
-        // salah satu anggotanya terkunci juga tidak digeser sama sekali, supaya
-        // susunan grup tidak pecah (geser sebagian = posisi relatif berubah).
-        const ids = grupOf(hit)
-        const members = ids
-          .map(id => sceneRef.current.objects.find(o => o.id === id))
-          .filter((o): o is SceneObject => !!o)
-        if (!frozen(hit) && !members.some(frozen)) {
-          dragRef.current = {
-            id: hit.id,
-            members: members.map(o => ({ id: o.id, e0: o.pos.e, w0: o.pos.w })),
-            ge: g.e,
-            gw: g.w,
-            moved: false,
-          }
-        }
-        ev.currentTarget.setPointerCapture(ev.pointerId)
-        return
-      }
-    }
-    // seret area kosong / mode lihat = pan kamera
+    // catat objek di bawah jari: kalau ternyata hanya KETUKAN (tidak diseret),
+    // info objek ditampilkan saat jari dilepas. Klik TIDAK memilih objek.
+    const hit = hitTest(sx, sy)
+    tapRef.current = { id: hit ? hit.id : null, sx, sy }
+
+    // seret di mana pun (termasuk di atas objek) = pan kamera
     panRef.current = { ce: CAM.CE, cw: CAM.CW, ge: g.e, gw: g.w, moved: false }
     ev.currentTarget.setPointerCapture(ev.pointerId)
   }
@@ -239,29 +222,6 @@ export default function App() {
     const g = unpx(sx, sy)
     setHover({ e: snap(g.e), w: snap(g.w) })
 
-    const d = dragRef.current
-    if (d) {
-      const de = g.e - d.ge
-      const dw = g.w - d.gw
-      // satu set patch untuk semua anggota supaya mereka bergerak serempak
-      let changed = false
-      const objects = sceneRef.current.objects.map(o => {
-        const m = d.members.find(x => x.id === o.id)
-        if (!m) return o
-        // tanpa aturan ruangan: posisi objek bebas (tidak dikurung ke 20x19)
-        const ne = snap(m.e0 + de)
-        const nw = snap(m.w0 + dw)
-        if (ne === o.pos.e && nw === o.pos.w) return o
-        changed = true
-        return { ...o, pos: { ...o.pos, e: ne, w: nw } }
-      })
-      if (changed) {
-        d.moved = true
-        setScene(sc => ({ ...sc, objects }))
-      }
-      return
-    }
-
     const p = panRef.current
     if (p) {
       const de = g.e - p.ge
@@ -276,17 +236,18 @@ export default function App() {
     pointersRef.current.delete(ev.pointerId)
     if (pointersRef.current.size < 2) pinchRef.current = null
     if (wasPinch) {
-      dragRef.current = null
+      tapRef.current = null
       panRef.current = null
-      return // selesai pinch bukan ketukan: jangan batal-pilih
+      return // selesai pinch bukan ketukan
     }
-    if (dragRef.current && !dragRef.current.moved) {
-      /* ketukan tanpa geser = pilih (sudah saat onDown) */
+
+    // KETUKAN (bukan seret): tampilkan info objek, JANGAN memilih/menggeser
+    const tap = tapRef.current
+    const panned = panRef.current?.moved === true
+    if (tap && !panned) {
+      setInfo(tap.id ? { id: tap.id, sx: tap.sx, sy: tap.sy } : null)
     }
-    if (panRef.current && !panRef.current.moved && modeRef.current === 'edit' && !lockedRef.current) {
-      setSelectedId(null) // ketuk lantai kosong = batal pilih
-    }
-    dragRef.current = null
+    tapRef.current = null
     panRef.current = null
   }
 
@@ -537,6 +498,35 @@ export default function App() {
               onPointerLeave={ev => { setHover(null); onUp(ev) }}
             />
             <div className="glare" />
+            {dipulihkan !== null && (
+              <div className="orestore">
+                <span>scene dipulihkan dari file ({dipulihkan} objek)</span>
+                <button className="sbtn" onClick={() => setDipulihkan(null)}>OK</button>
+              </div>
+            )}
+            {info && (() => {
+              const o = scene.objects.find(x => x.id === info.id)
+              if (!o) return null
+              const peran = o.role === 'lantai'
+                ? 'lantai'
+                : o.role === 'dinding'
+                  ? `dinding ${o.side ?? 'kiri'}`
+                  : 'balok'
+              return (
+                <div
+                  className="oinfo"
+                  style={{
+                    left: `${(info.sx / IW) * 100}%`,
+                    top: `${(info.sy / IH) * 100}%`,
+                  }}
+                >
+                  <b>{o.label || o.id}</b>
+                  <span>{peran} · {o.size.e}×{o.size.w}×{o.size.z}</span>
+                  <span>e {o.pos.e} · w {o.pos.w} · z {o.pos.z}</span>
+                  <em>pilih objek lewat tombol OBJEK</em>
+                </div>
+              )
+            })()}
             {(
               <div className="chip">
                 <span>
