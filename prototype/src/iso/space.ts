@@ -36,6 +36,13 @@ export interface ViewState {
 // puncak belakang lantai (324,182), ubin 80x40 px, dasar dinding memotong tepi
 // kiri y≈344 & kanan y≈340.
 export const VIEW_FIXED: ViewState = { q: 2.5, e: 0.4, w: 0.5 }
+
+// KUNCI ZOOM + POSISI tingkat kode (permintaan user 2026-10-28: "sekarang kunci
+// zoom dan posisinya"). true = kamera BEKU: pan, pinch, roda tetikus, tombol
+// ZOOM, dan TENGAH tidak lagi memindahkan ruangan. Yang dibekukan adalah posisi
+// yang terakhir tampil (tersimpan di isola-kamera-v1), jadi bukan tebakan.
+// Set false untuk membuka lagi; editor objek tetap bisa dipakai walau kamera beku.
+export const VIEW_LOCKED = true
 export const DEFAULT_Q: number = VIEW_FIXED.q
 export const DEFAULT_CENTER: { e: number; w: number } = { e: VIEW_FIXED.e, w: VIEW_FIXED.w }
 
@@ -70,25 +77,42 @@ export function lockedView(): ViewState | null {
   return readView(LOCK_KEY)
 }
 
+// Saat kunci kode aktif dan belum ada posisi terkunci: bekukan posisi terakhir
+// yang tampil (isola-kamera-v1). Kalau belum pernah pan/zoom -> VIEW_FIXED.
+if (VIEW_LOCKED && !lockedView()) {
+  writeView(LOCK_KEY, readView(CAM_KEY) ?? VIEW_FIXED)
+}
+
+// posisi awal: posisi terkunci > posisi terakhir > komposisi acuan
+const initialView: ViewState = lockedView() ?? readView(CAM_KEY) ?? VIEW_FIXED
+
+// kamera beku kalau dikunci di kode atau user mengunci posisi lewat tombol
+let frozen = VIEW_LOCKED || lockedView() !== null
+
+/** Apakah kamera sedang beku (pan/zoom tidak berpengaruh)? */
+export function viewFrozen(): boolean {
+  return frozen
+}
+
 /** Rekam posisi kamera saat ini sebagai komposisi tetap. */
 export function lockCurrentView(): ViewState {
   const v = { q: CAM.Q, e: CAM.CE, w: CAM.CW }
   writeView(LOCK_KEY, v)
   writeView(CAM_KEY, v)
+  frozen = true
   return v
 }
 
-/** Hapus posisi terkunci (kamera kembali bebas). */
+/** Hapus posisi terkunci (kamera kembali bebas) — diabaikan bila dikunci di kode. */
 export function unlockView() {
+  if (VIEW_LOCKED) return
   try {
     localStorage.removeItem(LOCK_KEY)
   } catch {
     /* abaikan */
   }
+  frozen = false
 }
-
-// posisi awal: posisi terkunci > posisi terakhir > komposisi acuan
-const initialView: ViewState = lockedView() ?? readView(CAM_KEY) ?? VIEW_FIXED
 
 export const CAM = { Q: initialView.q, CE: initialView.e, CW: initialView.w }
 
@@ -106,11 +130,17 @@ function scheduleSaveCam() {
   }, 250)
 }
 
-export function setZoom(q: number) {
+function applyZoom(q: number) {
   CAM.Q = Math.min(Q_MAX, Math.max(Q_MIN, q))
   HW = Math.min(160, Math.max(8, Math.round(16 * CAM.Q)))
   HH = Math.round(HW / 2)
   ZH = HW
+}
+
+// beku -> tidak melakukan apa pun (pan/pinch/roda/zoom diabaikan)
+export function setZoom(q: number) {
+  if (frozen) return
+  applyZoom(q)
   scheduleSaveCam()
 }
 
@@ -122,6 +152,7 @@ export function zoomValue(): number {
 // Pan kamera TIDAK dibatasi: ruangan boleh digeser ke mana pun di kanvas
 // (permintaan user: jangan batasi perpindahan ruangan)
 export function setCenter(e: number, w: number) {
+  if (frozen) return
   CAM.CE = e
   CAM.CW = w
   scheduleSaveCam()
@@ -130,12 +161,13 @@ export function setCenter(e: number, w: number) {
 /** Kembalikan kamera ke komposisi acuan (posisi terkunci kalau ada). */
 export function resetView() {
   const v = lockedView() ?? VIEW_FIXED
-  setZoom(v.q)
-  setCenter(v.e, v.w)
+  applyZoom(v.q)
+  CAM.CE = v.e
+  CAM.CW = v.w
 }
 
 // terapkan zoom awal (HW/HH/ZH) sesuai posisi awal
-setZoom(CAM.Q)
+applyZoom(CAM.Q)
 
 export const OX = IW / 2
 export const CY = IH / 2
