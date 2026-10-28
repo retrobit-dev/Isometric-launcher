@@ -34,7 +34,13 @@ export interface SceneObject {
   // role 'lantai' = objek ini BUKAN balok, melainkan bidang lantai ruangan:
   // digambar sebagai ubin datar seluas (pos e..e+size.e, w..w+size.w),
   // memakai palet lantai, dan diabaikan oleh renderer balok & refleksi.
-  role?: 'lantai'
+  // role 'dinding' = bidang dinding vertikal (kiri/DB atau kanan/DT) yang
+  // mengikuti tepi belakang lantai. `side` menentukan bidang mana yang dipakai:
+  //   'kiri'  -> bidang e = pos.e, membentang sepanjang size.w  (dinding DB)
+  //   'kanan' -> bidang w = pos.w, membentang sepanjang size.e  (dinding DT)
+  // Tinggi dinding = size.z, mulai dari pos.z.
+  role?: 'lantai' | 'dinding'
+  side?: 'kiri' | 'kanan'
   // rotasi terhadap sumbu z, kelipatan 90 derajat (0..3). Rotasi ganjil
   // menukar panjang/lebar (footprint) sehingga balok berputar 90/270 derajat.
   rot?: 0 | 1 | 2 | 3

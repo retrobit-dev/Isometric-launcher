@@ -47,7 +47,8 @@ function normalize(scene: Scene): Scene {
     const styleIsFloor = typeof o.style === 'string' && FLOOR_MATERIALS[o.style] !== undefined
     // "lempeng": luas bidang >= 8x8 tile dan tipis (<= 2 z) -> jelas lantai
     const isSlab = o.size.e >= 8 && o.size.w >= 8 && o.size.z <= 2
-    const asFloor = o.role === 'lantai' || styleIsFloor || isSlab
+    // dinding TIDAK boleh ikut dikonversi menjadi lantai
+    const asFloor = o.role !== 'dinding' && (o.role === 'lantai' || styleIsFloor || isSlab)
     if (!asFloor) return o
     const styleOk = typeof o.style === 'string' && FLOOR_MATERIALS[o.style] !== undefined
     const explicitFloor = o.role === 'lantai'
@@ -116,7 +117,8 @@ export function validateScene(data: unknown): Scene | null {
       app: typeof ob.app === 'string' ? ob.app : null,
       ...(ob.rot === 1 || ob.rot === 2 || ob.rot === 3 ? { rot: ob.rot } : { rot: 0 }),
       ...(typeof ob.refleksi === 'boolean' ? { refleksi: ob.refleksi } : {}),
-      ...(ob.role === 'lantai' ? { role: 'lantai' as const } : {}),
+      ...(ob.role === 'lantai' || ob.role === 'dinding' ? { role: ob.role } : {}),
+      ...(ob.side === 'kiri' || ob.side === 'kanan' ? { side: ob.side } : {}),
       layer: ob.layer === 'underlay' || ob.layer === 'overlay' ? ob.layer : 'main',
     })
   }

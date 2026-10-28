@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState } from 'react'
 import {
-  CAM, IH, IW,
+  ROOM, CAM, IH, IW,
   resetView, setCenter, setZoom, unpx, zoomValue, zoneName,
 } from './iso/space'
 import { drawScene } from './iso/room'
@@ -12,6 +12,8 @@ import { type Scene, type SceneObject } from './scene/types'
 import EditPanel from './ui/EditPanel'
 import PalettePanel from './ui/PalettePanel'
 
+const PAL_WALL_KIRI = 'dinding-kiri'
+const PAL_WALL_KANAN = 'dinding-kanan'
 const DEV_RES_W = 2560
 const BEZEL = 16
 
@@ -235,6 +237,46 @@ export default function App() {
     setSelectedId(id)
   }
 
+  // + DINDING: buat 2 dinding (kiri/DB & kanan/DT) mengikuti tepi belakang
+  // lantai yang ada. Tidak ada lantai -> pakai batas ruangan (0,0).
+  const addWalls = () => {
+    const floor = sceneRef.current.objects.find(o => o.role === 'lantai')
+    const e0 = floor ? floor.pos.e : 0
+    const w0 = floor ? floor.pos.w : 0
+    const se = floor ? floor.size.e : ROOM.E
+    const sw = floor ? floor.size.w : ROOM.W
+    const z0 = floor ? floor.pos.z : 0
+    const H = ROOM.WALL_Z
+    const stamp = Date.now().toString(36).slice(-4)
+
+    const wallKiri: SceneObject = {
+      id: `dinding-kiri-${stamp}`,
+      label: 'Dinding Kiri (DB)',
+      pos: { e: e0, w: w0, z: z0 },
+      size: { e: 0.2, w: sw, z: H },
+      style: PAL_WALL_KIRI,
+      app: null,
+      layer: 'main',
+      role: 'dinding',
+      side: 'kiri',
+      refleksi: false,
+    }
+    const wallKanan: SceneObject = {
+      id: `dinding-kanan-${stamp}`,
+      label: 'Dinding Kanan (DT)',
+      pos: { e: e0, w: w0, z: z0 },
+      size: { e: se, w: 0.2, z: H },
+      style: PAL_WALL_KANAN,
+      app: null,
+      layer: 'main',
+      role: 'dinding',
+      side: 'kanan',
+      refleksi: false,
+    }
+    setScene(s => ({ ...s, objects: [...s.objects, wallKiri, wallKanan] }))
+    setSelectedId(wallKiri.id)
+  }
+
   const duplicateObject = (id: string) => {
     const src = sceneRef.current.objects.find(o => o.id === id)
     if (!src) return
@@ -392,6 +434,11 @@ export default function App() {
             {mode === 'edit' && (
               <button className="tbtn" onClick={addFloor} title="tambah bidang lantai kayu selang-seling (28×28 tile)">
                 + LANTAI
+              </button>
+            )}
+            {mode === 'edit' && (
+              <button className="tbtn" onClick={addWalls} title="buat 2 dinding (kiri & kanan) mengikuti tepi belakang lantai">
+                + DINDING
               </button>
             )}
             {mode === 'edit' && (

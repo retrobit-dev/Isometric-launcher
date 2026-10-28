@@ -155,7 +155,9 @@ function drawReflections(ctx: CanvasRenderingContext2D, objects: SceneObject[]) 
   ctx.globalAlpha = 0.12
   // refleksi kini PER OBJEK (diatur dari editor objek), default ON
   const reflectable = objects.filter(
-    x => (x.layer ?? 'main') !== 'underlay' && x.role !== 'lantai' && x.refleksi !== false,
+    x => (x.layer ?? 'main') !== 'underlay'
+      && x.role !== 'lantai' && x.role !== 'dinding'
+      && x.refleksi !== false,
   )
   for (const obj of sortedObjects(reflectable)) {
     const zh = obj.size.z * 0.6
@@ -252,6 +254,41 @@ function drawFloorObjects(ctx: CanvasRenderingContext2D, objects: SceneObject[])
   }
 }
 
+// Objek ber-role 'dinding': bidang vertikal yang mengikuti tepi belakang
+// lantai. side 'kiri' (DB) = bidang e konstan, membentang sepanjang w;
+// side 'kanan' (DT) = bidang w konstan, membentang sepanjang e.
+// Palet: sisi teduh/cahaya + plint kayu di kaki dinding (seperti palet ruangan).
+export function drawWallObjects(ctx: CanvasRenderingContext2D, objects: SceneObject[]) {
+  for (const o of objects) {
+    if (o.role !== 'dinding') continue
+    const z0 = o.pos.z
+    const z1 = z0 + o.size.z
+    if (o.size.z <= 0) continue
+
+    let a: P, b: P   // dua titik kaki dinding (z0)
+    if (o.side === 'kiri') {
+      a = px(o.pos.e, o.pos.w, z0)
+      b = px(o.pos.e, o.pos.w + o.size.w, z0)
+    } else {
+      a = px(o.pos.e, o.pos.w, z0)
+      b = px(o.pos.e + o.size.e, o.pos.w, z0)
+    }
+    const at: P = { x: a.x, y: a.y - o.size.z * ZH }
+    const bt: P = { x: b.x, y: b.y - o.size.z * ZH }
+
+    const face = o.side === 'kiri' ? PAL.wallB : PAL.wallT
+    const trim = o.side === 'kiri' ? PAL.trimB : PAL.trimT
+
+    poly(ctx, [a, b, bt, at], face)
+
+    // plint kayu di kaki dinding (tinggi 0.18 z seperti palet ruangan)
+    const dz = Math.min(0.18, o.size.z)
+    const pb1: P = { x: b.x, y: b.y - dz * ZH }
+    const pa1: P = { x: a.x, y: a.y - dz * ZH }
+    poly(ctx, [a, b, pb1, pa1], trim)
+  }
+}
+
 export function drawScene(ctx: CanvasRenderingContext2D, o: DrawOpts) {
   ctx.fillStyle = PAL.void
   ctx.fillRect(0, 0, IW, IH)
@@ -261,6 +298,9 @@ export function drawScene(ctx: CanvasRenderingContext2D, o: DrawOpts) {
     walls(ctx)
     floor(ctx)
   }
+  // dinding dari objek (role 'dinding') digambar lebih dulu (paling belakang)
+  drawWallObjects(ctx, o.objects)
+
   overlays(ctx, o.grid, o.edit)
 
   // lantai dari objek (role 'lantai') digambar paling bawah
@@ -269,7 +309,7 @@ export function drawScene(ctx: CanvasRenderingContext2D, o: DrawOpts) {
   // tiga lapis: underlay (bawah) -> main -> overlay (atas),
   // masing-masing tetap diurutkan kedalaman agar isometrik benar
   const layerOf = (x: SceneObject) => x.layer ?? 'main'
-  const solid = o.objects.filter(x => x.role !== 'lantai')
+  const solid = o.objects.filter(x => x.role !== 'lantai' && x.role !== 'dinding')
   for (const obj of sortedObjects(solid.filter(x => layerOf(x) === 'underlay'))) drawBox(ctx, obj)
   for (const obj of sortedObjects(solid.filter(x => layerOf(x) === 'main'))) drawBox(ctx, obj)
   for (const obj of sortedObjects(solid.filter(x => layerOf(x) === 'overlay'))) drawBox(ctx, obj)

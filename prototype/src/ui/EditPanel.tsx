@@ -160,6 +160,18 @@ export default function EditPanel(p: Props) {
           {refl ? 'AKTIF ✓' : 'MATI'}
         </button>
       </div>
+      {o.role === 'dinding' && (
+        <div className="row">
+          <span className="rl">sisi</span>
+          <button
+            className="sbtn wide"
+            onClick={() => p.onChange({ side: o.side === 'kiri' ? 'kanan' : 'kiri' })}
+            title="kiri = dinding DB (bidang e), kanan = dinding DT (bidang w)"
+          >
+            {(o.side ?? 'kiri').toUpperCase()} ⟳
+          </button>
+        </div>
+      )}
       <div className="row">
         <span className="rl">{isFloor ? 'pola' : 'material'}</span>
         <button className="sbtn wide" onClick={p.onCycleStyle}>
