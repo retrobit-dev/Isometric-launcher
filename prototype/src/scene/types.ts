@@ -3,6 +3,7 @@
 // RUANGAN TERKUNCI PERMANEN (keputusan user): dimensi, tinggi dinding, dan
 // palet tidak dapat diedit oleh editor, import, maupun reset. Perubahan
 // ruangan hanya lewat perubahan kode oleh developer atas permintaan eksplisit.
+// STATUS SAAT INI: dibuka sementara (ROOM_TEMP_UNLOCKED) — lihat flag di bawah.
 export interface RoomDims {
   readonly e: number
   readonly w: number
@@ -39,7 +40,8 @@ export interface SceneObject {
 }
 
 export interface SceneMeta {
-  // mengunci OBJEK saja (sementara — bisa dibuka lagi); ruangan selalu terkunci
+  // mengunci OBJEK saja (sementara — bisa dibuka lagi); ruangan terkunci permanen
+  // (kecuali sedang dibuka sementara lewat ROOM_TEMP_UNLOCKED)
   locked: boolean
   savedAt: string | null
 }

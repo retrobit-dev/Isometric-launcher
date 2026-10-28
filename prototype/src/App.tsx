@@ -8,7 +8,7 @@ import { bboxOf, sortedObjects } from './iso/box'
 import { MATERIAL_KEYS } from './iso/palette'
 import { seedScene } from './scene/seed'
 import { emptyRoom, loadDraft, loadLocked, saveDraft, saveLocked, validateScene } from './scene/store'
-import { type Scene, type SceneObject } from './scene/types'
+import { ROOM_TEMP_UNLOCKED, type Scene, type SceneObject } from './scene/types'
 import EditPanel from './ui/EditPanel'
 import PalettePanel from './ui/PalettePanel'
 
@@ -334,7 +334,11 @@ export default function App() {
                 </span>
                 <span>zoom ×{zoomValue()}</span>
                 <span className={locked ? 'on' : ''}>{locked ? `terkunci ${savedAt ?? ''}` : 'draf'}</span>
-                <span>ruang: terkunci</span>
+                <span className={ROOM_TEMP_UNLOCKED ? 'on' : ''}>
+                  {ROOM_TEMP_UNLOCKED
+                    ? `ruang: TERBUKA sementara · ${ROOM.E}×${ROOM.W}×${ROOM.WALL_Z}z`
+                    : 'ruang: terkunci'}
+                </span>
               </div>
             )}
           </div>
