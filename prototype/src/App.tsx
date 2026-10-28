@@ -7,7 +7,7 @@ import { drawScene } from './iso/room'
 import { bboxOf, sortedObjects } from './iso/box'
 import { MATERIAL_KEYS } from './iso/palette'
 import { loadDraft, loadLocked, saveDraft, saveLocked, validateScene } from './scene/store'
-import type { Scene, SceneObject } from './scene/types'
+import { ROOM_FIXED, type Scene, type SceneObject } from './scene/types'
 import EditPanel from './ui/EditPanel'
 import PalettePanel from './ui/PalettePanel'
 
@@ -273,7 +273,7 @@ export default function App() {
   }
 
   const resetScene = () => {
-    setScene({ version: 1, room: { ...scene.room }, objects: [], meta: { locked: false, savedAt: null } })
+    setScene({ version: 1, room: { ...ROOM_FIXED }, objects: [], meta: { locked: false, savedAt: null } })
     setSelectedId(null)
     resetView()
   }
@@ -329,6 +329,7 @@ export default function App() {
                 </span>
                 <span>zoom ×{zoomValue()}</span>
                 <span className={locked ? 'on' : ''}>{locked ? `terkunci ${savedAt ?? ''}` : 'draf'}</span>
+                <span>ruang: terkunci</span>
               </div>
             )}
           </div>

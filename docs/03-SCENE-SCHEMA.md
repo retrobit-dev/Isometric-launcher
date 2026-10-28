@@ -3,7 +3,16 @@
 > Status: **disepakati** · File pertukaran: `scene.json`
 > Prinsip: **satu skema, tiga editor** — editor preview (web), Setting di dalam app (Android), dan file aset bawaan. Ketiganya membaca/menulis JSON yang sama, sehingga layout yang Anda susun di preview berlaku identik di aplikasi.
 
-## 1. Skema `scene.json` (versi 1)
+## 0. Kunci ruangan (PERMANEN)
+
+Ruangan **terkunci permanen** sejak kesepakatan terakhir: `E = 14`, `W = 13`, `WALL_Z = 12`, palet `kayu-nude`.
+- Editor preview, tombol RESET, dan IMPORT **tidak dapat mengubah ruangan** — nilai `room` pada file yang di-import selalu diganti konstanta `ROOM_FIXED`
+- Perubahan ruangan hanya mungkin lewat perubahan kode oleh developer, atas permintaan eksplisit user
+- Field `room` tetap ada di `scene.json` sebagai metadata baca-saja (validasi versi)
+
+## 0a. Kunci objek (SEMENTARA)
+
+Tombol **SIMPAN & KUNCI** mengunci **objek saja**: layout beku untuk diterapkan ke aplikasi, tetapi kunci selalu bisa dibuka lagi (preview: tombol 🔒; aplikasi: Setting → Editor Ruang). `meta.locked` + `meta.savedAt` mencatat status kunci objek.
 
 ```json
 {
@@ -25,6 +34,7 @@
 
 | Field | Tipe | Aturan |
 |---|---|---|
+| `room` | objek | **baca-saja / terkunci permanen** (docs/03 §0); nilai dari import diabaikan & diganti `ROOM_FIXED` |
 | `id` | string | kebab-case, unik (docs/01 §9) |
 | `label` | string | nama tampil untuk tooltip/panel |
 | `pos.e / pos.w` | number | koordinat grid (docs/01 §4), kelipatan 0.5 |
@@ -32,7 +42,7 @@
 | `size.e / size.w / size.z` | number | ukuran dalam tile & z, minimum 0.5 |
 | `style` | string \| {top,left,right} | nama material (daftar §2) atau 3 warna eksplisit |
 | `app` | string \| null | binding tindakan/app (null = dekorasi); diisi fase app |
-| `meta.locked` | boolean | **true = scene sah untuk diterapkan ke aplikasi**; false = draf |
+| `meta.locked` | boolean | **true = OBJEK terkunci (sementara)** dan sah diterapkan ke aplikasi; false = draf objek. Ruangan tidak terpengaruh field ini (selalu terkunci) |
 | `meta.savedAt` | string \| null | timestamp ISO saat SIMPAN & KUNCI terakhir |
 
 ## 2. Material bawaan
@@ -73,7 +83,7 @@ Menu **Setting → Editor Ruang** dengan kemampuan identik:
 6. **Reset ke bawaan**
 7. **Undo satu langkah** (minimum), konfirmasi sebelum hapus
 8. **Zoom & pan**: pinch-zoom kontinu + tombol ZOOM (indikator & reset), drag satu jari di area kosong = pan, tombol TENGAH = reset pandangan
-9. **SIMPAN & KUNCI**: setelah disimpan, home mengunci layout (edit hanya dari Setting); badge jam simpan tampil di Editor Ruang; aplikasi menolak memuat scene dengan `meta.locked=false`
+9. **SIMPAN & KUNCI (objek saja, sementara)**: setelah disimpan, home mengunci layout objek (edit hanya dari Setting); badge jam simpan tampil di Editor Ruang; kunci selalu bisa dibuka lagi dari Setting; aplikasi menolak memuat scene dengan `meta.locked=false`. Ruangan tidak pernah bisa diedit dari aplikasi (docs/03 §0)
 Persistensi app: file `scene.json` di internal storage; aset bawaan di-bundle sebagai fallback.
 Mode edit di app hanya reachable dari Setting (bukan dari home) agar layar home tetap bersih.
 

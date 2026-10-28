@@ -1,4 +1,15 @@
 // Skema scene: lihat docs/03-SCENE-SCHEMA.md
+//
+// RUANGAN TERKUNCI PERMANEN (keputusan user): dimensi, tinggi dinding, dan
+// palet tidak dapat diedit oleh editor, import, maupun reset. Perubahan
+// ruangan hanya lewat perubahan kode oleh developer atas permintaan eksplisit.
+export const ROOM_FIXED = {
+  e: 14,
+  w: 13,
+  wallZ: 12,
+  palette: 'kayu-nude',
+} as const
+
 export interface SceneObject {
   id: string
   label: string
@@ -9,20 +20,21 @@ export interface SceneObject {
 }
 
 export interface SceneMeta {
+  // mengunci OBJEK saja (sementara — bisa dibuka lagi); ruangan selalu terkunci
   locked: boolean
   savedAt: string | null
 }
 
 export interface Scene {
   version: 1
-  room: { e: number; w: number; wallZ: number; palette: string }
+  room: typeof ROOM_FIXED
   objects: SceneObject[]
   meta?: SceneMeta
 }
 
 export const EMPTY_SCENE: Scene = {
   version: 1,
-  room: { e: 22, w: 22, wallZ: 6.5, palette: 'kayu-nude' },
+  room: { ...ROOM_FIXED },
   objects: [],
   meta: { locked: false, savedAt: null },
 }

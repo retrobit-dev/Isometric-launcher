@@ -14,6 +14,10 @@
 
 ## 1a. Skala fisik (dikunci dari referensi malam-biru)
 
+> **RUANGAN TERKUNCI PERMANEN** sejak kesepakatan terakhir: nilai di bawah beku.
+> Editor/import/reset tidak dapat mengubahnya; perubahan hanya lewat kode developer
+> atas permintaan eksplisit user (docs/03 §0).
+
 | Besaran | Nilai dunia | Satuan kita |
 |---|---|---|
 | 1 tile lantai | 60 cm × 60 cm | 1 tile |

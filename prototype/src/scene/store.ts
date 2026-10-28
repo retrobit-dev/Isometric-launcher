@@ -1,4 +1,4 @@
-import { EMPTY_SCENE, type Scene, type SceneObject } from './types'
+import { EMPTY_SCENE, ROOM_FIXED, type Scene, type SceneObject } from './types'
 
 const DRAFT_KEY = 'isola-draft-v2'
 const LOCKED_KEY = 'isola-locked-v2'
@@ -59,7 +59,8 @@ export function validateScene(data: unknown): Scene | null {
   const m = d.meta as Partial<Scene['meta']> | undefined
   return {
     version: 1,
-    room: d.room ?? structuredClone(EMPTY_SCENE.room),
+    // ruangan TERKUNCI: nilai room dari file import selalu diganti konstanta
+    room: { ...ROOM_FIXED },
     objects,
     meta: {
       locked: Boolean(m?.locked),
