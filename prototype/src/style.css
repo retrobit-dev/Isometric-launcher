@@ -2,7 +2,7 @@
 
 html, body, #root {
   height: 100%;
-  background: #14161f;
+  background: #0a0b10;
   overflow: hidden;
 }
 
@@ -12,31 +12,95 @@ html, body, #root {
   align-items: center;
   justify-content: center;
   flex-direction: column;
-  gap: 8px;
+  gap: 10px;
 }
 
-/* Kanvas internal 640x400 discalakan memenuhi layar,
-   tapi semua koordinat tetap dihitung pada 2560x1600 (x4).
-   pixelated = piksel tetap kotak tajam, tidak blur. */
+/* slot = ruang yang ditempati bingkai SETELAH rotasi */
+.tablet-slot {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex: none;
+}
+
+/* bingkai perangkat */
+.tablet {
+  position: relative;
+  background: #05060a;
+  border-radius: 22px;
+  box-shadow:
+    0 0 0 1px #1c2130,
+    0 0 0 3px #05060a,
+    0 18px 50px rgba(0, 0, 0, 0.7);
+  flex: none;
+}
+
+.cam {
+  position: absolute;
+  top: 6px;
+  left: 50%;
+  width: 5px;
+  height: 5px;
+  margin-left: -2.5px;
+  border-radius: 50%;
+  background: #10151f;
+  box-shadow: inset 0 0 1px #2c3a55;
+}
+
+.screen {
+  position: absolute;
+  border-radius: 6px;
+  overflow: hidden;
+  background: #14161f;
+}
+
+/* kanvas internal 640x400 = 2560x1600 / 4; pixelated biar tetap kotak tajam */
 .scene {
-  width: min(100vw, 160vh);
-  aspect-ratio: 16 / 10;
+  width: 100%;
+  height: 100%;
+  display: block;
   image-rendering: crisp-edges;
   image-rendering: pixelated;
   cursor: crosshair;
 }
 
-.hud {
-  position: fixed;
-  left: 10px;
-  bottom: 8px;
-  display: flex;
-  gap: 16px;
-  font: 12px/1.4 ui-monospace, 'Courier New', monospace;
-  color: #cfd3e4;
-  letter-spacing: 0.06em;
-  text-transform: uppercase;
-  user-select: none;
+.glare {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  background: linear-gradient(115deg, rgba(255, 255, 255, 0.045), rgba(255, 255, 255, 0) 42%);
 }
 
-.hud .on { color: #d9a05b; }
+/* overlay dev di dalam layar */
+.chip {
+  position: absolute;
+  left: 6px;
+  bottom: 5px;
+  display: flex;
+  gap: 12px;
+  padding: 2px 7px;
+  font: 10px/1.5 ui-monospace, 'Courier New', monospace;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: #cfd3e4;
+  background: rgba(10, 12, 18, 0.55);
+  border: 1px solid #262c40;
+  border-radius: 3px;
+  user-select: none;
+  pointer-events: none;
+}
+.chip .on { color: #d9a05b; }
+
+.caption {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 2px;
+  font: 11px/1.5 ui-monospace, 'Courier New', monospace;
+  letter-spacing: 0.05em;
+  color: #7d8298;
+  text-transform: uppercase;
+  user-select: none;
+  text-align: center;
+  padding: 0 12px;
+}
