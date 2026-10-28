@@ -1,5 +1,5 @@
 import { CAM, CY, EXT_E, EXT_W, HH, IH, IW, ROOM, ROOM_VISIBLE, ZH, px, type P } from './space'
-import { PAL } from './palette'
+import { PAL, floorMat } from './palette'
 import { drawBox, sortedObjects } from './box'
 import type { SceneObject } from '../scene/types'
 
@@ -166,40 +166,73 @@ function drawReflections(ctx: CanvasRenderingContext2D, objects: SceneObject[]) 
   ctx.restore()
 }
 
-// Objek ber-role 'lantai': digambar sebagai bidang ubin datar (bukan balok).
-// Luasnya = (pos.e .. pos.e+size.e, pos.w .. pos.w+size.w), tingginya pos.z
-// (0 = menempel lantai dasar). Ubin 1x1 dipotong rapi ke batas bidang.
+// Objek ber-role 'lantai': digambar sebagai bidang lantai datar (bukan balok).
+// Luas = (pos.e .. pos.e+size.e, pos.w .. pos.w+size.w), tinggi = pos.z.
+// Palet & pola diambil dari field `style` lewat FLOOR_MATERIALS:
+//   'lantai-kayu'        -> papan kayu 2x1 selang-seling (running bond)
+//   'lantai-kayu-terang' -> idem, nada terang
+//   'lantai-kayu-gelap'  -> idem, nada gelap
+//   'lantai-ubin'        -> ubin persegi 1x1
 function drawFloorObjects(ctx: CanvasRenderingContext2D, objects: SceneObject[]) {
-  const tones = [PAL.floorBase, PAL.floorAlt, PAL.floorC]
   for (const o of objects) {
     if (o.role !== 'lantai') continue
+    const mat = floorMat(o.style)
     const e0 = o.pos.e, e1 = o.pos.e + o.size.e
     const w0 = o.pos.w, w1 = o.pos.w + o.size.w
     const z = o.pos.z
     if (e1 <= e0 || w1 <= w0) continue
 
-    for (let we = Math.floor(w0); we < Math.ceil(w1); we++) {
-      for (let ee = Math.floor(e0); ee < Math.ceil(e1); ee++) {
-        const a = Math.max(ee, e0), b = Math.min(ee + 1, e1)
-        const c = Math.max(we, w0), d = Math.min(we + 1, w1)
-        if (b <= a || d <= c) continue
-        poly(ctx, [px(a, c, z), px(b, c, z), px(b, d, z), px(a, d, z)],
-          tones[(ee * 7 + we * 13) % 3])
+    const piece = (a: number, b: number, c: number, d: number, tone: string) =>
+      poly(ctx, [px(a, c, z), px(b, c, z), px(b, d, z), px(a, d, z)], tone)
+
+    if (mat.pattern === 'papan') {
+      // PAPAN 2x1 tile, selang-seling 1 tile per baris (running bond)
+      for (let wr = Math.floor(w0); wr < Math.ceil(w1); wr++) {
+        const cd = Math.max(wr, w0), dd = Math.min(wr + 1, w1)
+        if (dd <= cd) continue
+        const off = ((wr % 2) + 2) % 2  // baris ganjil digeser 1 tile
+        for (let e0p = Math.floor(e0) - off; e0p < Math.ceil(e1); e0p += 2) {
+          const a = Math.max(e0p, e0), b = Math.min(e0p + 2, e1)
+          if (b <= a) continue
+          piece(a, b, cd, dd, mat.tones[(Math.abs(e0p) * 7 + wr * 13) % 3])
+        }
       }
+      // nat horizontal antar baris
+      for (let ww = Math.ceil(w0); ww < w1; ww++) line(ctx, px(e0, ww, z), px(e1, ww, z), mat.grout)
+      line(ctx, px(e0, w1, z), px(e1, w1, z), mat.grout)
+      line(ctx, px(e0, w0, z), px(e1, w0, z), mat.grout)
+      // sambungan ujung papan (staggered)
+      for (let wr = Math.floor(w0); wr < Math.ceil(w1); wr++) {
+        const cd = Math.max(wr, w0), dd = Math.min(wr + 1, w1)
+        if (dd <= cd) continue
+        const off = ((wr % 2) + 2) % 2
+        for (let ee = Math.floor(e0) - off + 2; ee < e1; ee += 2) {
+          if (ee <= e0) continue
+          line(ctx, px(ee, cd, z), px(ee, dd, z), mat.grout)
+        }
+      }
+    } else {
+      // UBIN PERSEGI 1x1 tile
+      for (let wr = Math.floor(w0); wr < Math.ceil(w1); wr++) {
+        for (let ee = Math.floor(e0); ee < Math.ceil(e1); ee++) {
+          const a = Math.max(ee, e0), b = Math.min(ee + 1, e1)
+          const c = Math.max(wr, w0), d = Math.min(wr + 1, w1)
+          if (b <= a || d <= c) continue
+          piece(a, b, c, d, mat.tones[(ee * 7 + wr * 13) % 3])
+        }
+      }
+      for (let ww = Math.ceil(w0); ww < w1; ww++) line(ctx, px(e0, ww, z), px(e1, ww, z), mat.grout)
+      line(ctx, px(e0, w1, z), px(e1, w1, z), mat.grout)
+      line(ctx, px(e0, w0, z), px(e1, w0, z), mat.grout)
+      for (let ee = Math.ceil(e0); ee < e1; ee++) line(ctx, px(ee, w0, z), px(ee, w1, z), mat.grout)
+      line(ctx, px(e1, w0, z), px(e1, w1, z), mat.grout)
     }
-    // nat: garis tiap 1 tile, dipotong ke batas bidang
-    const wLines: number[] = []
-    for (let ww = Math.ceil(w0); ww < w1; ww++) wLines.push(ww)
-    for (const ww of [w0, ...wLines, w1]) line(ctx, px(e0, ww, z), px(e1, ww, z), PAL.grout)
-    const eLines: number[] = []
-    for (let ee = Math.ceil(e0); ee < e1; ee++) eLines.push(ee)
-    for (const ee of [e0, ...eLines, e1]) line(ctx, px(ee, w0, z), px(ee, w1, z), PAL.grout)
 
     // tebal slab di dua sisi depan (sama seperti lantai ruangan)
     const SK = 10
     const bL = px(e0, w1, z), bR = px(e1, w1, z), tR = px(e1, w0, z)
-    poly(ctx, [bL, bR, { x: bR.x, y: bR.y + SK }, { x: bL.x, y: bL.y + SK }], PAL.skirtL)
-    poly(ctx, [tR, bR, { x: bR.x, y: bR.y + SK }, { x: tR.x, y: tR.y + SK }], PAL.skirtR)
+    poly(ctx, [bL, bR, { x: bR.x, y: bR.y + SK }, { x: bL.x, y: bL.y + SK }], mat.skirtL)
+    poly(ctx, [tR, bR, { x: bR.x, y: bR.y + SK }, { x: tR.x, y: tR.y + SK }], mat.skirtR)
   }
 }
 

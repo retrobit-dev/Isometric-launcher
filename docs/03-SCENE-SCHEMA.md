@@ -106,7 +106,8 @@ rak, dan lemari di DB. Penyimpanan draft naik ke key `isola-draft-v3` /
 | Tambah objek | Tombol **TAMBAH** (balok baru 2×1×1 di tengah zona interaktif) |
 | Edit objek | Ketuk objek → panel: posisi, ukuran, material (cycle), label, **layer (cycle UNDER/MAIN/OVER)** |
 | Hapus / duplikat | Tombol di panel objek |
-| **Peran objek** | Tombol **JADIKAN LANTAI** di panel objek: objek digambar sebagai **ubin datar** seluas `pos e..e+size.e × w..w+size.w` (bukan balok), `z` otomatis 0, memakai palet lantai + nat + slab. Tombol yang sama mengembalikannya jadi balok. Field `role: 'lantai'` disimpan di `scene.json` |
+| **Peran objek** | Tombol **JADIKAN LANTAI** di panel objek: objek digambar sebagai **bidang lantai datar** seluas `pos e..e+size.e × w..w+size.w` (bukan balok), `z` otomatis 0. Tombol yang sama mengembalikannya jadi balok. Field `role: 'lantai'` disimpan di `scene.json` |
+| **Palet/pola lantai** | Objek ber-role lantai memakai field `style` dari **`FLOOR_MATERIALS`** (`iso/palette.ts`), di siklus lewat tombol **POLA**: `lantai-kayu` (papan 2×1 **selang-seling**/running bond, 3 tone `#b08050/#a87a4c/#b98756`, nat `#8a6238`), `lantai-kayu-terang`, `lantai-kayu-gelap`, `lantai-ubin` (ubin persegi 1×1 palet malam-biru). Default saat JADIKAN LANTAI = `lantai-kayu` |
 | **Input angka** | Posisi (e, w, z) dan ukuran (panjang, lebar, tinggi) bisa **diketik langsung** di panel objek: ketuk field, ketik angka, **Enter** = terapkan (Esc = batal, ↑/↓ = ±0.1). Nilai dibulatkan ke kelipatan **0.1**; tombol −/+ tetap ada |
 | **SALIN JSON** | Di modal EXPORT: satu ketuk menyalin seluruh `scene.json` ke clipboard (fallback `execCommand` bila Clipboard API diblokir), label berubah `TERSALIN ✓` |
 | **Zoom in/out** | **Pinch in/out** di layar (kontinu ×0.5 – ×6, langkah piksel tetap integer). Tombol **ZOOM ×n** = indikator level + ketuk untuk reset ke komposisi terkunci ×2.5 (`VIEW_FIXED` + `VIEW_LOCKED`, docs/01 §1b) |

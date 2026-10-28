@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react'
-import { MATERIAL_KEYS } from '../iso/palette'
+import { FLOOR_DEFAULT, FLOOR_KEYS, MATERIAL_KEYS } from '../iso/palette'
 import type { SceneObject } from '../scene/types'
 
 interface Props {
@@ -74,8 +74,10 @@ function NumField(p: {
 
 export default function EditPanel(p: Props) {
   const o = p.obj
+  const isFloor = o.role === 'lantai'
   const styleName = typeof o.style === 'string' ? o.style : 'custom'
-  const matIdx = MATERIAL_KEYS.indexOf(styleName)
+  const keys = isFloor ? FLOOR_KEYS : MATERIAL_KEYS
+  const matIdx = keys.indexOf(styleName)
   return (
     <div className="panel">
       <div className="phead">
@@ -114,20 +116,27 @@ export default function EditPanel(p: Props) {
         />
       </div>
       <div className="row">
-        <span className="rl">material</span>
+        <span className="rl">{isFloor ? 'pola' : 'material'}</span>
         <button className="sbtn wide" onClick={p.onCycleStyle}>
-          {styleName}{matIdx >= 0 ? ` (${matIdx + 1}/${MATERIAL_KEYS.length})` : ''} ⟳
+          {styleName}{matIdx >= 0 ? ` (${matIdx + 1}/${keys.length})` : ''} ⟳
         </button>
       </div>
       <div className="row">
         <span className="rl">peran</span>
         <button
           className={o.role === 'lantai' ? 'sbtn wide on' : 'sbtn wide'}
-          onClick={() => p.onChange({
-            role: o.role === 'lantai' ? undefined : 'lantai',
-            // jadikan lantai -> turunkan ke dasar
-            ...(o.role === 'lantai' ? {} : { pos: { ...o.pos, z: 0 } }),
-          })}
+          onClick={() => p.onChange(
+            o.role === 'lantai'
+              ? { role: undefined }
+              : {
+                  role: 'lantai',
+                  // jadikan lantai -> turunkan ke dasar + palet lantai (kayu selang-seling)
+                  pos: { ...o.pos, z: 0 },
+                  style: FLOOR_KEYS.includes(typeof o.style === 'string' ? o.style : '')
+                    ? o.style
+                    : FLOOR_DEFAULT,
+                },
+          )}
           title="lantai = digambar sebagai ubin datar seluas objek ini"
         >
           {o.role === 'lantai' ? 'LANTAI ✓ (balik ke balok)' : 'JADIKAN LANTAI'}

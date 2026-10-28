@@ -54,6 +54,60 @@ export const MATERIALS: Record<string, { top: string; left: string; right: strin
   'book-blue':  { top: '#5a6f9e', left: '#485a82', right: '#3d4d6f' },
   'paper-night':{ top: '#d9d6c8', left: '#b3b0a2', right: '#9c998c' }, // kertas/kalender
 }
+// ---------------------------------------------------------------------------
+// PALET LANTAI (dipakai objek ber-role 'lantai' lewat field `style`)
+// pattern 'papan' = papan kayu 2x1 tile ditata selang-seling (running bond)
+// pattern 'ubin'  = ubin persegi 1x1 tile
+// ---------------------------------------------------------------------------
+export interface FloorMat {
+  pattern: 'ubin' | 'papan'
+  tones: [string, string, string]
+  grout: string
+  skirtL: string
+  skirtR: string
+}
+
+export const FLOOR_MATERIALS: Record<string, FloorMat> = {
+  // kayu oak hangat — papan selang-seling (default lantai)
+  'lantai-kayu': {
+    pattern: 'papan',
+    tones: ['#b08050', '#a87a4c', '#b98756'],
+    grout: '#8a6238',
+    skirtL: '#7a5530',
+    skirtR: '#86603a',
+  },
+  // kayu terang — papan selang-seling
+  'lantai-kayu-terang': {
+    pattern: 'papan',
+    tones: ['#c99a63', '#bd8f5c', '#d2a26b'],
+    grout: '#9a7040',
+    skirtL: '#8a6238',
+    skirtR: '#94683c',
+  },
+  // kayu gelap — papan selang-seling
+  'lantai-kayu-gelap': {
+    pattern: 'papan',
+    tones: ['#8a5c3c', '#7d5235', '#96653f'],
+    grout: '#5c3d28',
+    skirtL: '#4a3222',
+    skirtR: '#553a28',
+  },
+  // ubin persegi biru-ungu (palet malam-biru)
+  'lantai-ubin': {
+    pattern: 'ubin',
+    tones: [PAL.floorBase, PAL.floorAlt, PAL.floorC],
+    grout: PAL.grout,
+    skirtL: PAL.skirtL,
+    skirtR: PAL.skirtR,
+  },
+}
+export const FLOOR_KEYS = Object.keys(FLOOR_MATERIALS)
+export const FLOOR_DEFAULT = 'lantai-kayu'
+
+export function floorMat(name: unknown): FloorMat {
+  return (typeof name === 'string' && FLOOR_MATERIALS[name]) || FLOOR_MATERIALS[FLOOR_DEFAULT]
+}
+
 export const MATERIAL_KEYS = Object.keys(MATERIALS)
 
 // Palet ruangan yang ditampilkan di panel PALET preview

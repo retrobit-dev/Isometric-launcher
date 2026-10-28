@@ -1,3 +1,4 @@
+import { FLOOR_DEFAULT } from '../iso/palette'
 import { ROOM_FROM_FILE, ROOM_FIXED, type Scene, type SceneObject } from './types'
 
 // v4: ruangan saja (fase penyamaan ruangan dengan referensi; objek menyusul)
@@ -27,7 +28,9 @@ function migratePrevDraft(): Scene | null {
   if (!prev) return null
   const objects = prev.objects.map(o => {
     const isSlab = o.size.e >= 8 && o.size.w >= 8 && o.size.z <= 1.5
-    return isSlab ? { ...o, role: 'lantai' as const, pos: { ...o.pos, z: 0 } } : o
+    return isSlab
+      ? { ...o, role: 'lantai' as const, style: FLOOR_DEFAULT, pos: { ...o.pos, z: 0 } }
+      : o
   })
   const migrated: Scene = { ...prev, objects }
   write(DRAFT_KEY, migrated)

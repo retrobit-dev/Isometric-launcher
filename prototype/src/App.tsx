@@ -5,7 +5,7 @@ import {
 } from './iso/space'
 import { drawScene } from './iso/room'
 import { bboxOf, sortedObjects } from './iso/box'
-import { MATERIAL_KEYS } from './iso/palette'
+import { FLOOR_KEYS, MATERIAL_KEYS } from './iso/palette'
 import { seedScene } from './scene/seed'
 import { emptyRoom, loadDraft, loadLocked, saveDraft, saveLocked, validateScene } from './scene/store'
 import { type Scene, type SceneObject } from './scene/types'
@@ -418,9 +418,11 @@ export default function App() {
             },
           })}
           onCycleStyle={() => {
+            // objek lantai memakai daftar palet lantai (kayu selang-seling / ubin)
+            const keys = selected.role === 'lantai' ? FLOOR_KEYS : MATERIAL_KEYS
             const cur = typeof selected.style === 'string' ? selected.style : ''
-            const i = MATERIAL_KEYS.indexOf(cur)
-            patchObject(selected.id, { style: MATERIAL_KEYS[(i + 1) % MATERIAL_KEYS.length] })
+            const i = keys.indexOf(cur)
+            patchObject(selected.id, { style: keys[(i + 1) % keys.length] })
           }}
           onCycleLayer={() => {
             const order = ['underlay', 'main', 'overlay'] as const
