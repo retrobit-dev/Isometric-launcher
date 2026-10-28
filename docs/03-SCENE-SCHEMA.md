@@ -7,11 +7,10 @@
 
 Ruangan **terkunci permanen** sejak kesepakatan terakhir: `E = 20`, `W = 19`, `WALL_Z = 12`, palet `malam-biru`, dinding tipis, slab alas tipis (10 px).
 
-> ⚠️ **KUNCI DIBUKA SEMENTARA (2026-10-28)** — flag `ROOM_TEMP_UNLOCKED = true`
-> (`prototype/src/scene/types.ts`). Selama fase penyamaan ruangan dengan gambar
-> referensi, nilai `room` dari file import **dipakai** (bukan diganti konstanta),
-> dan komposisi kamera `VIEW_FIXED` juga bebas. Setelah disepakati: flag → `false`,
-> ruangan & view dibekukan lagi.
+> ✅ **TERKUNCI (2026-10-28)** — `ROOM_TEMP_UNLOCKED = false` dan
+> `VIEW_LOCKED = true`. Nilai `room` pada file import selalu diganti konstanta
+> `ROOM_FIXED`, dan kamera selalu kembali ke `VIEW_FIXED` (×2.5; pusat 0.4/0.5).
+> Nilai terkunci = sama persis dengan tampilan preview saat kunci dipasang.
 - **Amendemen #1**: perpanjangan +6 tile ke selatan (20 × 19) — tetap berlaku
 - **Amendemen #2**: volume balok (slab tebal + dinding bervolume) dibatalkan atas permintaan user; slab & dinding tipis kembali
 - Editor preview, tombol RESET, dan IMPORT **tidak dapat mengubah ruangan** — nilai `room` pada file yang di-import selalu diganti konstanta `ROOM_FIXED`

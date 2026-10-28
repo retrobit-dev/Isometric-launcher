@@ -37,9 +37,10 @@ export const ROOM = {
 // ≈y352 & kanan ≈y338, lantai memotong tepi bawah, dinding melewati tepi atas.
 // KUNCI POSISI RUANGAN: VIEW_LOCKED = true -> komposisi di bawah BEKU; ZOOM/TENGAH,
 // reset, dan setiap reload selalu kembali persis ke sini (pan/pinch sementara).
-// STATUS: DIBUKA (permintaan user 2026-10-28 "buka dulu semua kunci") — komposisi
-// masih boleh diubah. Set true untuk mengunci lagi setelah disepakati.
-export const VIEW_LOCKED = false
+// STATUS: TERKUNCI (keputusan user 2026-10-28: ukuran & posisi ruangan harus sama
+// dengan tampilan preview saat itu). Nilai VIEW_FIXED di bawah adalah komposisi
+// final; mengubahnya = perubahan kode atas permintaan eksplisit user.
+export const VIEW_LOCKED = true
 
 interface FixedView {
   readonly q: number

@@ -3,7 +3,9 @@
 // RUANGAN TERKUNCI PERMANEN (keputusan user): dimensi, tinggi dinding, dan
 // palet tidak dapat diedit oleh editor, import, maupun reset. Perubahan
 // ruangan hanya lewat perubahan kode oleh developer atas permintaan eksplisit.
-// STATUS SAAT INI: DIBUKA (permintaan user 2026-10-28 "buka dulu semua kunci").
+// STATUS SAAT INI: TERKUNCI LAGI (keputusan user 2026-10-28: "ukuran dan posisi
+// ruangan sama dengan yang ada di tampilan preview sekarang"). Nilai di bawah
+// adalah nilai yang dibekukan — jangan diubah tanpa permintaan eksplisit.
 export interface RoomDims {
   readonly e: number
   readonly w: number
@@ -18,11 +20,9 @@ export const ROOM_FIXED: RoomDims = {
   palette: 'malam-biru',
 }
 
-// KUNCI RUANGAN DIBUKA SEMENTARA (permintaan user 2026-10-28): ruangan sedang
-// disamakan dengan gambar referensi. Selama true, ukuran/palet ruangan boleh
-// diubah dan scene dari import menang atas ROOM_FIXED. Ubah ke false untuk
-// mengunci lagi setelah ruangan disepakati (docs/01 §0).
-export const ROOM_TEMP_UNLOCKED = true
+// Kunci ruangan. true = dibuka sementara (import boleh menimpa dimensi ruangan).
+// false = TERKUNCI: nilai `room` dari file import selalu diganti ROOM_FIXED.
+export const ROOM_TEMP_UNLOCKED = false
 
 export type Layer = 'underlay' | 'main' | 'overlay'
 
