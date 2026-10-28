@@ -1,3 +1,5 @@
+import { ROOM_FIXED } from '../scene/types'
+
 // Konvensi ruang: lihat docs/01-KONVENSI-RUANG.md
 // Resolusi internal 640x400; final = x4 = 2560x1600 (MatePad Mini landscape)
 //
@@ -17,31 +19,32 @@ export const Z_PX = 16
 // Ruangan: skala tile-vs-furnitur dari referensi malam-biru (meja ≈ 3.5 tile).
 // Ukuran total = keputusan desain: referensi berupa crop, dan ruangan besar
 // memberi densitas slot app yang cukup untuk launcher.
-// Dinding sangat tinggi (loft). Ruangan diperpanjang +6 tile ke selatan atas
-// permintaan eksplisit user (perubahan terkunci pertama); setelah ini beku lagi.
+//
+// KUNCI RUANGAN DIBUKA SEMENTARA (permintaan user 2026-10-28) — sedang
+// disamakan dengan gambar referensi. Satu sumber kebenaran: ROOM_FIXED.
 export const ROOM = {
-  E: 20,        // tile ke arah Timur  = 12.0 m
-  W: 19,        // tile ke arah Barat  = 11.4 m
-  WALL_Z: 12,   // tinggi dinding      = 6.0 m
+  E: ROOM_FIXED.e,        // tile ke arah Timur  = 12.0 m
+  W: ROOM_FIXED.w,        // tile ke arah Barat  = 11.4 m
+  WALL_Z: ROOM_FIXED.wallZ, // tinggi dinding    = 6.0 m
 }
 
 // Zoom kontinu via pinch: berapa pun nilainya, HW/HH/ZH dibulatkan integer
 // supaya pixel-art tetap tajam (tidak ada jitter antar tile).
 //
-// VIEW TERKUNCI PERMANEN (keputusan user): komposisi default = referensi user
-// (mockup 1280x800 -> 640x400): puncak belakang lantai ≈(318,199) di tengah
-// kanvas, lantai mengisi separuh bawah, memotong tepi kiri y≈358 & kanan
-// y≈360, bawah terpotong. Seperti ROOM_FIXED, perubahan hanya lewat kode
-// developer atas permintaan eksplisit user. ZOOM/TENGAH & reload selalu
-// kembali persis ke sini; pan/pinch bebas hanya sementara (tidak disimpan).
+// VIEW = komposisi gambar referensi user (1122x706 -> kanvas 640x400, ÷1.76):
+// puncak belakang lantai (pertemuan dua dinding) di (324,182) ≈ (0.51W, 0.455H),
+// ubin diamond 80x40 px (referensi 140x70), dasar dinding memotong tepi kiri
+// ≈y352 & kanan ≈y338, lantai memotong tepi bawah, dinding melewati tepi atas.
+// KUNCI VIEW DIBUKA SEMENTARA bersama kunci ruangan (permintaan user 2026-10-28).
 interface FixedView {
   readonly q: number
   readonly e: number
   readonly w: number
 }
-export const VIEW_FIXED: FixedView = { q: 1.05, e: 0.1, w: 0 }
+export const VIEW_FIXED: FixedView = { q: 2.5, e: 0.4, w: 0.5 }
 
-export const DEFAULT_Q: number = VIEW_FIXED.q // HW 17px, HH 9px — tile ≈68x36 pada skala 1280
+// HW 40px, HH 20px -> ubin 80x40 px di kanvas 640 (160x80 di layar 2560)
+export const DEFAULT_Q: number = VIEW_FIXED.q
 export const DEFAULT_CENTER: { e: number; w: number } = { e: VIEW_FIXED.e, w: VIEW_FIXED.w }
 export const Q_MIN = 0.5
 export const Q_MAX = 6

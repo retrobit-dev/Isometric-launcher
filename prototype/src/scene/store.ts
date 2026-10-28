@@ -1,12 +1,20 @@
-import { seedScene } from './seed'
-import { ROOM_FIXED, type Scene, type SceneObject } from './types'
+import { ROOM_FIXED, ROOM_TEMP_UNLOCKED, type Scene, type SceneObject } from './types'
 
-// v3: draft default kini berisi seed balok8 (8 kelompok placeholder)
-const DRAFT_KEY = 'isola-draft-v3'
-const LOCKED_KEY = 'isola-locked-v3'
+// v4: ruangan saja (fase penyamaan ruangan dengan referensi; objek menyusul)
+const DRAFT_KEY = 'isola-draft-v4'
+const LOCKED_KEY = 'isola-locked-v4'
+
+export function emptyRoom(): Scene {
+  return {
+    version: 1,
+    room: { ...ROOM_FIXED },
+    objects: [],
+    meta: { locked: false, savedAt: null },
+  }
+}
 
 export function loadDraft(): Scene {
-  return read(DRAFT_KEY) ?? seedScene()
+  return read(DRAFT_KEY) ?? emptyRoom()
 }
 export function saveDraft(scene: Scene) { write(DRAFT_KEY, scene) }
 
@@ -60,10 +68,20 @@ export function validateScene(data: unknown): Scene | null {
     })
   }
   const m = d.meta as Partial<Scene['meta']> | undefined
+  const r = d.room as Partial<Scene['room']> | undefined
+  // kunci ruangan dibuka sementara -> nilai room dari file boleh dipakai,
+  // kalau tidak (terkunci) selalu diganti konstanta ROOM_FIXED
+  const room = ROOM_TEMP_UNLOCKED && r
+    ? {
+        e: Math.max(2, num(r.e) || ROOM_FIXED.e),
+        w: Math.max(2, num(r.w) || ROOM_FIXED.w),
+        wallZ: Math.max(2, num(r.wallZ) || ROOM_FIXED.wallZ),
+        palette: ROOM_FIXED.palette,
+      }
+    : { ...ROOM_FIXED }
   return {
     version: 1,
-    // ruangan TERKUNCI: nilai room dari file import selalu diganti konstanta
-    room: { ...ROOM_FIXED },
+    room,
     objects,
     meta: {
       locked: Boolean(m?.locked),

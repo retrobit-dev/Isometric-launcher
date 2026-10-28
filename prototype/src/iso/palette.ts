@@ -1,26 +1,29 @@
-// Palet "kayu-nude" — dinding nude cerah + lantai kayu oak hangat.
-// (Material objek tetap menyimpan hasil ekstraksi referensi malam-biru.)
+// Palet "malam-biru" — diekstrak dari gambar referensi user
+// (Screenshot_20261028_203752.jpg): dinding navy datar, lantai ubin persegi
+// biru-ungu dengan nat gelap, slab diorama sangat gelap.
+// Warna dasar diambil langsung dari piksel referensi:
+//   dinding #24304a · ubin #4e557d / #5b5a7c · nat ~#373a5e
 export const PAL = {
-  void: '#1a1512',
+  void: '#12131f',      // luar ruangan
 
-  // dinding nude cerah (kiri sedikit lebih gelap = sisi teduh)
-  wallB: '#c6b4a2',
-  wallT: '#d9c7b3',
-  trimB: '#a08d7c',   // plint
-  trimT: '#af9c8b',
-  seam: '#93816f',    // pertemuan dua dinding
+  // dinding navy (kiri = sisi teduh, kanan = sisi cahaya — selisih halus)
+  wallB: '#232e48',
+  wallT: '#2a3552',
+  trimB: '#5e4038',     // plint kayu (gelap, sisi teduh) — signature referensi
+  trimT: '#7d5140',     // plint kayu (sisi cahaya)
+  seam: '#161d31',      // pertemuan dua dinding
 
-  // lantai papan kayu oak: 3 tone staggered + nat cokelat
-  floorBase: '#b08050',
-  floorAlt: '#a87a4c',
-  floorC: '#b98756',
-  grout: '#8a6238',
-  skirtL: '#7a5530',     // tebal slab diorama
-  skirtR: '#86603a',
+  // lantai ubin persegi (bukan papan) — 3 tone halus + nat gelap
+  floorBase: '#4e557d',
+  floorAlt: '#4a5178',
+  floorC: '#565b86',
+  grout: '#373a5e',
+  skirtL: '#171a2b',    // tebal slab diorama
+  skirtR: '#1d2134',
 
-  grid: 'rgba(255,255,255,0.30)',
-  zone: 'rgba(160,107,58,0.65)',
-  hud: '#3d3428',
+  grid: 'rgba(206,222,255,0.28)',
+  zone: 'rgba(232,176,96,0.75)',
+  hud: '#c3cdec',
 } as const
 
 // Material objek: 3 tone (top / left / right) sesuai arah cahaya lampu meja.
@@ -60,10 +63,10 @@ export const ROOM_PALETTE_SWATCHES: { name: string; hex: string }[] = [
   { name: 'dinding-kanan', hex: PAL.wallT },
   { name: 'plint-kiri', hex: PAL.trimB },
   { name: 'plint-kanan', hex: PAL.trimT },
-  { name: 'kayu-a', hex: PAL.floorBase },
-  { name: 'kayu-b', hex: PAL.floorAlt },
-  { name: 'kayu-c', hex: PAL.floorC },
-  { name: 'nat-kayu', hex: PAL.grout },
+  { name: 'ubin-a', hex: PAL.floorBase },
+  { name: 'ubin-b', hex: PAL.floorAlt },
+  { name: 'ubin-c', hex: PAL.floorC },
+  { name: 'nat-ubin', hex: PAL.grout },
   { name: 'slab-kiri', hex: PAL.skirtL },
   { name: 'slab-kanan', hex: PAL.skirtR },
 ]

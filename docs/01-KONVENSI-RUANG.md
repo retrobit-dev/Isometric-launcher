@@ -18,6 +18,13 @@
 > Editor/import/reset tidak dapat mengubahnya; perubahan hanya lewat kode developer
 > atas permintaan eksplisit user (docs/03 §0).
 >
+> ⚠️ **KUNCI DIBUKA SEMENTARA — 2026-10-28 (permintaan eksplisit user):**
+> "sementara buka dulu semua kunci ruangan … ingin ruangan mengikuti gambar
+> referensi, sementara hanya ruangannya saja." Flag `ROOM_TEMP_UNLOCKED = true`
+> di `prototype/src/scene/types.ts` membuat import boleh menimpa dimensi ruangan,
+> dan komposisi kamera (`VIEW_FIXED`) ikut dibuka. **Setelah ruangan disepakati,
+> flag dikembalikan ke `false` dan nilai di bawah dibekukan lagi.**
+>
 > **Amendemen #1 (permintaan eksplisit user):** ruangan diperpanjang +6 tile ke selatan
 > menjadi 20 × 19 — **tetap berlaku**.
 > **Amendemen #2:** volume balok (slab tebal 1.5 z + dinding bervolume 0.4 tile)
@@ -35,9 +42,9 @@
 | Tinggi rak buku berdiri | 1.8 m | 3.6 z |
 | Tinggi lampu berdiri | 1.5 m | 3 z |
 
-Referensi malam-biru berupa **crop** (kamera di dalam ruangan), sehingga ukuran total ruangan adalah keputusan desain: dipilih 14 × 13 tile agar (a) full-bleed tercapai pada zoom default, dan (b) densitas slot app cukup untuk launcher. Skala tile-vs-furnitur tetap mengikuti referensi: meja ≈ 3.5 tile, rak ≈ 2.5 tile.
+Referensi berupa **crop** (kamera di dalam ruangan), sehingga ukuran total ruangan adalah keputusan desain: 20 × 19 tile agar (a) lantai memotong tepi bawah seperti referensi, dan (b) densitas slot app cukup untuk launcher. Skala tile-vs-furnitur tetap mengikuti referensi: meja ≈ 3.5 tile, rak ≈ 2.5 tile.
 
-**Palet ruangan: `kayu-nude`** — dinding **nude cerah** (kiri `#c6b4a2` sisi teduh, kanan `#d9c7b3` sisi cahaya), plint nude gelap, lantai **papan kayu oak persegi panjang 2×1 tile ditata selang-seling** (running bond) 3 tone (`#b08050 / #a87a4c / #b98756`) dengan nat cokelat `#8a6238`, slab diorama kayu gelap. Dinding dirender selalu melewati tepi atas layar (tidak ada ruang kosong di atas); tinggi fungsional untuk objek tetap 12 z. Seluruh warna ruangan & 22 material objek terlihat di tombol **PALET** pada preview.
+**Palet ruangan: `malam-biru`** (diekstrak langsung dari `Screenshot_20261028_203752.jpg`) — dinding **navy datar** (kiri `#232e48` sisi teduh, kanan `#2a3552` sisi cahaya), **plint kayu** (`#5e4038` / `#7d5140`, tinggi 0.18 z) seperti di referensi, lantai **ubin persegi 1×1 tile** (bukan papan) 3 tone `#4e557d / #4a5178 / #565b86` dengan nat gelap `#373a5e`, slab diorama hampir hitam (`#171a2b / #1d2134`). Dinding dirender selalu melewati tepi atas layar (tidak ada ruang kosong di atas); tinggi fungsional untuk objek tetap 12 z. Seluruh warna ruangan & 22 material objek terlihat di tombol **PALET** pada preview.
 
 ## 1b. Framing kamera
 
@@ -47,21 +54,21 @@ Tombol **ZOOM ×n** hanya menampilkan level saat ini dan **mereset ke default** 
 
 | Zoom | Kegunaan |
 |---|---|
-| **×1.05 (default)** | **komposisi referensi user**: puncak belakang lantai ≈(318,199) di tengah kanvas, lantai mengisi separuh bawah, memotong tepi kiri y≈358 & kanan y≈360, bawah terpotong; dinding melewati tepi atas |
-| ×0.5 – ×1 | peta diorama seluruh ruangan |
-| ×1.5 – ×6 | pandangan dekat untuk presisi edit |
+| **×2.5 (default)** | **komposisi gambar referensi user**: puncak belakang lantai di (324,182) ≈ (0.51 W, 0.455 H), ubin diamond 80×40 px, dasar dinding memotong tepi kiri y≈344 & kanan y≈340, lantai memotong tepi bawah |
+| ×0.5 – ×1.5 | peta diorama seluruh ruangan |
+| ×3 – ×6 | pandangan dekat untuk presisi edit |
 
-Komposisi default mengikuti mockup user 1280×800 yang diskalakan ke kanvas
-internal 640×400 (÷2): ubin diamond ±68×36 px (skala 1280: referensi ±64×42 —
-rasio engine 2:1 isometrik, tinggi 42 tidak dapat dicapai tanpa skew), nat tiap
-±34 px horizontal / ±18 px vertikal pada skala 1280.
+Komposisi default = gambar referensi user `Screenshot_20261028_203752.jpg`
+(1122×706) diskalakan ke kanvas internal 640×400 (÷1.76): ubin 140×70 px di
+referensi → **80×40 px** di kanvas (320×160 px di layar 2560), nat 1 px.
+Karena internal 640×400 adalah tepat ¼ dari 2560×1600, seluruh komposisi ini
+mendarat identik di panel MatePad Mini.
 
-> **Komposisi default TERKUNCI (keputusan user).** Q = 1.05 (HW 17 px, HH 9 px)
-> dan pusat kamera (0.1, 0) dibekukan di kode sebagai `VIEW_FIXED`
-> (`iso/space.ts`) — setara `ROOM_FIXED`. Tombol ZOOM/TENGAH dan setiap reload
-> preview selalu kembali persis ke komposisi ini. Pan/pinch tetap bebas untuk
-> bekerja tetapi hanya sementara (posisi kamera tidak disimpan). Perubahan
-> komposisi default hanya lewat kode developer atas permintaan eksplisit user.
+> **Komposisi default = `VIEW_FIXED` (`iso/space.ts`)**: Q = 2.5 (HW 40, HH 20,
+> ZH 40), pusat kamera (0.4, 0.5). Tombol ZOOM/TENGAH dan setiap reload preview
+> selalu kembali ke sini; pan/pinch bebas tetapi tidak disimpan.
+> **Kunci view ikut DIBUKA SEMENTARA** bersama kunci ruangan (2026-10-28) selama
+> fase penyamaan dengan referensi; setelah disepakati dibekukan lagi.
 
 ## 2. Mata arah (nama arah utama)
 

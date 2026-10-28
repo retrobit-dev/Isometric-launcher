@@ -3,9 +3,15 @@
 > Status: **disepakati** · File pertukaran: `scene.json`
 > Prinsip: **satu skema, tiga editor** — editor preview (web), Setting di dalam app (Android), dan file aset bawaan. Ketiganya membaca/menulis JSON yang sama, sehingga layout yang Anda susun di preview berlaku identik di aplikasi.
 
-## 0. Kunci ruangan (PERMANEN)
+## 0. Kunci ruangan (PERMANEN — dibuka sementara 2026-10-28)
 
-Ruangan **terkunci permanen** sejak kesepakatan terakhir: `E = 20`, `W = 19`, `WALL_Z = 12`, palet `kayu-nude`, tebal dinding 0.4 tile, slab alas 1.5 z.
+Ruangan **terkunci permanen** sejak kesepakatan terakhir: `E = 20`, `W = 19`, `WALL_Z = 12`, palet `malam-biru`, dinding tipis, slab alas tipis (10 px).
+
+> ⚠️ **KUNCI DIBUKA SEMENTARA (2026-10-28)** — flag `ROOM_TEMP_UNLOCKED = true`
+> (`prototype/src/scene/types.ts`). Selama fase penyamaan ruangan dengan gambar
+> referensi, nilai `room` dari file import **dipakai** (bukan diganti konstanta),
+> dan komposisi kamera `VIEW_FIXED` juga bebas. Setelah disepakati: flag → `false`,
+> ruangan & view dibekukan lagi.
 - **Amendemen #1**: perpanjangan +6 tile ke selatan (20 × 19) — tetap berlaku
 - **Amendemen #2**: volume balok (slab tebal + dinding bervolume) dibatalkan atas permintaan user; slab & dinding tipis kembali
 - Editor preview, tombol RESET, dan IMPORT **tidak dapat mengubah ruangan** — nilai `room` pada file yang di-import selalu diganti konstanta `ROOM_FIXED`

@@ -35,7 +35,7 @@ function crispify(ctx: CanvasRenderingContext2D) {
   ctx.putImageData(img, 0, 0)
 }
 
-const DADO_Z = 0.4   // tinggi plint
+const DADO_Z = 0.18  // plint kayu tipis di dasar dinding (referensi ~6px @640)
 
 function walls(ctx: CanvasRenderingContext2D) {
   const { E, W, WALL_Z } = ROOM
@@ -61,25 +61,18 @@ function walls(ctx: CanvasRenderingContext2D) {
 function floor(ctx: CanvasRenderingContext2D) {
   const { E, W } = ROOM
   const tones = [PAL.floorBase, PAL.floorAlt, PAL.floorC]
-  // Papan persegi panjang 2x1 tile, ditata selang-seling (running bond):
-  // tiap baris digeser 1 tile relatif terhadap baris sebelumnya.
+  // Ubin PERSEGI 1x1 tile (gambar referensi: ubin persegi, bukan papan
+  // selang-seling). Tiap ubin diberi tone halus agar lantai tidak datar.
   for (let w = 0; w < W; w++) {
-    const off = w % 2 === 0 ? 0 : 1
-    for (let e0 = -off; e0 < E; e0 += 2) {
-      const a = Math.max(0, e0)
-      const b = Math.min(E, e0 + 2)
-      if (b <= a) continue
-      poly(ctx, [px(a, w), px(b, w), px(b, w + 1), px(a, w + 1)],
-        tones[(Math.abs(e0) * 7 + w * 13) % 3])
+    for (let e = 0; e < E; e++) {
+      poly(ctx, [px(e, w), px(e + 1, w), px(e + 1, w + 1), px(e, w + 1)],
+        tones[(e * 7 + w * 13) % 3])
     }
   }
-  // nat: garis panjang tiap baris + sambungan ujung papan
+  // nat: garis tipis setiap 1 tile ke dua arah (kisi diamond)
   for (let w = 0; w <= W; w++) line(ctx, px(0, w), px(E, w), PAL.grout)
-  for (let w = 0; w < W; w++) {
-    const off = w % 2 === 0 ? 0 : 1
-    for (let e = 2 - off; e < E; e += 2) line(ctx, px(e, w), px(e, w + 1), PAL.grout)
-  }
-  // slab alas tipis kembali (volume balok dibatalkan user)
+  for (let e = 0; e <= E; e++) line(ctx, px(e, 0), px(e, W), PAL.grout)
+  // slab alas tipis (volume balok dibatalkan user)
   const SK = 10
   const bL = px(0, W), sL = px(E, W), tR = px(E, 0)
   poly(ctx, [bL, sL, { x: sL.x, y: sL.y + SK }, { x: bL.x, y: bL.y + SK }], PAL.skirtL)

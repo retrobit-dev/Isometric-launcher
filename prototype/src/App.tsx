@@ -7,7 +7,7 @@ import { drawScene } from './iso/room'
 import { bboxOf, sortedObjects } from './iso/box'
 import { MATERIAL_KEYS } from './iso/palette'
 import { seedScene } from './scene/seed'
-import { loadDraft, loadLocked, saveDraft, saveLocked, validateScene } from './scene/store'
+import { emptyRoom, loadDraft, loadLocked, saveDraft, saveLocked, validateScene } from './scene/store'
 import { type Scene, type SceneObject } from './scene/types'
 import EditPanel from './ui/EditPanel'
 import PalettePanel from './ui/PalettePanel'
@@ -277,8 +277,8 @@ export default function App() {
   }
 
   const resetScene = () => {
-    // reset = kembali ke seed balok8 (bukan ruangan kosong)
-    setScene(seedScene())
+    // reset = ruangan kosong (fase penyamaan ruangan dengan referensi)
+    setScene(emptyRoom())
     setSelectedId(null)
     resetView()
   }
@@ -364,6 +364,11 @@ export default function App() {
               MODE: {mode.toUpperCase()}
             </button>
             {mode === 'edit' && <button className="tbtn" onClick={addObject}>+ TAMBAH</button>}
+            {mode === 'edit' && (
+              <button className="tbtn" onClick={() => { setScene(seedScene()); setSelectedId(null) }} title="muat 8 balok placeholder dari daftar objek">
+                SEED
+              </button>
+            )}
           </>
         )}
         <button
