@@ -35,7 +35,8 @@ export interface ViewState {
 // Komposisi acuan (dipakai tombol TENGAH / ZOOM reset) = komposisi referensi:
 // puncak belakang lantai (324,182), ubin 80x40 px, dasar dinding memotong tepi
 // kiri y≈344 & kanan y≈340.
-export const VIEW_FIXED: ViewState = { q: 2.5, e: 0.4, w: 0.5 }
+// Dikunci dari pengaturan user: zoom 0.88 (-1.2, 1.3) -> HW 14, HH 7.
+export const VIEW_FIXED: ViewState = { q: 0.88, e: -1.2, w: 1.3 }
 
 // KUNCI ZOOM + POSISI tingkat kode (permintaan user 2026-10-28: "sekarang kunci
 // zoom dan posisinya"). true = kamera BEKU: pan, pinch, roda tetikus, tombol
@@ -43,6 +44,17 @@ export const VIEW_FIXED: ViewState = { q: 2.5, e: 0.4, w: 0.5 }
 // yang terakhir tampil (tersimpan di isola-kamera-v1), jadi bukan tebakan.
 // Set false untuk membuka lagi; editor objek tetap bisa dipakai walau kamera beku.
 export const VIEW_LOCKED = true
+
+// PERPANJANGAN VISUAL DINDING + LANTAI (permintaan user 2026-10-28):
+// "perpanjang dinding untuk menutup area kosong, lantai mengikuti dinding,
+// sehingga hasil akhirnya adalah area kosong kecil di sudut kiri bawah."
+// Dinding & lantai digambar melewati batas ruangan sejauh EXT_E (+6 tile ke
+// arah DT/kanan layar) dan EXT_W (+7 tile ke arah DB/kiri layar). Ruangan
+// SEBENARNYA tetap 20x19 — batas itu yang dipakai untuk menempatkan objek,
+// grid, dan zona. Hasil pada komposisi terkunci (x0.88, pusat -1.2/1.3):
+// void 17.8% -> 0.08%, hanya segitiga kecil di sudut kiri bawah.
+export const EXT_E = 6
+export const EXT_W = 7
 export const DEFAULT_Q: number = VIEW_FIXED.q
 export const DEFAULT_CENTER: { e: number; w: number } = { e: VIEW_FIXED.e, w: VIEW_FIXED.w }
 
@@ -77,14 +89,12 @@ export function lockedView(): ViewState | null {
   return readView(LOCK_KEY)
 }
 
-// Saat kunci kode aktif dan belum ada posisi terkunci: bekukan posisi terakhir
-// yang tampil (isola-kamera-v1). Kalau belum pernah pan/zoom -> VIEW_FIXED.
-if (VIEW_LOCKED && !lockedView()) {
-  writeView(LOCK_KEY, readView(CAM_KEY) ?? VIEW_FIXED)
-}
 
-// posisi awal: posisi terkunci > posisi terakhir > komposisi acuan
-const initialView: ViewState = lockedView() ?? readView(CAM_KEY) ?? VIEW_FIXED
+// posisi awal: kalau dikunci di kode, komposisi kode SELALU menang (deterministik
+// di semua perangkat); kalau tidak: posisi terkunci > posisi terakhir > acuan.
+const initialView: ViewState = VIEW_LOCKED
+  ? VIEW_FIXED
+  : (lockedView() ?? readView(CAM_KEY) ?? VIEW_FIXED)
 
 // kamera beku kalau dikunci di kode atau user mengunci posisi lewat tombol
 let frozen = VIEW_LOCKED || lockedView() !== null
@@ -160,7 +170,7 @@ export function setCenter(e: number, w: number) {
 
 /** Kembalikan kamera ke komposisi acuan (posisi terkunci kalau ada). */
 export function resetView() {
-  const v = lockedView() ?? VIEW_FIXED
+  const v = VIEW_LOCKED ? VIEW_FIXED : (lockedView() ?? VIEW_FIXED)
   applyZoom(v.q)
   CAM.CE = v.e
   CAM.CW = v.w

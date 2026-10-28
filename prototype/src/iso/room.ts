@@ -1,4 +1,4 @@
-import { CAM, CY, HH, IH, IW, ROOM, ZH, px, type P } from './space'
+import { CAM, CY, EXT_E, EXT_W, HH, IH, IW, ROOM, ZH, px, type P } from './space'
 import { PAL } from './palette'
 import { drawBox, sortedObjects } from './box'
 import type { SceneObject } from '../scene/types'
@@ -37,8 +37,13 @@ function crispify(ctx: CanvasRenderingContext2D) {
 
 const DADO_Z = 0.18  // plint kayu tipis di dasar dinding (referensi ~6px @640)
 
+// Dinding & lantai DIGAMBAR melewati batas ruangan (EXT_E / EXT_W) supaya area
+// kosong hanya tersisa kecil di sudut kiri bawah pada komposisi terkunci.
+// Ruangan SEBENARNYA tetap ROOM.E x ROOM.W untuk objek, grid, dan zona.
 function walls(ctx: CanvasRenderingContext2D) {
-  const { E, W, WALL_Z } = ROOM
+  const E = ROOM.E + EXT_E
+  const W = ROOM.W + EXT_W
+  const { WALL_Z } = ROOM
   // Dinding digambar sampai melewati tepi atas layar pada zoom/pan apa pun,
   // sehingga tidak ada ruang kosong di atas (permintaan user).
   // Tinggi fungsional untuk objek tetap WALL_Z; sisanya hanya visual.
@@ -59,7 +64,8 @@ function walls(ctx: CanvasRenderingContext2D) {
 }
 
 function floor(ctx: CanvasRenderingContext2D) {
-  const { E, W } = ROOM
+  const E = ROOM.E + EXT_E
+  const W = ROOM.W + EXT_W
   const tones = [PAL.floorBase, PAL.floorAlt, PAL.floorC]
   // Ubin PERSEGI 1x1 tile (gambar referensi: ubin persegi, bukan papan
   // selang-seling). Tiap ubin diberi tone halus agar lantai tidak datar.
@@ -106,6 +112,9 @@ function overlays(ctx: CanvasRenderingContext2D, grid: boolean, edit: boolean) {
     // (docs/03 §3); objek interaktif/app hidup di t >= 1.5
     line(ctx, px(1.5, 0), px(1.5, W), PAL.zone, [3, 3])
     line(ctx, px(0, 1.5), px(E, 1.5), PAL.zone, [3, 3])
+    // batas ruangan SEBENARNYA (di luar ini hanya perpanjangan visual)
+    line(ctx, px(E, 0), px(E, W), PAL.zone, [2, 4])
+    line(ctx, px(0, W), px(E, W), PAL.zone, [2, 4])
   }
 }
 
@@ -120,7 +129,8 @@ export interface DrawOpts {
 // Refleksi lantai: bayangan cermin objek di bawah bidang lantai,
 // dipadatkan 60% dan samar (alpha 12%), dipotong persis ke bentuk lantai.
 function drawReflections(ctx: CanvasRenderingContext2D, objects: SceneObject[]) {
-  const { E, W } = ROOM
+  const E = ROOM.E + EXT_E
+  const W = ROOM.W + EXT_W
   ctx.save()
   ctx.beginPath()
   const f0 = px(0, 0), f1 = px(E, 0), f2 = px(E, W), f3 = px(0, W)

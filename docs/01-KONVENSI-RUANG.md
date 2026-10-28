@@ -18,16 +18,26 @@
 > Editor/import/reset tidak dapat mengubahnya; perubahan hanya lewat kode developer
 > atas permintaan eksplisit user (docs/03 §0).
 >
-> 🔒 **ZOOM + POSISI TERKUNCI — 2026-10-28 (permintaan user: "sekarang kunci
-> zoom dan posisinya").** `VIEW_LOCKED = true` di `iso/space.ts`.
-> Yang dibekukan = **posisi terakhir yang tampil** (dibaca dari `isola-kamera-v1`);
-> kalau belum pernah pan/zoom → komposisi acuan `VIEW_FIXED` (×2.5, pusat 0.4/0.5).
+> 🔒 **ZOOM + POSISI TERKUNCI — 2026-10-28 (permintaan user: "tetap kunci").
+> `VIEW_LOCKED = true` di `iso/space.ts`, komposisi dari pengaturan user:
+> **zoom ×0.88 (HW 14, HH 7) di pusat (−1.2, 1.3)**. Saat kunci kode aktif,
+> `VIEW_FIXED` **selalu menang** atas localStorage → tampilan identik di semua
+> perangkat & setelah reload.
 > Selama kunci aktif: pan, pinch, roda tetikus, tombol ZOOM, dan TENGAH **tidak
 > memindahkan atau memperbesar ruangan**. Editor objek tetap berfungsi.
 > **Kunci ruangan (dimensi/palet) juga dibuka sementara** (`ROOM_TEMP_UNLOCKED = true`)
 > untuk fase penyamaan dengan referensi.
 > Catatan: posisi kamera tetap disimpan otomatis (`isola-kamera-v1`) supaya
-> hot-reload tidak menggeser apa pun.
+> hot-reload tidak menggeser apa pun, tetapi selama `VIEW_LOCKED = true` nilai
+> itu tidak dipakai.
+>
+> **PERPANJANGAN DINDING + LANTAI (permintaan user 2026-10-28):** "perpanjang
+> dinding untuk menutup area kosong, lantai mengikuti dinding, sehingga hasil
+> akhirnya adalah area kosong kecil di sudut kiri bawah." Konstanta `EXT_E = 6`
+> dan `EXT_W = 7` (`iso/space.ts`): dinding & lantai **digambar** sampai
+> 26 × 26 (E+6, W+7), sedangkan **ruangan sebenarnya tetap 20 × 19** untuk
+> penempatan objek, grid, dan zona. Pada komposisi terkunci, void turun dari
+> **17,8 % → 0,08 %** dan yang tersisa hanya segitiga kecil di sudut kiri bawah.
 >
 > **Amendemen #1 (permintaan eksplisit user):** ruangan diperpanjang +6 tile ke selatan
 > menjadi 20 × 19 — **tetap berlaku**.
