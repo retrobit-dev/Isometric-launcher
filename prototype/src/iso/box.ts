@@ -1,8 +1,37 @@
-import { DENS, px, type P } from './space'
+import { DENS, HW, px, type P } from './space'
 import { MATERIALS, UNKNOWN_STYLE } from './palette'
 import type { SceneObject } from '../scene/types'
 
 export interface Box { x0: number; y0: number; x1: number; y1: number }
+
+// ---------------------------------------------------------------------------
+// REGISTRI SPRITE (opsi C "campuran", permintaan user 2026-10-29)
+// Gambar hasil potongan langsung dari referensi, dimuat sekali oleh
+// scene/aset.ts lalu dipakai di sini. Renderer tidak pernah menunggu gambar:
+// kalau belum siap, objek digambar sebagai kotak penanda.
+// ---------------------------------------------------------------------------
+const SPRITE: Record<string, HTMLImageElement> = {}
+
+export function daftarSprite(nama: string, img: HTMLImageElement) {
+  SPRITE[nama] = img
+}
+
+export function spriteSiap(nama?: string): boolean {
+  return !!nama && !!SPRITE[nama] && SPRITE[nama].naturalWidth > 0
+}
+
+function drawSprite(ctx: CanvasRenderingContext2D, o: SceneObject) {
+  const img = SPRITE[o.sprite!]
+  const { se, sw } = footprintOf(o)
+  // lebar layar objek isometrik = (se + sw) · HW  (lebar bayangan footprint)
+  const wpx = Math.max(2, (se + sw) * HW)
+  const skala = wpx / img.naturalWidth
+  const hpx = img.naturalHeight * skala
+  const kaki = px(o.pos.e + se, o.pos.w + sw, o.pos.z)
+  const tengah = px(o.pos.e + se / 2, o.pos.w + sw / 2, o.pos.z)
+  ctx.imageSmoothingEnabled = false
+  ctx.drawImage(img, Math.round(tengah.x - wpx / 2), Math.round(kaki.y - hpx), Math.round(wpx), Math.round(hpx))
+}
 
 // ---------------------------------------------------------------------------
 // GARIS TEPI (outline) — permintaan user 2026-10-29 "identik dengan referensi".
@@ -421,7 +450,8 @@ function drawProfil(ctx: CanvasRenderingContext2D, o: SceneObject) {
 export function drawObject(ctx: CanvasRenderingContext2D, o: SceneObject) {
   const status = terapkanAnim(ctx, o)
   if (status === 'lewat') return
-  if (o.bentuk === 'silinder') drawSilinder(ctx, o)
+  if (o.sprite && spriteSiap(o.sprite)) drawSprite(ctx, o)
+  else if (o.bentuk === 'silinder') drawSilinder(ctx, o)
   else if (o.bentuk === 'kerucut') drawKerucut(ctx, o)
   else if (o.bentuk === 'bola') drawBola(ctx, o)
   else if (o.bentuk === 'cakram') drawCakram(ctx, o)

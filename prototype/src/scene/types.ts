@@ -93,6 +93,19 @@ export interface SceneObject {
   // SUB-FOLDER: id grup induk. Grup boleh bersarang (folder di dalam folder);
   // semua anggota satu grup memakai grupNama & grupInduk yang sama.
   grupInduk?: string
+  /**
+   * VERSI PIXEL (permintaan user 2026-10-29, opsi C "campuran"):
+   * id aset gambar di /aset/<id>.png — sprite hasil potongan langsung dari
+   * gambar referensi, jadi tampilannya PERSIS referensi.
+   * Objek tetap satu objek scene: bisa dipindah, diubah ukuran, diputar,
+   * diurutkan, dikunci, dan dianimasikan. Yang hilang hanya kemampuan
+   * mengedit BAGIAN DALAMnya; untuk itu pakai VERSI EDIT (parametrik,
+   * satu klik untuk berganti bolak-balik).
+   */
+  sprite?: string
+  /** id preset asal (untuk berganti VERSI PIXEL <-> VERSI EDIT) */
+  preset?: string
+
   // BENTUK dasar objek (permintaan user 2026-10-29: silinder & kerucut supaya
   // objek lebih mirip referensi). Default = 'balok'.
   //   balok    = kotak isometrik 3 sisi (perilaku lama)

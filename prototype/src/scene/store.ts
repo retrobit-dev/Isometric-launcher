@@ -480,6 +480,10 @@ export function validateScene(data: unknown): Scene | null {
         ? { puncak: Math.round(ob.puncak * 100) / 100 } : {}),
       ...(typeof ob.miring === 'number' && Number.isFinite(ob.miring)
         ? { miring: Math.round(ob.miring) } : {}),
+      ...(typeof ob.sprite === 'string' && /^[a-z0-9-]{1,40}$/.test(ob.sprite)
+        ? { sprite: ob.sprite } : {}),
+      ...(typeof ob.preset === 'string' && /^[a-z0-9-]{1,40}$/.test(ob.preset)
+        ? { preset: ob.preset } : {}),
       ...(ob.tepi === false ? { tepi: false } : {}),
       ...(normalAnim(ob.anim) ? { anim: normalAnim(ob.anim)! } : {}),
       ...(ob.latar === true ? { latar: true } : {}),

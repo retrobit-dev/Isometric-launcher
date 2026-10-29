@@ -7,7 +7,8 @@ import { drawScene } from './iso/room'
 import { bboxOf, sortedObjects } from './iso/box'
 import { FLOOR_DEFAULT, FLOOR_KEYS, MATERIAL_KEYS, WALL_STYLE_KEYS } from './iso/palette'
 import PresetPicker from './ui/PresetPicker'
-import { buatPreset, type Preset } from './scene/presets'
+import { muatAset, ukuranAset } from './scene/aset'
+import { PRESETS as PRESETS_EDIT, PRESETS_PIXEL, buatPixel, buatPreset, presetPixelOf, type Preset, type PresetPixel } from './scene/presets'
 import { LATAR_TAG, gabungLatar, geserTumpukan, hapusLatarImage, latarImageUrl, loadCandidates, loadDraft, loadLocked, loadSceneFile, normalisasiScene, objekBiasa, objekLatar, saveDraftGuarded, saveLatarImage, saveLocked, saveSceneFile, storageWorks, validateScene } from './scene/store'
 import { type JenisAnim, type Scene, type SceneObject } from './scene/types'
 import EditPanel from './ui/EditPanel'
@@ -221,6 +222,12 @@ export default function App() {
     return () => { batal = true }
     // hanya sekali saat aplikasi dibuka
     // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [])
+
+  // ASET SPRITE (versi pixel): dimuat sekali saat aplikasi dibuka
+  const [asetVer, setAsetVer] = useState(0)
+  useEffect(() => {
+    muatAset().then(() => setAsetVer(v => v + 1))
   }, [])
 
   // ganti objek terpilih = mulai hitungan "belum disimpan" dari nol
@@ -492,6 +499,75 @@ export default function App() {
     setScene(s => ({ ...s, objects: [...s.objects, ...parts] }))
     setSelectedId(parts[0]?.id ?? null)
     setShowPreset(false)
+  }
+
+  // TAMBAH VERSI PIXEL: satu objek berisi sprite potongan referensi
+  const tambahPixel = (preset: PresetPixel) => {
+    const gid = `grup-${Date.now().toString(36).slice(-4)}`
+    const idAwal = `px-${preset.id}-${Date.now().toString(36).slice(-3)}`
+    const snap2 = (v: number) => Math.round(v * 1000) / 1000
+    const dinding = sceneRef.current.objects.find(o =>
+      o.role === 'dinding' && o.latar === true
+      && o.side === (preset.pasang === 'dinding-kiri' ? 'kiri' : 'kanan'))
+    let e = snap2(Math.max(0, CAM.CE - preset.lebar / 2))
+    let w = snap2(Math.max(0, CAM.CW - preset.dalam / 2))
+    if (dinding && preset.pasang === 'dinding-kanan') w = snap2(dinding.pos.w + dinding.size.w + 0.02)
+    if (dinding && preset.pasang === 'dinding-kiri') e = snap2(dinding.pos.e + dinding.size.e + 0.02)
+    const parts = buatPixel({
+      preset, e, w,
+      grup: gid, nama: preset.nama,
+      urutanAwal: urutanTeratas(), idAwal,
+    })
+    setScene(s2 => ({ ...s2, objects: [...s2.objects, ...parts] }))
+    setSelectedId(parts[0]?.id ?? null)
+    setShowPreset(false)
+  }
+
+  /**
+   * GANTI VERSI: PIXEL <-> EDIT untuk satu folder objek (opsi C).
+   * Titik tumpu dipertahankan: versi baru ditaruh di sudut kiri-belakang
+   * pembungkus versi lama, jadi objek tidak melompat saat ditukar.
+   */
+  const gantiVersi = (id: string) => {
+    const objek = sceneRef.current.objects
+    const o = objek.find(x => x.id === id)
+    if (!o) return
+    const idPreset = o.preset
+    if (!idPreset) {
+      setPesanLatar('objek ini dibuat manual — tidak punya pasangan versi')
+      return
+    }
+    const grup = o.grup ? objek.filter(x => x.grup === o.grup) : [o]
+    const e0 = Math.min(...grup.map(x => x.pos.e))
+    const w0 = Math.min(...grup.map(x => x.pos.w))
+    const nama = (o.grupNama ?? o.label).replace(/^pixel: /, '')
+    const lain = objek.filter(x => !grup.includes(x))
+
+    if (o.sprite) {
+      // PIXEL -> EDIT: bangun ulang preset parametrik
+      const preset = PRESETS_EDIT.find(x => x.id === idPreset)
+      if (!preset) { setPesanLatar('versi edit untuk objek ini belum ada'); return }
+      const parts = buatPreset({
+        preset, e: e0, w: w0, z: Math.max(0, o.pos.z - (presetPixelOf(idPreset)?.zAwal ?? 0)),
+        grup: o.grup ?? o.id, nama: preset.nama,
+        urutanAwal: o.urutan ?? 0, idAwal: `${idPreset}-ed`,
+      })
+      setScene(s2 => ({ ...s2, objects: [...lain, ...parts] }))
+      setSelectedId(parts[0]?.id ?? null)
+      setPesanLatar(`dibuka sebagai VERSI EDIT — ${parts.length} bagian bisa diubah`)
+    } else {
+      // EDIT -> PIXEL: ringkas satu folder menjadi satu sprite
+      const preset = presetPixelOf(idPreset)
+      if (!preset) { setPesanLatar('versi pixel untuk objek ini belum ada'); return }
+      const parts = buatPixel({
+        preset, e: e0, w: w0, z: o.pos.z,
+        grup: o.grup ?? o.id, nama: preset.nama,
+        urutanAwal: o.urutan ?? 0, idAwal: `px-${idPreset}`,
+      })
+      setScene(s2 => ({ ...s2, objects: [...lain, ...parts] }))
+      setSelectedId(parts[0]?.id ?? null)
+      setPesanLatar('diringkas ke VERSI PIXEL — persis referensi')
+    }
   }
 
   // ANIMASI: siklus jenis & laju (permintaan user 2026-10-29)
@@ -1086,6 +1162,7 @@ export default function App() {
           onCycleKunci={() => cycleKunci(selected.id)}
           onCycleAnim={() => cycleAnim(selected.id)}
           onCycleAnimLaju={() => cycleAnimLaju(selected.id)}
+          onGantiVersi={() => gantiVersi(selected.id)}
           onRaise={() => geser(selected.id, 1)}
           onLower={() => geser(selected.id, -1)}
           tumpukan={tumpukanDari(selected.id)}
@@ -1177,6 +1254,7 @@ export default function App() {
       {showPreset && (
         <PresetPicker
           onPick={pr => tambahPreset(pr)}
+          onPickPixel={pr => tambahPixel(pr)}
           onBlank={() => { addObject(); setShowPreset(false) }}
           onClose={() => setShowPreset(false)}
         />

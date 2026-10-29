@@ -447,6 +447,102 @@ export function jumlahBagian(): number {
  * Buat semua bagian untuk satu preset pada posisi (e, w, z).
  * Semua bagian memakai `grup` yang sama supaya tampil sebagai satu folder.
  */
+// ===========================================================================
+// VERSI PIXEL (opsi C "campuran", permintaan user 2026-10-29)
+// Satu objek = satu sprite hasil potongan langsung dari gambar referensi,
+// jadi tampilannya persis referensi. Ukuran dunia (lebar/dalam) SAMA dengan
+// versi EDIT supaya kedua versi bisa bertukar tempat tanpa mengubah tata
+// letak ruangan.
+// `zAwal` = tinggi duduk objek (khusus barang yang menempel dinding).
+// ===========================================================================
+export interface PresetPixel {
+  id: string
+  nama: string
+  ket: string
+  /** id aset di /aset/<sprite>.png */
+  sprite: string
+  lebar: number
+  dalam: number
+  zAwal: number
+  pasang: 'lantai' | 'dinding-kanan' | 'dinding-kiri'
+}
+
+export const PRESETS_PIXEL: PresetPixel[] = [
+  { id: 'meja-guru', nama: 'MEJA GURU', ket: 'pixel: meja panjang + laci terbuka',
+    sprite: 'meja-guru', lebar: 4.91, dalam: 4.91, pasang: 'lantai',
+    zAwal: 0 },
+  { id: 'rak-buku', nama: 'RAK BUKU', ket: 'pixel: rak dua baris penuh buku',
+    sprite: 'rak-buku', lebar: 2.62, dalam: 2.62, pasang: 'lantai',
+    zAwal: 0 },
+  { id: 'kursi-putar', nama: 'KURSI PUTAR', ket: 'pixel: kursi kerja + roda',
+    sprite: 'kursi-putar', lebar: 1.7, dalam: 1.7, pasang: 'lantai',
+    zAwal: 0 },
+  { id: 'papan-tulis', nama: 'PAPAN TULIS', ket: 'pixel: papan putih beroda',
+    sprite: 'papan-tulis', lebar: 3.03, dalam: 3.03, pasang: 'lantai',
+    zAwal: 0 },
+  { id: 'papan-gabus', nama: 'PAPAN GABUS', ket: 'pixel: papan gabus + catatan',
+    sprite: 'papan-gabus', lebar: 1.45, dalam: 1.45, pasang: 'dinding-kanan',
+    zAwal: 1.9 },
+  { id: 'jendela', nama: 'JENDELA', ket: 'pixel: jendela + tirai + matahari',
+    sprite: 'jendela', lebar: 3.57, dalam: 3.57, pasang: 'dinding-kanan',
+    zAwal: 2.3 },
+  { id: 'lampu-meja', nama: 'LAMPU MEJA', ket: 'pixel: lampu meja',
+    sprite: 'lampu-meja', lebar: 1.03, dalam: 1.03, pasang: 'lantai',
+    zAwal: 2.3 },
+  { id: 'tanaman-pot', nama: 'TANAMAN POT', ket: 'pixel: pot + daun panjang',
+    sprite: 'tanaman-pot', lebar: 1.63, dalam: 1.63, pasang: 'lantai',
+    zAwal: 0 },
+  { id: 'tempat-sampah', nama: 'TEMPAT SAMPAH', ket: 'pixel: tong + kertas remuk',
+    sprite: 'tempat-sampah', lebar: 1.09, dalam: 1.09, pasang: 'lantai',
+    zAwal: 0 },
+  { id: 'laptop', nama: 'LAPTOP', ket: 'pixel: laptop terbuka',
+    sprite: 'laptop', lebar: 1.57, dalam: 1.57, pasang: 'lantai',
+    zAwal: 2.3 },
+  { id: 'tumpukan-buku', nama: 'TUMPUKAN BUKU', ket: 'pixel: tiga buku menumpuk',
+    sprite: 'tumpukan-buku', lebar: 0.95, dalam: 0.95, pasang: 'lantai',
+    zAwal: 2.3 },
+  { id: 'kalkulator', nama: 'KALKULATOR', ket: 'pixel: kalkulator',
+    sprite: 'kalkulator', lebar: 0.88, dalam: 0.88, pasang: 'lantai',
+    zAwal: 2.3 },
+  { id: 'bingkai-foto', nama: 'BINGKAI FOTO', ket: 'pixel: bingkai di dinding',
+    sprite: 'bingkai-foto', lebar: 0.51, dalam: 0.51, pasang: 'dinding-kanan',
+    zAwal: 3.9 },
+]
+
+export function presetPixelOf(id: string): PresetPixel | undefined {
+  return PRESETS_PIXEL.find(x => x.id === id)
+}
+
+/** objek VERSI PIXEL: satu objek berisi gambar referensi */
+export function buatPixel(opts: {
+  preset: PresetPixel
+  e: number
+  w: number
+  z?: number
+  grup: string
+  nama: string
+  urutanAwal: number
+  idAwal: string
+}): SceneObject[] {
+  const { preset, grup, nama, urutanAwal, idAwal } = opts
+  return [{
+    id: `${idAwal}-1`,
+    label: nama,
+    pos: { e: snap(opts.e), w: snap(opts.w), z: snap(opts.z ?? preset.zAwal) },
+    // footprint = kotak pembungkus TAMPILAN sprite: lebar gambar dihitung
+    // sebagai (lebar+dalam)·HW, jadi (lebar+dalam) sudah mencakup ukuran gambar
+    size: { e: Math.max(0.01, snap(preset.lebar)), w: Math.max(0.01, snap(preset.dalam)), z: 0.6 },
+    style: 'wood',
+    sprite: preset.sprite,
+    preset: preset.id,
+    app: null,
+    layer: 'main' as const,
+    grup,
+    grupNama: nama,
+    urutan: urutanAwal,
+  }]
+}
+
 export function buatPreset(opts: {
   preset: Preset
   e: number
@@ -476,6 +572,7 @@ export function buatPreset(opts: {
     ...(bag.miring !== undefined ? { miring: bag.miring } : {}),
     ...(bag.profil ? { profil: bag.profil } : {}),
     ...(bag.anim ? { anim: bag.anim } : {}),
+    preset: preset.id,
     app: null,
     layer: 'main' as const,
     grup,

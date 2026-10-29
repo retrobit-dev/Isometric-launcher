@@ -12,6 +12,8 @@ interface Props {
   onCycleAnim: () => void
   /** ganti laju animasi (0.25 / 0.5 / 1 / 1.5 / 2) */
   onCycleAnimLaju: () => void
+  /** tukar objek ini antara VERSI PIXEL (sprite referensi) dan VERSI EDIT */
+  onGantiVersi: () => void
   onCycleKunci: () => void
   /** naikkan ke atas objek sebelumnya (overlay) / turunkan ke bawah objek berikutnya */
   onRaise: () => void
@@ -308,6 +310,21 @@ export default function EditPanel(p: Props) {
             title="kiri = dinding DB (bidang e), kanan = dinding DT (bidang w)"
           >
             {(o.side ?? 'kiri').toUpperCase()} ⟳
+          </button>
+        </div>
+      )}
+      {o.preset && (
+        <div className="row">
+          <span className="rl">versi</span>
+          <button
+            className={o.sprite ? 'sbtn wide on' : 'sbtn wide'}
+            disabled={frozen}
+            onClick={p.onGantiVersi}
+            title={o.sprite
+              ? 'versi pixel = gambar potongan referensi. Klik untuk membuka susunan bagian yang bisa diubah.'
+              : 'versi edit = susunan bagian parametrik. Klik untuk meringkas jadi gambar referensi (paling mirip).'}
+          >
+            {o.sprite ? 'PIXEL (PERSIS) ⇄' : 'EDIT (BAGIAN) ⇄'}
           </button>
         </div>
       )}

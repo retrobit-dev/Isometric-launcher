@@ -725,3 +725,15 @@ html, body, #root {
 .olbtn.sub { color: #b9a6e0; border-color: #3b3355; background: #191527; }
 .olbtn.sub:disabled { color: #4a4f63; border-color: #232a3c; background: #10131c; }
 .olfolderwrap { min-width: 0; }
+
+/* --- daftar objek: pemisah versi pixel / versi edit (opsi C) --- */
+.pgroup {
+  margin: 8px 0 4px;
+  padding: 3px 6px;
+  font-size: 10px;
+  letter-spacing: 0.06em;
+  color: #d9a05b;
+  background: #2c1d18;
+  border-left: 3px solid #b07f3f;
+  border-radius: 2px;
+}
