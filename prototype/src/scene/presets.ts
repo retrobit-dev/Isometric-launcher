@@ -135,6 +135,48 @@ export const PRESETS: Preset[] = [
       b(0.00, 0.00, 2.06, 4.20, 0.36, 0.14, 'kayu-tepi'),
     ],
   },
+
+  // ============================================================= MEJA KERJA ==
+  // Permintaan user 2026-10-29: "buatkan objek meja kerja".
+  // Pilihan user: alas LEBAR 3,0 x 1,2 tile, kayu TERANG (kayu-meja), dipasang
+  // di lantai (bukan menempel dinding).
+  //
+  // Bentuk (ronde kedua, setelah render pertama dinilai kurang terbaca):
+  //   - alas meja 3,0 x 1,2, tebal 0,16
+  //   - kaki kayu gelap di sisi KIRI (2 buah)
+  //   - LEMARI LACI (pedestal) di sisi KANAN setinggi kolong meja, dengan DUA
+  //     muka laci + gagang logam — ini yang membuatnya terbaca sebagai meja
+  //     kerja, bukan bangku
+  //   - lis depan & belakang antara kaki
+  // Tinggi total 1,60 tile, masih DI BAWAH ambang jendela (z 2,06), jadi meja
+  // bisa berdiri di depan jendela tanpa menutupi kaca.
+  //
+  // Sumbu: kamera melihat dari +e/+w, jadi muka yang harus tampak (muka laci)
+  // diletakkan di sisi w BESAR. Angka ditulis eksplisit, urutan `bagian` =
+  // urutan gambar: kaki & pedestal dulu, alas paling akhir (paling depan).
+  {
+    id: 'meja-kerja', nama: 'MEJA KERJA',
+    ket: 'Meja kerja 3,0 x 1,2: alas kayu terang, 2 kaki kiri, lemari 2 laci di kanan.',
+    pasang: 'lantai', lebar: 3.0, dalam: 1.2,
+    bagian: [
+      // --- kaki kiri (0,16 x 0,16 x 1,44) ---
+      b(0.06, 0.06, 0.00, 0.16, 0.16, 1.44, 'kayu-gelap'),   // kaki belakang kiri
+      b(0.06, 0.98, 0.00, 0.16, 0.16, 1.44, 'kayu-gelap'),   // kaki depan kiri
+      // --- lemari laci di sisi KANAN ---
+      b(2.34, 0.10, 0.00, 0.60, 0.90, 1.44, 'walnut'),       // badan lemari (gelap, biar laci kontras)
+      // --- lis antara kaki (di bawah alas) ---
+      b(0.22, 0.10, 1.18, 2.12, 0.10, 0.26, 'kayu-gelap'),   // lis belakang
+      b(0.22, 0.98, 1.18, 2.12, 0.10, 0.26, 'kayu-gelap'),   // lis depan
+      // --- dua muka laci (sisi depan, w 1,06..1,14) ---
+      b(2.38, 1.00, 0.78, 0.52, 0.14, 0.56, 'kayu-meja'),    // muka laci atas
+      b(2.38, 1.00, 0.16, 0.52, 0.14, 0.56, 'kayu-meja'),    // muka laci bawah
+      // --- gagang logam tiap laci ---
+      b(2.56, 1.14, 0.98, 0.16, 0.05, 0.07, 'metal'),        // gagang atas (kuningan)
+      b(2.56, 1.14, 0.36, 0.16, 0.05, 0.07, 'metal'),        // gagang bawah (kuningan)
+      // --- alas meja (paling atas, digambar terakhir) ---
+      b(0.00, 0.00, 1.44, 3.00, 1.20, 0.16, 'kayu-meja'),
+    ],
+  },
 ]
 
 /**

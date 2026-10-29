@@ -1,5 +1,5 @@
 {
- "savedAt": "2026-10-29T06:56:51.629Z",
+ "savedAt": "2026-10-29T07:07:49.060Z",
  "scene": {
   "version": 1,
   "room": {
@@ -177,6 +177,216 @@
     "grupNama": "JENDELA",
     "preset": "jendela",
     "urutan": 4
+   },
+   {
+    "id": "meja-kerja-1",
+    "label": "MEJA KERJA 1",
+    "pos": {
+     "e": 12.66,
+     "w": 1.76,
+     "z": 0
+    },
+    "size": {
+     "e": 0.16,
+     "w": 0.16,
+     "z": 1.44
+    },
+    "style": "kayu-gelap",
+    "preset": "meja-kerja",
+    "app": null,
+    "layer": "main",
+    "grup": "grup-meja-kerja",
+    "grupNama": "MEJA KERJA",
+    "urutan": 5
+   },
+   {
+    "id": "meja-kerja-2",
+    "label": "MEJA KERJA 2",
+    "pos": {
+     "e": 12.66,
+     "w": 2.68,
+     "z": 0
+    },
+    "size": {
+     "e": 0.16,
+     "w": 0.16,
+     "z": 1.44
+    },
+    "style": "kayu-gelap",
+    "preset": "meja-kerja",
+    "app": null,
+    "layer": "main",
+    "grup": "grup-meja-kerja",
+    "grupNama": "MEJA KERJA",
+    "urutan": 6
+   },
+   {
+    "id": "meja-kerja-3",
+    "label": "MEJA KERJA 3",
+    "pos": {
+     "e": 14.94,
+     "w": 1.8,
+     "z": 0
+    },
+    "size": {
+     "e": 0.6,
+     "w": 0.9,
+     "z": 1.44
+    },
+    "style": "walnut",
+    "preset": "meja-kerja",
+    "app": null,
+    "layer": "main",
+    "grup": "grup-meja-kerja",
+    "grupNama": "MEJA KERJA",
+    "urutan": 7
+   },
+   {
+    "id": "meja-kerja-4",
+    "label": "MEJA KERJA 4",
+    "pos": {
+     "e": 12.82,
+     "w": 1.8,
+     "z": 1.18
+    },
+    "size": {
+     "e": 2.12,
+     "w": 0.1,
+     "z": 0.26
+    },
+    "style": "kayu-gelap",
+    "preset": "meja-kerja",
+    "app": null,
+    "layer": "main",
+    "grup": "grup-meja-kerja",
+    "grupNama": "MEJA KERJA",
+    "urutan": 8
+   },
+   {
+    "id": "meja-kerja-5",
+    "label": "MEJA KERJA 5",
+    "pos": {
+     "e": 12.82,
+     "w": 2.68,
+     "z": 1.18
+    },
+    "size": {
+     "e": 2.12,
+     "w": 0.1,
+     "z": 0.26
+    },
+    "style": "kayu-gelap",
+    "preset": "meja-kerja",
+    "app": null,
+    "layer": "main",
+    "grup": "grup-meja-kerja",
+    "grupNama": "MEJA KERJA",
+    "urutan": 9
+   },
+   {
+    "id": "meja-kerja-6",
+    "label": "MEJA KERJA 6",
+    "pos": {
+     "e": 14.98,
+     "w": 2.7,
+     "z": 0.78
+    },
+    "size": {
+     "e": 0.52,
+     "w": 0.14,
+     "z": 0.56
+    },
+    "style": "kayu-meja",
+    "preset": "meja-kerja",
+    "app": null,
+    "layer": "main",
+    "grup": "grup-meja-kerja",
+    "grupNama": "MEJA KERJA",
+    "urutan": 10
+   },
+   {
+    "id": "meja-kerja-7",
+    "label": "MEJA KERJA 7",
+    "pos": {
+     "e": 14.98,
+     "w": 2.7,
+     "z": 0.16
+    },
+    "size": {
+     "e": 0.52,
+     "w": 0.14,
+     "z": 0.56
+    },
+    "style": "kayu-meja",
+    "preset": "meja-kerja",
+    "app": null,
+    "layer": "main",
+    "grup": "grup-meja-kerja",
+    "grupNama": "MEJA KERJA",
+    "urutan": 11
+   },
+   {
+    "id": "meja-kerja-8",
+    "label": "MEJA KERJA 8",
+    "pos": {
+     "e": 15.16,
+     "w": 2.84,
+     "z": 0.98
+    },
+    "size": {
+     "e": 0.16,
+     "w": 0.05,
+     "z": 0.07
+    },
+    "style": "metal",
+    "preset": "meja-kerja",
+    "app": null,
+    "layer": "main",
+    "grup": "grup-meja-kerja",
+    "grupNama": "MEJA KERJA",
+    "urutan": 12
+   },
+   {
+    "id": "meja-kerja-9",
+    "label": "MEJA KERJA 9",
+    "pos": {
+     "e": 15.16,
+     "w": 2.84,
+     "z": 0.36
+    },
+    "size": {
+     "e": 0.16,
+     "w": 0.05,
+     "z": 0.07
+    },
+    "style": "metal",
+    "preset": "meja-kerja",
+    "app": null,
+    "layer": "main",
+    "grup": "grup-meja-kerja",
+    "grupNama": "MEJA KERJA",
+    "urutan": 13
+   },
+   {
+    "id": "meja-kerja-10",
+    "label": "MEJA KERJA 10",
+    "pos": {
+     "e": 12.6,
+     "w": 1.7,
+     "z": 1.44
+    },
+    "size": {
+     "e": 3,
+     "w": 1.2,
+     "z": 0.16
+    },
+    "style": "kayu-meja",
+    "preset": "meja-kerja",
+    "app": null,
+    "layer": "main",
+    "grup": "grup-meja-kerja",
+    "grupNama": "MEJA KERJA",
+    "urutan": 14
    }
   ],
   "meta": {
