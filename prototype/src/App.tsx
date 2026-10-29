@@ -704,16 +704,6 @@ export default function App() {
                     ? `(e=${hover.e}, w=${hover.w}) · ${zoneName(hover.e, hover.w)}`
                     : `${objekBiasa(scene).length} perabot${objekLatar(scene).length ? ` · ${objekLatar(scene).length} latar` : ''}`}
                 </span>
-                {(() => {
-                  const fl = scene.objects.filter(o => o.role === 'lantai')
-                  return (
-                    <span className={fl.length ? 'on' : ''}>
-                      {fl.length
-                        ? `lantai ${fl.length}: ${fl.map(f => (typeof f.style === 'string' ? f.style.replace('lantai-', '') : '?')).join(',')}`
-                        : 'lantai: tidak ada'}
-                    </span>
-                  )
-                })()}
                 <span className={locked ? 'on' : ''}>{locked ? `terkunci ${savedAt ?? ''}` : 'draf'}</span>
                 <span className={simpan === 'browser' ? 'on' : ''}>
                   {dimuat
