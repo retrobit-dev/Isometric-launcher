@@ -13,6 +13,8 @@ import { LATAR_TAG, gabungLatar, geserTumpukan, hapusLatarImage, latarImageUrl, 
 import { type JenisAnim, type Scene, type SceneObject } from './scene/types'
 import EditPanel from './ui/EditPanel'
 import ObjectList from './ui/ObjectList'
+import { bboxFolder, pindahFolder, type Sumbu } from './scene/folder'
+import PosisiFolder from './ui/PosisiFolder'
 import Confirm, { type ConfirmReq } from './ui/Confirm'
 
 const DEV_RES_W = 2560
@@ -588,39 +590,11 @@ export default function App() {
     }))
   }
 
-  // GESER FOLDER: semua anggota grup (termasuk sub-folder) digeser bersama.
-  // Permintaan user 2026-10-29 — memindahkan seluruh isi folder tanpa
-  // menyentuh satu per satu.
-  const geserFolder = (gid: string, de: number, dw: number, ikutSub: boolean) => {
-    // kumpulkan gid + semua turunannya
-    const semua: string[] = [gid]
-    if (ikutSub) {
-      let tambah = true
-      while (tambah) {
-        tambah = false
-        for (const o of sceneRef.current.objects) {
-          if (o.grupInduk && semua.includes(o.grupInduk) && o.grup && !semua.includes(o.grup)) {
-            semua.push(o.grup)
-            tambah = true
-          }
-        }
-      }
-    }
-    setScene(sc => ({
-      ...sc,
-      objects: sc.objects.map(o => {
-        if (!o.grup || !semua.includes(o.grup) || o.latar) return o
-        if (o.kunci === 'semua' || o.kunci === 'warna') return o // objek terkunci tidak ikut
-        return {
-          ...o,
-          pos: {
-            ...o.pos,
-            e: Math.round((o.pos.e + de) * 1000) / 1000,
-            w: Math.round((o.pos.w + dw) * 1000) / 1000,
-          },
-        }
-      }),
-    }))
+  // PINDAH FOLDER (logika murni di scene/folder.ts supaya bisa diuji):
+  // nilai e/w/z yang diketik = koordinat SUDUT MINIMUM folder, sama seperti
+  // arti `pos` pada satu objek. Permintaan user 2026-10-29.
+  const posisiFolder = (gid: string, sumbu: Sumbu, nilai: number) => {
+    setScene(sc => ({ ...sc, objects: pindahFolder(sc.objects, gid, sumbu, nilai) }))
     setPanelDirty(true)
   }
 
@@ -1170,35 +1144,19 @@ export default function App() {
         </div>
       )}
 
-      {geserGrup && (
-        <div className="modal" onClick={() => setGeserGrup(null)}>
-          <div className="mcard geser" onClick={ev => ev.stopPropagation()}>
-            <div className="mhead">
-              <span>GESER FOLDER · {geserGrup.nama}</span>
-              <button className="sbtn" onClick={() => setGeserGrup(null)}>✕</button>
-            </div>
-            <div className="phint">
-              semua objek dalam folder (termasuk sub-folder) ikut bergeser; objek
-              yang dikunci tidak ikut
-            </div>
-            {(
-              [
-                ['e', 'sumbu e (kanan-bawah)', -1, -0.1, 0.1, 1],
-                ['w', 'sumbu w (kiri-bawah)', -1, -0.1, 0.1, 1],
-              ] as const
-            ).map(([sumbu, ket, m1, m01, p01, p1]) => (
-              <div className="row" key={sumbu}>
-                <span className="rl">{sumbu}</span>
-                <button className="sbtn wide" onClick={() => geserFolder(geserGrup.gid, ...(sumbu === 'e' ? [m1, 0] : [0, m1]) as [number, number], true)}>−1</button>
-                <button className="sbtn wide" onClick={() => geserFolder(geserGrup.gid, ...(sumbu === 'e' ? [m01, 0] : [0, m01]) as [number, number], true)}>−0.1</button>
-                <button className="sbtn wide" onClick={() => geserFolder(geserGrup.gid, ...(sumbu === 'e' ? [p01, 0] : [0, p01]) as [number, number], true)}>+0.1</button>
-                <button className="sbtn wide" onClick={() => geserFolder(geserGrup.gid, ...(sumbu === 'e' ? [p1, 0] : [0, p1]) as [number, number], true)}>+1</button>
-              </div>
-            ))}
-            <div className="phint">untuk menggeser sub-folder saja, pakai ✥ pada baris sub-folder itu</div>
-          </div>
-        </div>
-      )}
+      {geserGrup && (() => {
+        const info = bboxFolder(scene.objects, geserGrup.gid)
+        return (
+          <PosisiFolder
+            nama={geserGrup.nama}
+            nilai={info.nilai}
+            ukuran={info.ukuran}
+            terkunci={info.terkunci}
+            onSet={(sumbu, v) => posisiFolder(geserGrup.gid, sumbu, v)}
+            onClose={() => setGeserGrup(null)}
+          />
+        )
+      })()}
 
       {showPreset && (
         <PresetPicker

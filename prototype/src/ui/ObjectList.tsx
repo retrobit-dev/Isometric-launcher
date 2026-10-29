@@ -30,7 +30,7 @@ interface Props {
   onRestore: (scene: Scene) => void
   /** jumlah objek LATAR (background kanvas) — tidak tampil sebagai baris */
   latarCount: number
-  /** geser SEMUA objek dalam satu folder (buka kartu geser) */
+  /** posisi folder: buka kartu koordinat e / w / z */
   onMoveGroup: (gid: string) => void
   /** hapus SEMUA objek dalam satu folder (dengan konfirmasi) */
   onDeleteGroup: (gid: string) => void
@@ -348,7 +348,7 @@ export default function ObjectList(p: Props) {
                   >✎</button>
                   <button
                     className="olbtn"
-                    title="geser SEMUA objek di folder ini (e / w)"
+                    title="posisi folder: ketik koordinat e / w / z untuk memindahkan seluruh isi folder"
                     onClick={ev => { ev.stopPropagation(); p.onMoveGroup(gid) }}
                   >✥</button>
                   <button

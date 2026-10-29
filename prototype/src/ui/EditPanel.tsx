@@ -90,6 +90,8 @@ function NumField(p: {
   step?: number
   /** jumlah desimal yang ditampilkan (bawaan 3 = presisi 0,001) */
   desimal?: number
+  /** true = HANYA kolom ketik, tanpa tombol − / + (dipakai untuk posisi E/W/Z) */
+  tanpaTombol?: boolean
 }) {
   const langkah = p.step ?? 0.1
   const desimal = p.desimal ?? 3
@@ -127,7 +129,7 @@ function NumField(p: {
   return (
     <div className="row">
       <span className="rl">{p.label}</span>
-      <HoldBtn dir={-1} disabled={p.disabled} onStep={step} />
+      {!p.tanpaTombol && <HoldBtn dir={-1} disabled={p.disabled} onStep={step} />}
       <input
         className="rinput"
         inputMode="decimal"
@@ -143,7 +145,7 @@ function NumField(p: {
         }}
         aria-label={`${p.label} objek (bisa diketik)`}
       />
-      <HoldBtn dir={1} disabled={p.disabled} onStep={step} />
+      {!p.tanpaTombol && <HoldBtn dir={1} disabled={p.disabled} onStep={step} />}
     </div>
   )
 }
@@ -242,17 +244,17 @@ export default function EditPanel(p: Props) {
       <div className="pbody">
       <div className="pgrid">
         <NumField
-          label="posisi e" value={o.pos.e} min={-99} step={0.001} desimal={3}
+          label="posisi e" value={o.pos.e} min={-99} step={0.001} desimal={3} tanpaTombol
           onChange={v => p.onChange({ pos: { ...o.pos, e: v } })}
           disabled={frozen}
         />
         <NumField
-          label="posisi w" value={o.pos.w} min={-99} step={0.001} desimal={3}
+          label="posisi w" value={o.pos.w} min={-99} step={0.001} desimal={3} tanpaTombol
           onChange={v => p.onChange({ pos: { ...o.pos, w: v } })}
           disabled={frozen}
         />
         <NumField
-          label="posisi z" value={o.pos.z} min={0} step={0.001} desimal={3}
+          label="posisi z" value={o.pos.z} min={0} step={0.001} desimal={3} tanpaTombol
           onChange={v => p.onChange({ pos: { ...o.pos, z: v } })}
           disabled={frozen}
         />
