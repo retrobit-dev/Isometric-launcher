@@ -22,8 +22,8 @@ interface Props {
   dirty: boolean
 }
 
-// semua nilai objek dalam kelipatan 0.1
-const snap = (v: number) => Math.round(v * 10) / 10
+// ATURAN 32 PIKsel DIHAPUS (2026-10-29): nilai objek bebas sampai 3 desimal
+const snap = (v: number) => Math.round(v * 1000) / 1000
 
 /**
  * Field angka yang bisa DIKETIK langsung (permintaan user 2026-10-28:
@@ -246,17 +246,17 @@ export default function EditPanel(p: Props) {
           disabled={frozen}
         />
         <NumField
-          label="panjang" value={o.size.e} min={0.1}
+          label="panjang" value={o.size.e} min={0.01}
           onChange={v => p.onChange({ size: { ...o.size, e: v } })}
           disabled={frozen}
         />
         <NumField
-          label="lebar" value={o.size.w} min={0.1}
+          label="lebar" value={o.size.w} min={0.01}
           onChange={v => p.onChange({ size: { ...o.size, w: v } })}
           disabled={frozen}
         />
         <NumField
-          label="tinggi" value={o.size.z} min={0.1}
+          label="tinggi" value={o.size.z} min={0.01}
           onChange={v => p.onChange({ size: { ...o.size, z: v } })}
           disabled={frozen}
         />

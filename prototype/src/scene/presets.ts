@@ -1,21 +1,22 @@
-// KATALOG OBJEK (preset) — dibuat dari referensi user 2026-10-29
+// KATALOG OBJEK (preset) — dibangun ulang dari referensi user 2026-10-29
 // (Screenshot_20261029_072237.jpg: ruang kerja guru isometrik pastel).
 //
-// Satu "objek" di katalog ini adalah KOMPOSISI beberapa bagian, karena
-// renderer hanya mengenal balok / silinder / kerucut (+ lantai & dinding).
-// Semua bagian masuk satu folder grup (grupNama = nama preset) sehingga bisa
-// dipindah/diatur sebagai satu kesatuan di DAFTAR OBJEK, dan tiap bagian tetap
-// bisa diubah sendiri-sendiri (warna, ukuran) bila perlu.
+// 2026-10-29 (permintaan user "hapus aturan 32 piksel ... objek dibuat identik"):
+//   • ATURAN 32 PIKsel DIHAPUS. Dulu semua angka dipaksa kelipatan 0.1 tile
+//     (= 3.2 px, karena 1 tile = 32 px) sehingga detail kecil tidak mungkin.
+//     Sekarang angka BEBAS sampai 3 desimal (0.001 tile ≈ 0.03 px).
+//   • Semua preset ditulis ulang: proporsi diukur dari gambar referensi
+//     (1 tile = 32 px internal = 56.7 px di gambar referensi).
+//   • Preset boleh memakai kelima bentuk renderer: balok, silinder, kerucut,
+//     bola, cakram (+ daun), dan garis tepi 1px yang meniru outline referensi.
 //
-// ATURAN: semua angka kelipatan 0.1 (docs/01 §4). Tidak ada angka acak —
-// semua bagian ditulis eksplisit supaya hasil di prototipe dan di APK identik
+// Aturan angka: SEMUA bagian ditulis eksplisit (tanpa loop/angka acak) supaya
+// prototipe web dan APK menghasilkan gambar yang sama
 // (lihat docs/04-KONTRAK-RENDERER.md).
-//
-// 2026-10-29 (permintaan user): jumlah bagian DISEDERHANAKAN. Bagian yang dulu
-// ditumpuk dari banyak balok kecil sekarang memakai silinder/kerucut, mis.
-// rak buku 22 balok -> 9, lampu meja 5 -> 3, tanaman 7 -> 5, jendela 25 -> 19.
 
 import type { SceneObject } from './types'
+
+type Bentuk = 'balok' | 'silinder' | 'kerucut' | 'bola' | 'cakram' | 'daun'
 
 interface Bahan {
   e: number
@@ -25,8 +26,9 @@ interface Bahan {
   sw: number
   sz: number
   style: string
-  bentuk?: 'silinder' | 'kerucut' | 'bola' | 'cakram'
+  bentuk?: Bentuk
   puncak?: number
+  miring?: number
 }
 
 export interface Preset {
@@ -39,200 +41,361 @@ export interface Preset {
   bagian: Bahan[]
 }
 
-const b = (e: number, w: number, z: number, se: number, sw: number, sz: number,
-  style: string, bentuk?: 'silinder' | 'kerucut' | 'bola' | 'cakram', puncak?: number): Bahan =>
-  ({ e, w, z, se, sw, sz, style, ...(bentuk ? { bentuk } : {}), ...(puncak !== undefined ? { puncak } : {}) })
+const b = (
+  e: number, w: number, z: number,
+  se: number, sw: number, sz: number,
+  style: string,
+  bentuk?: Bentuk, puncak?: number, miring?: number,
+): Bahan => ({
+  e, w, z, se, sw, sz, style,
+  ...(bentuk ? { bentuk } : {}),
+  ...(puncak !== undefined ? { puncak } : {}),
+  ...(miring !== undefined ? { miring } : {}),
+})
 
-/** satu blok buku per rak (bukan puluhan buku kecil) supaya jumlah objek kecil */
-const blokBuku = (e: number, w: number, z: number, lebar: number, style: string): Bahan =>
-  b(e, w, z, lebar, 0.9, 0.9, style)
+/** satu buku berdiri di rak */
+const buku = (e: number, z: number, tebal: number, tinggi: number, style: string, w = 0.2): Bahan =>
+  b(e, w, z, tebal, 0.62, tinggi, style)
 
 export const PRESETS: Preset[] = [
-  // ------------------------------------------------------------------ MEJA --
+  // ============================================================== MEJA GURU ==
+  // Referensi: meja kayu terakota panjang, laci di kanan (laci atas terbuka
+  // berisi berkas), panel belakang, kaki kiri tunggal.
   {
     id: 'meja-guru', nama: 'MEJA GURU',
-    ket: 'meja kayu + laci berkas (4.6 × 2.2)',
-    pasang: 'lantai', lebar: 4.6, dalam: 2.2,
+    ket: 'meja kayu + 2 laci + laci terbuka berisi berkas',
+    pasang: 'lantai', lebar: 6.4, dalam: 3.5,
     bagian: [
-      b(0, 0, 2.2, 4.6, 2.2, 0.2, 'night-wood'),           // papan atas
-      b(0.1, 0.1, 0, 0.2, 2.0, 2.2, 'wood-dark'),          // kaki kiri
-      b(4.3, 0.1, 0, 0.2, 2.0, 2.2, 'wood-dark'),          // kaki kanan
-      b(0.3, 0.1, 0.1, 4.0, 0.2, 2.0, 'wood'),             // sekat belakang
-      b(1.4, 2.0, 1.5, 1.6, 0.2, 0.7, 'wood'),             // muka laci
-      b(1.9, 2.15, 1.8, 0.6, 0.1, 0.1, 'metal-light'),     // gagang laci
-      b(1.5, 1.75, 1.5, 0.9, 0.7, 0.6, 'book-red'),        // berkas di laci
+      b(0, 0.6, 2.2, 6.4, 2.8, 0.16, 'kayu-terakota'),      // papan atas
+      b(0, 0.54, 2.2, 6.4, 0.06, 0.16, 'kayu-tua'),         // bibir depan meja
+      b(0, 3.34, 2.2, 6.4, 0.06, 0.16, 'kayu-tua'),         // bibir belakang
+      b(0.1, 0.62, 0, 0.28, 2.7, 2.2, 'kayu-tua'),          // kaki kiri
+      b(0.38, 0.62, 0.3, 4.1, 0.14, 1.9, 'kayu-tua'),       // panel belakang
+      b(0.1, 0.62, 2.04, 4.4, 0.12, 0.16, 'kayu-tua'),      // apron depan bawah atas
+      b(4.72, 1.0, 0, 1.52, 2.34, 2.2, 'kayu-terakota'),    // badan laci kanan
+      b(4.78, 0.94, 1.34, 1.4, 0.08, 0.46, 'kayu-tua'),      // muka laci atas
+      b(5.3, 0.88, 1.54, 0.36, 0.08, 0.06, 'metal-light'), // gagang laci atas
+      b(4.78, 0.94, 0.62, 1.4, 0.08, 0.46, 'kayu-tua'),       // muka laci bawah
+      b(5.3, 0.88, 0.8, 0.36, 0.08, 0.06, 'metal-light'), // gagang laci bawah
+      // laci atas TERBUKA (menonjol ke depan, isinya berkas)
+      b(4.78, 0.16, 1.02, 1.4, 0.8, 0.08, 'kayu-terakota'), // dasar laci
+      b(4.78, 0.1, 1.02, 1.4, 0.08, 0.34, 'kayu-tua'),      // muka laci
+      b(5.3, 0.04, 1.14, 0.36, 0.06, 0.05, 'metal-light'),   // gagang
+      b(4.92, 0.24, 1.1, 0.06, 0.62, 0.38, 'buku-krem'),      // berkas 1
+      b(5.16, 0.24, 1.1, 0.06, 0.62, 0.42, 'pastel-butter'), // berkas 2
+      b(5.4, 0.24, 1.1, 0.06, 0.62, 0.38, 'buku-biru'),      // berkas 3
+      b(5.64, 0.24, 1.1, 0.06, 0.62, 0.4, 'buku-krem'),    // berkas 4
     ],
   },
-  // ----------------------------------------------------------------- KURSI --
-  {
-    id: 'kursi-putar', nama: 'KURSI PUTAR',
-    ket: 'kursi kerja beroda (1.4 × 1.4)',
-    pasang: 'lantai', lebar: 1.4, dalam: 1.4,
-    bagian: [
-      b(0.1, 0.1, 0, 1.2, 1.2, 0.2, 'chair-dark', 'silinder'), // kaki cakram
-      b(0.55, 0.55, 0.2, 0.3, 0.3, 0.9, 'metal-light', 'silinder'), // tiang
-      b(0.1, 0.1, 1.1, 1.2, 1.2, 0.2, 'chair-dark'),       // dudukan
-      b(0.1, 0.1, 1.3, 1.2, 0.2, 1.2, 'chair-dark'),       // sandaran
-      b(0.1, 0.1, 2.4, 1.2, 0.2, 0.1, 'slate'),            // bantalan atas
-    ],
-  },
-  // -------------------------------------------------------------- RAK BUKU --
+
+  // =============================================================== RAK BUKU ==
+  // Referensi: rak 2 tingkat + 1 alas, kayu terakota, penuh buku berwarna.
   {
     id: 'rak-buku', nama: 'RAK BUKU',
-    ket: 'rak 3 tingkat + blok buku (3.0 × 1.0)',
-    pasang: 'lantai', lebar: 3.0, dalam: 1.0,
+    ket: 'rak 3 baris penuh buku warna-warni',
+    pasang: 'lantai', lebar: 4.2, dalam: 1.0,
     bagian: [
-      b(0, 0, 0, 0.2, 1.0, 3.8, 'wood'),                   // dinding kiri
-      b(2.8, 0, 0, 0.2, 1.0, 3.8, 'wood'),                 // dinding kanan
-      b(0, 0, 3.6, 3.0, 1.0, 0.2, 'wood'),                 // atap
-      b(0.2, 0, 1.2, 2.6, 1.0, 0.1, 'wood-dark'),          // rak 1
-      b(0.2, 0, 2.4, 2.6, 1.0, 0.1, 'wood-dark'),          // rak 2
-      blokBuku(0.3, 0.1, 0.2, 1.2, 'book-green'),
-      blokBuku(1.6, 0.1, 0.2, 1.0, 'book-red'),
-      blokBuku(0.3, 0.1, 1.3, 1.5, 'book-blue'),
-      blokBuku(0.4, 0.1, 2.5, 2.0, 'book-green'),
+      b(0, 0, 0, 0.18, 1.0, 4.4, 'kayu-tua'),               // sisi kiri
+      b(4.02, 0, 0, 0.18, 1.0, 4.4, 'kayu-tua'),            // sisi kanan
+      b(0, 0, 4.24, 4.2, 1.0, 0.16, 'kayu-terakota'),       // papan atas
+      b(0.18, 0, 0, 3.84, 1.0, 0.14, 'kayu-terakota'),      // alas bawah
+      b(0.18, 0, 1.46, 3.84, 1.0, 0.1, 'kayu-terakota'),    // rak tengah
+      b(0.18, 0, 2.86, 3.84, 1.0, 0.1, 'kayu-terakota'),    // rak atas
+      b(0.18, 0.04, 0.14, 3.84, 0.06, 4.1, 'kayu-tua'),     // panel belakang
+      // ---- buku baris bawah (z 0.14) ----
+      buku(0.24, 0.14, 0.24, 1.12, 'buku-biru'),
+      buku(0.5, 0.14, 0.2, 1.24, 'buku-krem'),
+      buku(0.72, 0.14, 0.28, 1.04, 'buku-salmon'),
+      buku(1.02, 0.14, 0.2, 1.26, 'buku-lav'),
+      buku(1.24, 0.14, 0.26, 1.1, 'daun-sage'),
+      buku(1.52, 0.14, 0.22, 1.28, 'buku-krem'),
+      buku(1.76, 0.14, 0.28, 1.06, 'buku-biru'),
+      buku(2.06, 0.14, 0.2, 1.2, 'buku-salmon'),
+      buku(2.28, 0.14, 0.26, 1.12, 'buku-lav'),
+      buku(2.56, 0.14, 0.22, 1.26, 'buku-krem'),
+      buku(2.8, 0.14, 0.28, 1.04, 'daun-sage'),
+      buku(3.1, 0.14, 0.2, 1.18, 'buku-biru'),
+      buku(3.32, 0.14, 0.26, 1.24, 'buku-salmon'),
+      buku(3.6, 0.14, 0.22, 1.08, 'buku-lav'),
+      buku(3.84, 0.14, 0.16, 1.2, 'buku-krem'),
+      // ---- buku baris tengah (z 1.56) ----
+      buku(0.24, 1.56, 0.26, 1.1, 'buku-krem'),
+      buku(0.52, 1.56, 0.2, 1.22, 'buku-biru'),
+      buku(0.74, 1.56, 0.28, 1.04, 'buku-lav'),
+      buku(1.04, 1.56, 0.22, 1.24, 'buku-salmon'),
+      buku(1.28, 1.56, 0.26, 1.08, 'buku-krem'),
+      buku(1.56, 1.56, 0.2, 1.2, 'daun-sage'),
+      buku(1.78, 1.56, 0.28, 1.12, 'buku-biru'),
+      buku(2.08, 1.56, 0.22, 1.26, 'buku-lav'),
+      buku(2.32, 1.56, 0.26, 1.02, 'buku-krem'),
+      buku(2.6, 1.56, 0.2, 1.22, 'buku-salmon'),
+      buku(2.82, 1.56, 0.28, 1.1, 'buku-biru'),
+      buku(3.12, 1.56, 0.22, 1.24, 'daun-sage'),
+      buku(3.36, 1.56, 0.26, 1.06, 'buku-krem'),
+      buku(3.64, 1.56, 0.2, 1.2, 'buku-lav'),
+      buku(3.86, 1.56, 0.14, 1.12, 'buku-salmon'),
+      // ---- buku baris atas (z 2.96) ----
+      buku(0.24, 2.96, 0.22, 1.1, 'buku-salmon'),
+      buku(0.48, 2.96, 0.26, 1.22, 'buku-krem'),
+      buku(0.76, 2.96, 0.2, 1.04, 'buku-biru'),
+      buku(0.98, 2.96, 0.28, 1.24, 'buku-lav'),
+      buku(1.28, 2.96, 0.22, 1.08, 'daun-sage'),
+      buku(1.52, 2.96, 0.26, 1.2, 'buku-krem'),
+      buku(1.8, 2.96, 0.2, 1.12, 'buku-salmon'),
+      buku(2.02, 2.96, 0.28, 1.26, 'buku-biru'),
+      buku(2.32, 2.96, 0.22, 1.02, 'buku-lav'),
+      buku(2.56, 2.96, 0.26, 1.22, 'buku-krem'),
+      buku(2.84, 2.96, 0.2, 1.1, 'daun-sage'),
+      buku(3.06, 2.96, 0.28, 1.24, 'buku-salmon'),
+      buku(3.36, 2.96, 0.22, 1.06, 'buku-biru'),
+      buku(3.6, 2.96, 0.26, 1.2, 'buku-lav'),
+      buku(3.88, 2.96, 0.12, 1.14, 'buku-krem'),
     ],
   },
-  // ------------------------------------------------------------ PAPAN TULIS --
+
+  // ============================================================ KURSI PUTAR ==
+  // Referensi: kursi kerja gelap, sandaran membulat, kaki bintang 5 + roda.
+  {
+    id: 'kursi-putar', nama: 'KURSI PUTAR',
+    ket: 'kursi kerja gelap, sandaran membulat + roda',
+    pasang: 'lantai', lebar: 2.4, dalam: 2.4,
+    bagian: [
+      b(0.52, 0.99, 0.1, 1.36, 0.3, 0.14, 'chair-dark'),        // lengan roda (e)
+      b(0.99, 0.52, 0.1, 0.3, 1.36, 0.14, 'chair-dark'),        // lengan roda (w)
+      b(0.34, 1.02, 0.08, 0.3, 0.26, 0.12, 'chair-dark'),       // lengan miring 1
+      b(1.66, 1.02, 0.08, 0.3, 0.26, 0.12, 'chair-dark'),       // lengan miring 2
+      b(1.02, 0.34, 0.08, 0.26, 0.3, 0.12, 'chair-dark'),       // lengan miring 3
+      b(1.02, 1.66, 0.08, 0.26, 0.3, 0.12, 'chair-dark'),       // lengan miring 4
+      b(1.0, 1.0, 0.04, 0.4, 0.4, 0.22, 'chair-dark', 'silinder'), // hub
+      b(0.3, 1.08, 0, 0.24, 0.24, 0.22, 'chair-dark', 'bola'),  // roda 1
+      b(1.86, 1.08, 0, 0.24, 0.24, 0.22, 'chair-dark', 'bola'), // roda 2
+      b(1.08, 0.3, 0, 0.24, 0.24, 0.22, 'chair-dark', 'bola'),  // roda 3
+      b(1.08, 1.86, 0, 0.24, 0.24, 0.22, 'chair-dark', 'bola'), // roda 4
+      b(1.06, 1.06, 0.22, 0.28, 0.28, 0.72, 'chair-dark', 'silinder'), // tiang
+      b(0.28, 0.28, 0.9, 1.84, 1.84, 0.26, 'chair-dark'),       // dudukan
+      b(0.34, 0.34, 1.16, 1.72, 1.72, 0.08, 'chair-dark'),      // bantalan dudukan
+      b(0.68, 1.92, 1.1, 1.05, 0.24, 1.24, 'chair-dark'),       // sandaran
+      b(0.78, 1.92, 2.3, 0.85, 0.24, 0.12, 'chair-dark'),       // ujung sandaran
+    ],
+  },
+
+  // ============================================================ PAPAN TULIS ==
+  // Referensi: papan putih krem, rangka metal, dudukan dua tiang + roda.
   {
     id: 'papan-tulis', nama: 'PAPAN TULIS',
-    ket: 'papan putih berkaki (4.4 × 1.0)',
-    pasang: 'lantai', lebar: 4.4, dalam: 1.0,
+    ket: 'papan putih krem beroda, rangka metal',
+    pasang: 'lantai', lebar: 4.9, dalam: 1.5,
     bagian: [
-      b(0.45, 0.4, 0, 0.25, 0.25, 2.4, 'metal-light', 'silinder'),  // kaki kiri
-      b(3.7, 0.4, 0, 0.25, 0.25, 2.4, 'metal-light', 'silinder'),   // kaki kanan
-      b(0.25, 0.3, 0.1, 0.7, 0.5, 0.2, 'metal-light'),     // tapak kiri
-      b(3.45, 0.3, 0.1, 0.7, 0.5, 0.2, 'metal-light'),     // tapak kanan
-      b(0, 0.35, 2.2, 4.4, 0.2, 2.6, 'board'),             // papan putih
-      b(0, 0.33, 2.1, 4.4, 0.1, 2.8, 'metal-light'),       // rangka
-      b(0, 0.2, 2.4, 0.4, 0.3, 0.2, 'metal-light'),        // baki spidol
+      b(0.3, 0.62, 1.86, 4.3, 0.08, 2.6, 'papan-krem'),          // muka papan
+      b(0.22, 0.56, 4.36, 4.46, 0.18, 0.14, 'metal-light'),      // rangka atas
+      b(0.22, 0.56, 1.82, 4.46, 0.18, 0.14, 'metal-light'),      // rangka bawah
+      b(0.22, 0.56, 1.82, 0.14, 0.18, 2.68, 'metal-light'),      // rangka kiri
+      b(4.54, 0.56, 1.82, 0.14, 0.18, 2.68, 'metal-light'),      // rangka kanan
+      b(0.14, 0.46, 1.68, 4.62, 0.3, 0.12, 'metal-light'),       // baki bawah
+      b(0.55, 0.98, 0, 0.12, 0.12, 1.84, 'metal-light'),         // tiang kiri
+      b(4.23, 0.98, 0, 0.12, 0.12, 1.84, 'metal-light'),         // tiang kanan
+      b(0.5, 0.24, 0.12, 0.12, 1.16, 0.1, 'metal-light'),        // kaki kiri
+      b(4.18, 0.24, 0.12, 0.12, 1.16, 0.1, 'metal-light'),       // kaki kanan
+      b(0.46, 1.3, 0, 0.2, 0.2, 0.14, 'chair-dark', 'bola'),     // roda kiri
+      b(4.14, 1.3, 0, 0.2, 0.2, 0.14, 'chair-dark', 'bola'),     // roda kanan
     ],
   },
-  // ------------------------------------------------------------- PAPAN GABUS --
+
+  // ============================================================ PAPAN GABUS ==
   {
     id: 'papan-gabus', nama: 'PAPAN GABUS',
-    ket: 'papan gabus + catatan (3.0, dinding kiri)',
-    pasang: 'dinding-kiri', lebar: 3.0, dalam: 0.2,
+    ket: 'papan gabus + catatan kecil (tempel di dinding)',
+    pasang: 'dinding-kanan', lebar: 2.9, dalam: 0.2,
     bagian: [
-      b(0, 0, 2.2, 3.0, 0.15, 2.2, 'cork'),                // papan
-      b(0, 0, 2.1, 3.0, 0.2, 0.15, 'wood'),                // rangka bawah
-      b(0, 0, 4.3, 3.0, 0.2, 0.15, 'wood'),                // rangka atas
-      b(0, 0, 2.1, 0.15, 0.2, 2.4, 'wood'),                // rangka kiri
-      b(2.85, 0, 2.1, 0.15, 0.2, 2.4, 'wood'),             // rangka kanan
-      b(0.4, 0.15, 3.3, 0.7, 0.1, 0.9, 'paper-night'),     // catatan 1
-      b(1.7, 0.15, 2.7, 0.7, 0.1, 0.9, 'paper-night'),     // catatan 2
+      b(0, 0, 2.02, 2.9, 0.16, 0.16, 'kayu-terakota'),      // rangka atas
+      b(0, 0, 0, 2.9, 0.16, 0.16, 'kayu-terakota'),         // rangka bawah
+      b(0, 0, 0.16, 0.16, 0.16, 1.86, 'kayu-terakota'),     // rangka kiri
+      b(2.74, 0, 0.16, 0.16, 0.16, 1.86, 'kayu-terakota'),  // rangka kanan
+      b(0.16, 0.02, 0.16, 2.58, 0.06, 1.86, 'gabus-tanah'), // permukaan gabus
+      b(0.36, 0.0, 1.08, 0.5, 0.05, 0.62, 'kertas-putih'),  // catatan 1
+      b(0.96, 0.0, 0.88, 0.6, 0.05, 0.76, 'kertas-putih'),  // catatan 2
+      b(1.5, 0.0, 1.26, 0.42, 0.05, 0.5, 'kertas-putih'),   // catatan 3
+      b(1.94, 0.0, 0.7, 0.56, 0.05, 0.68, 'kertas-putih'),  // catatan 4
+      b(1.14, 0.0, 0.42, 0.34, 0.05, 0.32, 'kertas-putih'), // catatan 5
+      b(0.55, 0.0, 1.44, 0.1, 0.05, 0.1, 'kaca-langit', 'bola'),   // peniti
+      b(1.2, 0.0, 1.28, 0.1, 0.05, 0.1, 'kaca-langit', 'bola'),    // peniti
+      b(1.66, 0.0, 1.42, 0.1, 0.05, 0.1, 'kaca-langit', 'bola'),   // peniti
+      b(2.16, 0.0, 1.06, 0.1, 0.05, 0.1, 'kaca-langit', 'bola'),   // peniti
+      b(1.26, 0.0, 0.72, 0.1, 0.05, 0.1, 'kaca-langit', 'bola'),   // peniti
     ],
   },
-  // ---------------------------------------------------------------- JENDELA --
+
+  // ================================================================ JENDELA ==
+  // Referensi: kusen putih tebal, kaca kiri terang + kanan langit biru,
+  // matahari & awan, ambang menonjol, tirai putih diikat, batang + cincin.
   {
     id: 'jendela', nama: 'JENDELA',
-    ket: 'jendela putih 3×2, langit + matahari, tirai krem (5.2, dinding kanan)',
-    pasang: 'dinding-kanan', lebar: 5.2, dalam: 0.5,
+    ket: 'jendela putih 2 panel + langit + tirai diikat',
+    pasang: 'dinding-kanan', lebar: 5.6, dalam: 0.7,
     bagian: [
-      // 1-4 KUSEN LUAR putih (bingkai tebal seperti referensi)
-      b(0.6, 0, 1.8, 4.0, 0.16, 0.25, 'board'),             // ambang bawah
-      b(0.6, 0, 4.95, 4.0, 0.16, 0.25, 'board'),            // ambang atas
-      b(0.6, 0, 1.8, 0.25, 0.16, 3.4, 'board'),             // kusen kiri
-      b(4.35, 0, 1.8, 0.25, 0.16, 3.4, 'board'),            // kusen kanan
-      // 5-6 KACA: dua pita (bawah lebih terang = ufuk, atas lebih biru)
-      b(0.85, 0.02, 2.05, 3.5, 0.06, 1.42, 'pastel-blue'),
-      b(0.85, 0.02, 3.59, 3.5, 0.06, 1.36, 'book-blue'),
-      // 7 MATAHARI bulat (cakram) di langit atas
-      b(3.35, 0.09, 4.30, 0.60, 0.05, 0.60, 'pastel-butter', 'cakram'),
-      // 8-10 AWAN: tiga cakram bertumpuk -> bentuk bergerombol
-      b(1.10, 0.09, 3.95, 0.55, 0.05, 0.55, 'paper', 'cakram'),
-      b(1.45, 0.09, 4.05, 0.65, 0.05, 0.65, 'paper', 'cakram'),
-      b(1.85, 0.09, 3.92, 0.50, 0.05, 0.50, 'paper', 'cakram'),
-      // 11-13 PALANG KUSEN (3 tegak + 1 datar dibuat dari 2 bagian)
-      b(1.90, 0.07, 2.05, 0.14, 0.09, 2.90, 'board'),
-      b(3.26, 0.07, 2.05, 0.14, 0.09, 2.90, 'board'),
-      b(0.85, 0.07, 3.47, 3.5, 0.09, 0.14, 'board'),
-      // 14 AMBANG JENDELA (meja) menonjol ke dalam ruangan
-      b(0.45, 0.16, 1.55, 4.3, 0.30, 0.25, 'paper'),
-      b(0.45, 0.44, 1.45, 4.3, 0.06, 0.12, 'paper-night'),  // bibir ambang
-      // 15-20 TIRAI KREM: lebar di atas & bawah, menyempit di tali
-      b(0.10, 0.20, 3.55, 0.85, 0.12, 1.70, 'paper'),       // atas kiri
-      b(0.28, 0.21, 3.05, 0.50, 0.11, 0.50, 'paper'),       // ikatan kiri
-      b(0.20, 0.20, 1.70, 0.70, 0.12, 1.35, 'paper'),       // bawah kiri
-      b(4.25, 0.20, 3.55, 0.85, 0.12, 1.70, 'paper'),       // atas kanan
-      b(4.42, 0.21, 3.05, 0.50, 0.11, 0.50, 'paper'),       // ikatan kanan
-      b(4.30, 0.20, 1.70, 0.70, 0.12, 1.35, 'paper'),       // bawah kanan
-      // 21-22 tali tirai
-      b(0.30, 0.17, 3.10, 0.44, 0.16, 0.16, 'paper-night'),
-      b(4.44, 0.17, 3.10, 0.44, 0.16, 0.16, 'paper-night'),
-      // 23-26 batang tirai (silinder) + 2 ujung bulat + 2 cincin
-      b(0.05, 0.16, 5.32, 5.1, 0.14, 0.14, 'metal-light', 'silinder'),
-      b(-0.0 + 0.05, 0.13, 5.30, 0.16, 0.2, 0.18, 'board'),
-      b(4.99, 0.13, 5.30, 0.16, 0.2, 0.18, 'board'),
-      b(0.45, 0.14, 5.30, 0.12, 0.18, 0.18, 'board'),
-      b(4.55, 0.14, 5.30, 0.12, 0.18, 0.18, 'board'),
+      // kusen luar
+      b(0, 0, 2.5, 0.26, 0.2, 4.9, 'kertas-putih'),
+      b(5.34, 0, 2.5, 0.26, 0.2, 4.9, 'kertas-putih'),
+      b(0, 0, 2.5, 5.6, 0.2, 0.26, 'kertas-putih'),
+      b(0, 0, 7.14, 5.6, 0.2, 0.26, 'kertas-putih'),
+      // kusen dalam (bilevel seperti referensi)
+      b(0.26, 0.02, 2.76, 0.16, 0.16, 4.38, 'tirai-putih'),
+      b(5.18, 0.02, 2.76, 0.16, 0.16, 4.38, 'tirai-putih'),
+      b(0.26, 0.02, 2.76, 5.08, 0.16, 0.16, 'tirai-putih'),
+      b(0.26, 0.02, 6.98, 5.08, 0.16, 0.16, 'tirai-putih'),
+      // kaca: kiri terang (pantulan), kanan langit biru
+      b(0.42, 0.0, 2.92, 2.14, 0.06, 4.06, 'kaca-terang'),
+      b(2.72, 0.0, 2.92, 2.3, 0.06, 4.06, 'kaca-langit'),
+      b(2.56, 0.0, 2.92, 0.16, 0.14, 4.06, 'kertas-putih'),   // palang tengah
+      // matahari + awan di panel kiri
+      b(0.78, 0.04, 6.0, 0.62, 0.04, 0.62, 'pastel-butter', 'cakram'),
+      b(0.86, 0.03, 5.86, 0.5, 0.04, 0.5, 'kertas-putih', 'cakram'),
+      b(1.2, 0.03, 5.78, 0.6, 0.04, 0.6, 'kertas-putih', 'cakram'),
+      b(1.5, 0.03, 5.9, 0.44, 0.04, 0.44, 'kertas-putih', 'cakram'),
+      // awan kecil di panel kanan
+      b(3.9, 0.03, 3.9, 0.5, 0.04, 0.5, 'kertas-putih', 'cakram'),
+      b(4.24, 0.03, 3.98, 0.42, 0.04, 0.42, 'kertas-putih', 'cakram'),
+      // ambang jendela menonjol ke dalam ruangan
+      b(0, 0.2, 2.34, 5.6, 0.5, 0.18, 'kertas-putih'),
+      b(0, 0.68, 2.26, 5.6, 0.06, 0.1, 'tirai-putih'),
+      // TIRAI kiri (lebar di atas & bawah, menyempit di ikatan)
+      b(0.0, 0.12, 5.0, 0.78, 0.14, 1.9, 'tirai-putih'),
+      b(0.18, 0.13, 4.5, 0.5, 0.13, 0.36, 'tirai-putih'),
+      b(0.06, 0.12, 2.66, 0.66, 0.14, 1.86, 'tirai-putih'),
+      b(0.3, 0.1, 4.42, 0.3, 0.16, 0.1, 'kertas-putih'),      // ikatan
+      // TIRAI kanan
+      b(4.82, 0.12, 5.0, 0.78, 0.14, 1.9, 'tirai-putih'),
+      b(5.12, 0.13, 4.5, 0.5, 0.13, 0.36, 'tirai-putih'),
+      b(4.88, 0.12, 2.66, 0.66, 0.14, 1.86, 'tirai-putih'),
+      b(4.98, 0.1, 4.42, 0.3, 0.16, 0.1, 'kertas-putih'),     // ikatan
+      // batang tirai + ujung bola + cincin
+      b(0.0, 0.09, 7.42, 5.6, 0.12, 0.12, 'kertas-putih', 'silinder'),
+      b(0.0, 0.06, 7.38, 0.22, 0.18, 0.22, 'kertas-putih', 'bola'),
+      b(5.38, 0.06, 7.38, 0.22, 0.18, 0.22, 'kertas-putih', 'bola'),
+      b(0.34, 0.08, 7.36, 0.1, 0.14, 0.16, 'tirai-putih'),
+      b(0.52, 0.08, 7.36, 0.1, 0.14, 0.16, 'tirai-putih'),
+      b(0.7, 0.08, 7.36, 0.1, 0.14, 0.16, 'tirai-putih'),
+      b(4.8, 0.08, 7.36, 0.1, 0.14, 0.16, 'tirai-putih'),
+      b(4.98, 0.08, 7.36, 0.1, 0.14, 0.16, 'tirai-putih'),
+      b(5.16, 0.08, 7.36, 0.1, 0.14, 0.16, 'tirai-putih'),
     ],
   },
-  // ------------------------------------------------------------ LAMPU MEJA --
+
+  // ============================================================= LAMPU MEJA ==
   {
     id: 'lampu-meja', nama: 'LAMPU MEJA',
-    ket: 'lampu belajar (1.0 × 1.0)',
-    pasang: 'lantai', lebar: 1.0, dalam: 1.0,
-    bagian: [
-      b(0.1, 0.1, 0, 0.8, 0.8, 0.15, 'slate', 'silinder'),      // alas
-      b(0.4, 0.4, 0.15, 0.2, 0.2, 1.6, 'metal-light', 'silinder'), // batang
-      b(0.05, 0.05, 1.6, 0.9, 0.9, 0.7, 'chair-dark', 'kerucut', 0.45), // kap
-    ],
-  },
-  // ------------------------------------------------------------------ TANAMAN --
-  {
-    id: 'tanaman-pot', nama: 'TANAMAN POT',
-    ket: 'tanaman hias di pot terakota (1.4 × 1.4)',
-    pasang: 'lantai', lebar: 1.4, dalam: 1.4,
-    bagian: [
-      b(0.3, 0.3, 0, 0.8, 0.8, 0.7, 'terracotta', 'kerucut', 1.15), // pot
-      b(0.6, 0.6, 0.7, 0.15, 0.15, 1.3, 'plant', 'silinder'),      // batang
-      b(0.3, 0.35, 1.3, 0.8, 0.7, 0.7, 'plant', 'kerucut', 0.2),   // daun bawah
-      b(0.45, 0.5, 1.8, 0.6, 0.5, 0.6, 'plant', 'kerucut', 0.1),   // daun atas
-    ],
-  },
-  // ------------------------------------------------------------ TEMPAT SAMPAH --
-  {
-    id: 'tempat-sampah', nama: 'TEMPAT SAMPAH',
-    ket: 'keranjang sampah + kertas (1.2 × 1.2)',
+    ket: 'lampu meja gelap, kap membulat, bola lampu hangat',
     pasang: 'lantai', lebar: 1.2, dalam: 1.2,
     bagian: [
-      b(0.1, 0.1, 0, 1.0, 1.0, 1.2, 'slate', 'kerucut', 1.1),  // badan (melebar ke atas)
-      b(0.35, 0.35, 1.1, 0.3, 0.3, 0.2, 'paper'),              // kertas penyok
-      b(0.6, 0.4, 1.1, 0.25, 0.25, 0.18, 'paper-night'),
+      b(0.1, 0.1, 0, 1.0, 1.0, 0.12, 'chair-dark', 'silinder'),   // alas bulat
+      b(0.52, 0.52, 0.1, 0.18, 0.18, 1.28, 'chair-dark', 'silinder'), // tiang
+      b(0.42, 0.42, 1.32, 0.38, 0.38, 0.2, 'chair-dark', 'silinder'), // sendi
+      b(0.5, 0.5, 1.46, 0.16, 0.16, 0.34, 'chair-dark'),          // lengan atas
+      b(0.12, 0.16, 1.62, 0.92, 0.92, 0.62, 'chair-dark', 'kerucut', 0.3), // kap
+      b(0.4, 0.44, 1.58, 0.36, 0.36, 0.28, 'pastel-butter', 'bola'),       // bola lampu
     ],
   },
-  // ------------------------------------------------------------------ LAPTOP --
+
+  // ============================================================ TANAMAN POT ==
+  {
+    id: 'tanaman-pot', nama: 'TANAMAN POT',
+    ket: 'pot terakota + 7 daun panjang',
+    pasang: 'lantai', lebar: 1.9, dalam: 1.9,
+    bagian: [
+      b(0.18, 0.18, 0, 1.54, 1.54, 1.24, 'terracotta', 'kerucut', 1.22), // badan pot
+      b(0.06, 0.06, 1.2, 1.78, 1.78, 0.22, 'terracotta', 'silinder'),    // bibir pot
+      b(0.22, 0.22, 1.34, 1.46, 1.46, 0.1, 'wood-dark', 'silinder'),     // tanah
+      b(0.94, 0.94, 1.4, 2.0, 0.42, 1.1, 'daun-sage', 'daun', undefined, 96),
+      b(0.94, 0.94, 1.4, 2.1, 0.42, 1.1, 'daun-gelap', 'daun', undefined, 74),
+      b(0.94, 0.94, 1.4, 1.9, 0.42, 1.1, 'daun-sage', 'daun', undefined, 118),
+      b(0.96, 0.96, 1.42, 1.6, 0.4, 1.0, 'daun-gelap', 'daun', undefined, 140),
+      b(0.96, 0.96, 1.42, 1.7, 0.4, 1.0, 'daun-sage', 'daun', undefined, 52),
+      b(1.0, 1.0, 1.46, 1.3, 0.38, 0.9, 'daun-gelap', 'daun', undefined, 166),
+      b(1.0, 1.0, 1.46, 1.35, 0.38, 0.9, 'daun-sage', 'daun', undefined, 26),
+    ],
+  },
+
+  // =========================================================== TEMPAT SAMPAH ==
+  {
+    id: 'tempat-sampah', nama: 'TEMPAT SAMPAH',
+    ket: 'tong sampah gelap + 2 kertas remuk',
+    pasang: 'lantai', lebar: 2.2, dalam: 1.4,
+    bagian: [
+      b(0.1, 0.1, 0, 1.0, 1.0, 1.32, 'slate', 'kerucut', 1.16),   // badan
+      b(0.05, 0.05, 1.26, 1.1, 1.1, 0.14, 'metal', 'silinder'),   // bibir
+      b(0.16, 0.16, 1.3, 0.88, 0.88, 0.08, 'chair-dark', 'silinder'), // lubang
+      b(1.3, 0.16, 0, 0.3, 0.26, 0.22, 'kertas-putih', 'bola'),   // kertas remuk 1
+      b(1.62, 0.4, 0, 0.24, 0.22, 0.2, 'kertas-putih', 'bola'),   // kertas remuk 2
+    ],
+  },
+
+  // ================================================================= LAPTOP ==
   {
     id: 'laptop', nama: 'LAPTOP',
-    ket: 'laptop terbuka (1.8 × 1.4)',
-    pasang: 'lantai', lebar: 1.8, dalam: 1.4,
+    ket: 'laptop terbuka, layar kertas + diagram',
+    pasang: 'lantai', lebar: 2.0, dalam: 1.8,
     bagian: [
-      b(0, 0.2, 0, 1.8, 1.1, 0.1, 'metal'),                // badan bawah
-      b(0.05, 0.3, 0.1, 1.7, 0.9, 0.05, 'slate'),          // papan tombol
-      b(0.1, 0.05, 0.1, 1.6, 0.15, 1.1, 'metal-light'),    // layar
-      b(0.2, 0.08, 0.25, 1.4, 0.05, 0.8, 'paper-night'),   // isi layar
+      b(0.05, 0.1, 0, 1.9, 1.5, 0.16, 'metal-light'),            // badan
+      b(0.14, 0.18, 0.16, 1.6, 0.86, 0.05, 'slate'),             // papan tombol
+      b(0.66, 1.06, 0.16, 0.62, 0.3, 0.05, 'metal'),             // trackpad
+      b(0.05, 1.5, 0.16, 1.9, 0.14, 1.12, 'metal-light'),        // punggung layar
+      b(0.12, 1.44, 0.26, 1.76, 0.06, 0.92, 'kertas-putih'),     // layar
+      b(0.4, 1.42, 0.5, 0.42, 0.04, 0.42, 'kaca-terang', 'cakram'), // diagram
+      b(0.98, 1.42, 0.48, 0.5, 0.04, 0.12, 'slate'),             // garis diagram
     ],
   },
-  // ------------------------------------------------------------ TUMPUKAN BUKU --
+
+  // ========================================================= TUMPUKAN BUKU ==
   {
     id: 'tumpukan-buku', nama: 'TUMPUKAN BUKU',
-    ket: '3 buku bertumpuk (1.6 × 1.2)',
-    pasang: 'lantai', lebar: 1.6, dalam: 1.2,
+    ket: '4 buku bertumpuk, warna berbeda',
+    pasang: 'lantai', lebar: 1.5, dalam: 1.1,
     bagian: [
-      b(0, 0, 0, 1.6, 1.2, 0.2, 'book-red'),
-      b(0.1, 0.1, 0.2, 1.4, 1.0, 0.2, 'paper-night'),
-      b(0.05, 0.05, 0.4, 1.5, 1.1, 0.2, 'book-green'),
+      b(0.06, 0.06, 0, 1.38, 1.0, 0.1, 'buku-biru'),          // sampul bawah
+      b(0.1, 0.09, 0.1, 1.3, 0.94, 0.14, 'buku-krem'),        // halaman
+      b(0.08, 0.05, 0.24, 1.34, 1.02, 0.08, 'buku-salmon'),   // sampul
+      b(0.12, 0.08, 0.32, 1.26, 0.96, 0.16, 'buku-krem'),     // halaman
+      b(0.1, 0.05, 0.48, 1.3, 1.0, 0.08, 'buku-lav'),         // sampul
+      b(0.16, 0.1, 0.56, 1.18, 0.9, 0.16, 'buku-krem'),       // halaman
+      b(0.14, 0.07, 0.72, 1.22, 0.94, 0.08, 'daun-sage'),     // sampul atas
     ],
   },
-  // -------------------------------------------------------------- KALKULATOR --
+
+  // ============================================================ KALKULATOR ==
   {
     id: 'kalkulator', nama: 'KALKULATOR',
-    ket: 'kalkulator meja (0.8 × 0.6)',
-    pasang: 'lantai', lebar: 0.8, dalam: 0.6,
+    ket: 'kalkulator gelap + 12 tombol + layar hijau',
+    pasang: 'lantai', lebar: 1.2, dalam: 0.9,
     bagian: [
-      b(0, 0, 0, 0.8, 0.6, 0.15, 'slate'),
-      b(0.05, 0.05, 0.15, 0.7, 0.3, 0.05, 'paper-night'),
+      b(0, 0, 0, 1.2, 0.9, 0.24, 'chair-dark'),                  // badan
+      b(0.1, 0.1, 0.24, 1.0, 0.24, 0.05, 'daun-sage'),           // layar
+      b(0.1, 0.42, 0.24, 0.16, 0.12, 0.05, 'slate'),             // tombol 1
+      b(0.32, 0.42, 0.24, 0.16, 0.12, 0.05, 'slate'),            // tombol 2
+      b(0.54, 0.42, 0.24, 0.16, 0.12, 0.05, 'slate'),            // tombol 3
+      b(0.76, 0.42, 0.24, 0.16, 0.12, 0.05, 'slate'),            // tombol 4
+      b(0.1, 0.58, 0.24, 0.16, 0.12, 0.05, 'slate'),             // tombol 5
+      b(0.32, 0.58, 0.24, 0.16, 0.12, 0.05, 'slate'),            // tombol 6
+      b(0.54, 0.58, 0.24, 0.16, 0.12, 0.05, 'slate'),            // tombol 7
+      b(0.76, 0.58, 0.24, 0.16, 0.12, 0.05, 'slate'),            // tombol 8
+      b(0.1, 0.74, 0.24, 0.16, 0.12, 0.05, 'slate'),             // tombol 9
+      b(0.32, 0.74, 0.24, 0.16, 0.12, 0.05, 'slate'),            // tombol 10
+      b(0.54, 0.74, 0.24, 0.16, 0.12, 0.05, 'slate'),            // tombol 11
+      b(0.76, 0.74, 0.24, 0.16, 0.12, 0.05, 'amber'),            // tombol 12
+    ],
+  },
+
+  // =========================================================== BINGKAI FOTO ==
+  {
+    id: 'bingkai-foto', nama: 'BINGKAI FOTO',
+    ket: 'bingkai kayu + matte kertas (tempel di dinding)',
+    pasang: 'dinding-kanan', lebar: 1.1, dalam: 0.16,
+    bagian: [
+      b(0, 0, 1.02, 1.1, 0.14, 0.14, 'kayu-terakota'),        // sisi atas
+      b(0, 0, 0, 1.1, 0.14, 0.14, 'kayu-terakota'),           // sisi bawah
+      b(0, 0, 0.14, 0.14, 0.14, 0.88, 'kayu-terakota'),       // sisi kiri
+      b(0.96, 0, 0.14, 0.14, 0.14, 0.88, 'kayu-terakota'),    // sisi kanan
+      b(0.14, 0.02, 0.14, 0.82, 0.06, 0.88, 'kertas-putih'),  // matte
+      b(0.26, 0.0, 0.28, 0.58, 0.05, 0.6, 'gabus-tanah'),     // gambar dalam
     ],
   },
 ]
@@ -241,7 +404,8 @@ export function presetOf(id: string): Preset | undefined {
   return PRESETS.find(p => p.id === id)
 }
 
-const snap = (v: number) => Math.round(v * 10) / 10
+// ATURAN 32 PIKsel DIHAPUS (2026-10-29): angka preset boleh sampai 3 desimal
+const snap = (v: number) => Math.round(v * 1000) / 1000
 
 /** total bagian semua preset (dipakai uji & ringkasan dokumen) */
 export function jumlahBagian(): number {
@@ -271,13 +435,14 @@ export function buatPreset(opts: {
     label: `${nama} ${i + 1}`,
     pos: { e: snap(e0 + bag.e), w: snap(w0 + bag.w), z: snap(z0 + bag.z) },
     size: {
-      e: Math.max(0.1, snap(bag.se)),
-      w: Math.max(0.1, snap(bag.sw)),
-      z: Math.max(0.1, snap(bag.sz)),
+      e: Math.max(0.01, snap(bag.se)),
+      w: Math.max(0.01, snap(bag.sw)),
+      z: Math.max(0.01, snap(bag.sz)),
     },
     style: bag.style,
     ...(bag.bentuk ? { bentuk: bag.bentuk } : {}),
     ...(bag.puncak !== undefined ? { puncak: bag.puncak } : {}),
+    ...(bag.miring !== undefined ? { miring: bag.miring } : {}),
     app: null,
     layer: 'main' as const,
     grup,

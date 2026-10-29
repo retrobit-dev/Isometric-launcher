@@ -142,12 +142,13 @@ export function storageWorks(): boolean {
 /**
  * NORMALISASI sebelum scene keluar dari editor (file .isola-scene.json,
  * EXPORT/UNDUH, dan salin JSON). Tujuannya supaya APK tidak pernah menerima
- * variasi liar: semua angka kelipatan 0.1, ukuran minimal 0.1, id unik,
+ * variasi liar: semua angka maks 3 desimal (aturan 32 px dihapus 2026-10-29),
+ * ukuran minimal 0.01, id unik,
  * label terisi, urutan tumpukan bulat, dan urutan array stabil
  * (latar dulu, lalu urutan tumpukan). Lihat docs/04-KONTRAK-RENDERER.md.
  */
 export function normalisasiScene(scene: Scene): Scene {
-  const snap = (v: number) => Math.round((Number.isFinite(v) ? v : 0) * 10) / 10
+  const snap = (v: number) => Math.round((Number.isFinite(v) ? v : 0) * 1000) / 1000
   const dipakai = new Set<string>()
   const objects = scene.objects.map((o, i) => {
     let id = (o.id ?? '').trim() || `objek-${i + 1}`
@@ -159,9 +160,9 @@ export function normalisasiScene(scene: Scene): Scene {
       label: (o.label ?? '').trim() || id,
       pos: { e: snap(o.pos.e), w: snap(o.pos.w), z: snap(o.pos.z) },
       size: {
-        e: Math.max(0.1, snap(o.size.e)),
-        w: Math.max(0.1, snap(o.size.w)),
-        z: Math.max(0.1, snap(o.size.z)),
+        e: Math.max(0.01, snap(o.size.e)),
+        w: Math.max(0.01, snap(o.size.w)),
+        z: Math.max(0.01, snap(o.size.z)),
       },
       ...(o.urutan === undefined ? {} : { urutan: Math.round(o.urutan) }),
     }
@@ -424,9 +425,10 @@ export function validateScene(data: unknown): Scene | null {
       label: typeof ob.label === 'string' ? ob.label : ob.id,
       pos: { e: num(ob.pos.e), w: num(ob.pos.w), z: num(ob.pos.z) },
       size: {
-        e: Math.max(0.1, num(ob.size.e)),
-        w: Math.max(0.1, num(ob.size.w)),
-        z: Math.max(0.1, num(ob.size.z)),
+        // ATURAN 32 PIKsel DIHAPUS (2026-10-29): ukuran boleh sekecil 0.01 tile
+        e: Math.max(0.01, num(ob.size.e)),
+        w: Math.max(0.01, num(ob.size.w)),
+        z: Math.max(0.01, num(ob.size.z)),
       },
       style: typeof ob.style === 'string' || (typeof ob.style === 'object' && ob.style !== null)
         ? ob.style as SceneObject['style']

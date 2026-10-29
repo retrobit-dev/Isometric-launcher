@@ -145,7 +145,13 @@ Aturan wajib:
 
 ## 4a. Bentuk tambahan: silinder & kerucut
 
-Field `bentuk` pada objek: `balok` (default) · `silinder` · `kerucut` · `bola` · `cakram`.
+Field `bentuk` pada objek: `balok` (default) · `silinder` · `kerucut` · `bola` · `cakram` · `daun`.
+
+**Garis tepi (outline) — 2026-10-29.** Setiap bidang digambar dengan garis
+1 px internal yang warnanya diturunkan dari warna isi:
+`outline = isi + (INK − isi) × 0.34`, `INK = #332b3d`, `lineJoin = round`.
+Bisa dimatikan per objek dengan `tepi: false`. Ini yang meniru outline tipis
+pada gambar referensi.
 `bentuk` HANYA mengubah cara menggambar; footprint (`size.e × size.w`) tetap
 kotak pembatas, jadi hit-test, bbox, grup, tumpukan, dan kunci tidak berubah.
 
@@ -155,6 +161,7 @@ kotak pembatas, jadi hit-test, bbox, grup, tumpukan, dan kunci tidak berubah.
 | `kerucut` | alas elips, atas elips berskala `puncak` (default `0` = runcing) | 24 segmen trapesium, tutup atas hanya bila `puncak > 0` |
 | `bola` | bulatan; jari-jari dunia $r = \min(size.e, size.w, size.z)/2$ | 3 lingkaran bertone: gelap (R), badan (0.86R, geser −0.1R), sorot (0.5R, geser −0.3R); R = 1.31·HW·r |
 | `cakram` | bulatan **datar** menghadap ruangan (bidang e-z) — matahari, jam, hiasan | 24 titik dunia (re = size.e/2, rz = size.z/2) → poligon; 3 lapis tone (left → top 0.82 + geser, right 0.34 + geser) |
+| `daun` | daun lonjong berujung runcing di bidang e-z | pangkal di `pos`; panjang = `size.e`, lebar = `size.z`, sumbu diputar `miring` derajat (90 = tegak, 0 = ke +e). Setengah-lebar = `(size.z/2)·sin(πs)^0.75·(1−0.35s)`, 17 titik per sisi; badan tone `left`, sorotan `top` pada 0.5 lebar digeser (−1,−1) px |
 
 Aturan wajib (harus identik di APK):
 

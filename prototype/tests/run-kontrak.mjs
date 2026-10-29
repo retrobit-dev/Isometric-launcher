@@ -37,7 +37,8 @@ function cek(nama, syarat, detail = '') {
   }
 }
 
-const kelipatan01 = (v) => Math.abs(Math.round(v * 10) - v * 10) < 1e-6
+// ATURAN 32 PIKsel DIHAPUS (2026-10-29): angka bebas sampai 3 desimal
+const kelipatan01 = (v) => Math.abs(Math.round(v * 1000) - v * 1000) < 1e-6
 
 try {
   const store = await bundle('scene/store.ts')
@@ -58,13 +59,14 @@ try {
   }
   const bersih = store.normalisasiScene(kotor)
   const angka = bersih.objects.flatMap(o => [o.pos.e, o.pos.w, o.pos.z, o.size.e, o.size.w, o.size.z])
-  cek('semua angka kelipatan 0.1', angka.every(kelipatan01), angka.join(', '))
-  cek('ukuran minimal 0.1', bersih.objects.every(o => o.size.e >= 0.1 && o.size.w >= 0.1 && o.size.z >= 0.1))
+  cek('semua angka maksimal 3 desimal (bebas, bukan kelipatan 0.1)', angka.every(kelipatan01), angka.join(', '))
+  cek('ukuran minimal 0.01', bersih.objects.every(o => o.size.e >= 0.01 && o.size.w >= 0.01 && o.size.z >= 0.01))
   cek('id unik', new Set(bersih.objects.map(o => o.id)).size === bersih.objects.length)
   cek('label tidak kosong', bersih.objects.every(o => o.label.length > 0))
   cek('urutan bulat', bersih.objects.every(o => o.urutan === undefined || Number.isInteger(o.urutan)))
   cek('latar di urutan pertama', bersih.objects[0].latar === true)
-  cek('meta hanya 3 field', Object.keys(bersih.meta).every(k => ['locked', 'savedAt', 'latarMigrasi'].includes(k)),
+  cek('meta hanya field yang dikenal',
+    Object.keys(bersih.meta).every(k => ['locked', 'savedAt', 'latarMigrasi', 'updatedAt', 'latarGambar', 'latarMode'].includes(k)),
     Object.keys(bersih.meta).join(','))
 
   // ------------------------------------------------------------- 2. katalog
@@ -81,7 +83,7 @@ try {
     })
     bagianTotal += bagian.length
     const sah = bagian.length > 0
-      && bagian.every(o => o.size.e >= 0.1 && o.size.w >= 0.1 && o.size.z >= 0.1)
+      && bagian.every(o => o.size.e >= 0.01 && o.size.w >= 0.01 && o.size.z >= 0.01)
       && bagian.every(o => o.pos.e >= 0 && o.pos.w >= 0 && o.pos.z >= 0)
       && bagian.every(o => kelipatan01(o.pos.e) && kelipatan01(o.pos.w) && kelipatan01(o.pos.z)
         && kelipatan01(o.size.e) && kelipatan01(o.size.w) && kelipatan01(o.size.z))
@@ -89,7 +91,7 @@ try {
       && bagian.every(o => o.grup === 'grup-uji')
       // bentuk hanya boleh balok (tidak diisi) / silinder / kerucut
       && bagian.every(o => o.bentuk === undefined
-        || ['silinder', 'kerucut', 'bola', 'cakram'].includes(o.bentuk))
+        || ['silinder', 'kerucut', 'bola', 'cakram', 'daun'].includes(o.bentuk))
       // puncak hanya untuk kerucut, nilainya >= 0 dan 2 desimal
       && bagian.every(o => o.puncak === undefined
         || (o.bentuk === 'kerucut' && o.puncak >= 0

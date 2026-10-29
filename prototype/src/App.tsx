@@ -18,7 +18,11 @@ const DEV_RES_W = 2560
 const BEZEL = 16
 
 
-const snap = (v: number) => Math.round(v * 10) / 10 // kelipatan 0.1 (permintaan user)
+// ATURAN 32 PIKsel DIHAPUS (permintaan user 2026-10-29: "hapus aturan 32 piksel
+// pada objek"): dulu semua posisi/ukuran dipaksa kelipatan 0.1 tile (= 3.2 px)
+// karena 1 tile = 32 px. Sekarang bebas sampai 1/1000 tile (~0.02 px) supaya
+// objek bisa diletakkan & diukur persis seperti referensi.
+const snap = (v: number) => Math.round(v * 1000) / 1000
 
 export default function App() {
   const canvasRef = useRef<HTMLCanvasElement>(null)
@@ -468,7 +472,7 @@ export default function App() {
   const tambahPreset = (preset: Preset) => {
     const gid = `grup-${Date.now().toString(36).slice(-4)}`
     const idAwal = `${preset.id}-${Date.now().toString(36).slice(-3)}`
-    const snap2 = (v: number) => Math.round(v * 10) / 10
+    const snap2 = (v: number) => Math.round(v * 1000) / 1000
     // objek dinding (jendela, papan gabus) otomatis menempel ke dinding latar
     // yang sesuai supaya tidak perlu digeser manual
     const dinding = sceneRef.current.objects.find(o =>
@@ -563,8 +567,8 @@ export default function App() {
           ...o,
           pos: {
             ...o.pos,
-            e: Math.round((o.pos.e + de) * 10) / 10,
-            w: Math.round((o.pos.w + dw) * 10) / 10,
+            e: Math.round((o.pos.e + de) * 1000) / 1000,
+            w: Math.round((o.pos.w + dw) * 1000) / 1000,
           },
         }
       }),
@@ -1017,15 +1021,15 @@ export default function App() {
           onMove={(de, dw) => patchObject(selected.id, {
             pos: {
               ...selected.pos,
-              e: Math.round((selected.pos.e + de) * 10) / 10,
-              w: Math.round((selected.pos.w + dw) * 10) / 10,
+              e: Math.round((selected.pos.e + de) * 1000) / 1000,
+              w: Math.round((selected.pos.w + dw) * 1000) / 1000,
             },
           })}
           onResize={(de, dw, dz) => patchObject(selected.id, {
             size: {
-              e: Math.max(0.1, Math.round((selected.size.e + de) * 10) / 10),
-              w: Math.max(0.1, Math.round((selected.size.w + dw) * 10) / 10),
-              z: Math.max(0.1, Math.round((selected.size.z + dz) * 10) / 10),
+              e: Math.max(0.01, Math.round((selected.size.e + de) * 1000) / 1000),
+              w: Math.max(0.01, Math.round((selected.size.w + dw) * 1000) / 1000),
+              z: Math.max(0.01, Math.round((selected.size.z + dz) * 1000) / 1000),
             },
           })}
           onCycleStyle={() => {

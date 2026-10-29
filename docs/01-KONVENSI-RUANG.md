@@ -99,7 +99,12 @@ Sisi **S tidak berdinding** (sisi kamera).
 
 - `e` = jumlah tile dari pojok **U** ke arah **T** (sepanjang DT). Rentang `0..E`
 - `w` = jumlah tile dari pojok **U** ke arah **B** (sepanjang DB). Rentang `0..W`
-- Penulisan: `(e=6, w=2)` atau ringkas `(6, 2)`. Pecahan **kelipatan 0.1** boleh: `(6.5, 2.3)` — snap editor = 0.1
+- Penulisan: `(e=6, w=2)` atau ringkas `(6, 2)`.
+- **ATURAN 32 PIKsel DIHAPUS (2026-10-29, permintaan user).** Dulu semua
+  angka dipaksa kelipatan 0.1 tile (= 3.2 px, sebab 1 tile = 32 px). Sekarang
+  posisi & ukuran **bebas sampai 3 desimal** (`0.001` tile ≈ 0.03 px) dan
+  ukuran boleh sekecil `0.01`. Tujuannya supaya objek bisa diletakkan dan
+  diukur persis seperti gambar referensi. Tidak ada lagi snap grid.
 - Proyeksi ke layar: `x = OX + (e−w)×16` · `y = OY + (e+w)×8` · tinggi: `y −= z×16`
 - Ukuran objek ditulis `panjang×lebar` dalam tile, contoh meja `3×1.5` = 3 tile searah e, 1.5 tile searah w
 
