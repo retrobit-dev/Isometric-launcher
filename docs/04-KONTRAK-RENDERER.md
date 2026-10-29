@@ -401,6 +401,7 @@ laptop bagian dalam) diletakkan di **sisi w besar**, bukan w kecil. Salah sisi
 | `rak-buku` | 4,2 × 1,0 | papan 0,18 / 1,62 / 3,22 |
 | `jendela` | 6,4 × 0,7 | lihat §4f |
 | `lampu-meja` | 1,2 × 1,2 | kap kerucut `puncak 0,42` di 1,56–2,08 |
+| `rak-buku` | 3,0 × 0,6 (tinggi 4,82) | papan belakang 0,06 + 2 sekat 0,08 + alas & 2 papan 0,12 + papan atas 0,14 (`kayu-tua`/`kayu-meja`), 24 buku tebal 0,26–0,32 tinggi 1,06–1,30 di z 0,12 / 1,68 / 3,12; `pasang: dinding-kiri` (`e` = kedalaman, `w` = lebar) |
 | `tanaman-pot` | 1,8 × 1,8 | pot 0–1,34 (`bata`), batang z 1,16–4,56, **18 daun membulat** (`bulat: 1`) dalam 3 tingkat: bawah z 2,38–2,55 (5), tengah z 3,32–3,52 (6), atas z 4,22–4,46 (7), ujung ±6,4 |
 | `tempat-sampah` | 2,2 × 1,4 | tong 1,24 + 2 kertas remuk |
 | `laptop` | 2,0 × 1,7 | 4×10 tombol + layar berisi 3 jendela |

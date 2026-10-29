@@ -294,6 +294,71 @@ export const PRESETS: Preset[] = [
         { jenis: 'ayun', laju: 0.18, besar: 0.8, fase: 0.42 }),
     ],
   },
+
+  // ============================================================== RAK BUKU ==
+  // Permintaan user 2026-10-29: "Continue" atas saran saya — dinding KIRI (DB)
+  // masih kosong total padahal semua isi ruangan menumpuk di kanan (jendela,
+  // meja, tanaman). Rak buku mengisi dinding kiri sekaligus jadi objek pertama
+  // yang "berfungsi": rencana pemetaan objek->aplikasi menyebut rak buku/materi
+  // = materi matematika SMA.
+  //
+  // PASANG DI DINDING KIRI (`pasang: 'dinding-kiri'`). Konsekuensi sumbu
+  // (lihat App.tsx tambahPreset): untuk dinding kiri, `e` = KEDALAMAN menjorok
+  // ke ruangan (0..0,60) dan `w` = LEBAR rak menyusuri dinding (0..3,00).
+  // Kamera melihat dari +e/+w, jadi muka rak yang terlihat = sisi e besar.
+  //
+  // Bentuk (31 bagian, urutan = urutan gambar):
+  //   1) papan belakang penuh (menempel dinding)
+  //   2) dua sekat samping + alas bawah + dua papan tengah + papan atas
+  //   3) BUKU sebagai bagian tersendiri — tinggi, tebal, dan warna berbeda
+  //      (bata, biru, zaitun, krem, lav, salmon, gelap) supaya rak tidak
+  //      tampak sebagai kotak kosong. Buku BERDIRI rapat di tiga papan
+  //      (z 0,12 / 1,68 / 3,12) dan di tiap papan ada satu celah berisi
+  //      TUMPUKAN buku berbaring (3 buah) — jadi rak terlihat terisi, bukan
+  //      deretan balok berjarak.
+  // Tinggi total 4,82 tile = di atas meja kerja (1,60) dan di bawah plafon.
+  {
+    id: 'rak-buku', nama: 'RAK BUKU',
+    ket: 'Rak buku 3 tingkat di dinding kiri, 17 buku berwarna; pasang dinding-kiri.',
+    pasang: 'dinding-kiri', lebar: 3.0, dalam: 0.6,
+    bagian: [
+      // --- 1. papan belakang (menempel dinding, digambar paling dulu) ---
+      b(0.00, 0.00, 0.00, 0.06, 3.00, 4.82, 'kayu-tua'),
+      // --- 2. rangka: sekat samping & papan ---
+      b(0.00, 0.00, 0.00, 0.60, 0.08, 4.82, 'kayu-tua'),   // sekat kiri
+      b(0.00, 2.92, 0.00, 0.60, 0.08, 4.82, 'kayu-tua'),   // sekat kanan
+      b(0.00, 0.08, 0.00, 0.60, 2.84, 0.12, 'kayu-meja'),  // alas bawah
+      b(0.00, 0.08, 1.56, 0.60, 2.84, 0.12, 'kayu-meja'),  // papan tingkat 1
+      b(0.00, 0.08, 3.00, 0.60, 2.84, 0.12, 'kayu-meja'),  // papan tingkat 2
+      b(0.00, 0.00, 4.68, 0.62, 3.00, 0.14, 'kayu-meja'),  // papan atas
+      // --- 3. BUKU: tiga papan diisi PENUH, berdiri rapat ---
+      // Angka ditulis eksplisit (tanpa loop) supaya renderer APK bisa meniru persis.
+      b(0.10, 0.14, 0.12, 0.36, 0.30, 1.30, 'buku-bata'),
+      b(0.10, 0.46, 0.12, 0.36, 0.26, 1.16, 'buku-biru'),
+      b(0.10, 0.74, 0.12, 0.36, 0.28, 1.24, 'buku-zaitun'),
+      b(0.10, 1.04, 0.12, 0.36, 0.32, 1.06, 'buku-krem'),
+      b(0.10, 1.38, 0.12, 0.36, 0.27, 1.20, 'buku-lav'),
+      b(0.10, 1.67, 0.12, 0.36, 0.29, 1.12, 'buku-salmon'),
+      b(0.10, 1.98, 0.12, 0.36, 0.30, 1.28, 'buku-gelap'),
+      b(0.10, 2.30, 0.12, 0.36, 0.26, 1.18, 'buku-bata'),
+      b(0.10, 0.14, 1.68, 0.36, 0.28, 1.24, 'buku-zaitun'),
+      b(0.10, 0.44, 1.68, 0.36, 0.32, 1.06, 'buku-krem'),
+      b(0.10, 0.78, 1.68, 0.36, 0.27, 1.20, 'buku-lav'),
+      b(0.10, 1.07, 1.68, 0.36, 0.29, 1.12, 'buku-salmon'),
+      b(0.10, 1.38, 1.68, 0.36, 0.30, 1.28, 'buku-gelap'),
+      b(0.10, 1.70, 1.68, 0.36, 0.26, 1.18, 'buku-bata'),
+      b(0.10, 1.98, 1.68, 0.36, 0.28, 1.30, 'buku-biru'),
+      b(0.10, 2.28, 1.68, 0.36, 0.32, 1.16, 'buku-zaitun'),
+      b(0.10, 0.14, 3.12, 0.36, 0.26, 1.16, 'buku-biru'),
+      b(0.10, 0.42, 3.12, 0.36, 0.28, 1.24, 'buku-zaitun'),
+      b(0.10, 0.72, 3.12, 0.36, 0.32, 1.06, 'buku-krem'),
+      b(0.10, 1.06, 3.12, 0.36, 0.27, 1.20, 'buku-lav'),
+      b(0.10, 1.35, 3.12, 0.36, 0.29, 1.12, 'buku-salmon'),
+      b(0.10, 1.66, 3.12, 0.36, 0.30, 1.28, 'buku-gelap'),
+      b(0.10, 1.98, 3.12, 0.36, 0.26, 1.18, 'buku-bata'),
+      b(0.10, 2.26, 3.12, 0.36, 0.28, 1.30, 'buku-biru'),
+    ],
+  },
 ]
 
 /**
