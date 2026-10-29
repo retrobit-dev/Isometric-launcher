@@ -68,6 +68,19 @@ export interface SceneObject {
   // SUB-FOLDER: id grup induk. Grup boleh bersarang (folder di dalam folder);
   // semua anggota satu grup memakai grupNama & grupInduk yang sama.
   grupInduk?: string
+  // BENTUK dasar objek (permintaan user 2026-10-29: silinder & kerucut supaya
+  // objek lebih mirip referensi). Default = 'balok'.
+  //   balok    = kotak isometrik 3 sisi (perilaku lama)
+  //   silinder = tabung tegak, alas & tutup elips, sisi 24 segmen
+  //   kerucut  = kerucut tegak, alas elips, puncak di tengah atas
+  // Footprint (size.e × size.w) tetap dipakai sebagai kotak pembatas.
+  bentuk?: 'balok' | 'silinder' | 'kerucut'
+  // khusus bentuk 'kerucut': perbandingan jari-jari PUNCAK terhadap alas
+  //   tidak diisi / 0 = kerucut runcing
+  //   0.45        = kap lampu (frustum menyempit ke atas)
+  //   1           = sama dengan silinder
+  //   1.15        = pot bunga (mulut pot lebih lebar dari dasar)
+  puncak?: number
   // URUTAN TUMPUKAN (permintaan user 2026-10-29): angka bulat yang menentukan
   // siapa digambar di atas siapa DI DALAM lapisan yang sama (semakin besar =
   // semakin ke depan/overlay). Objek baru & hasil duplikat selalu mendapat

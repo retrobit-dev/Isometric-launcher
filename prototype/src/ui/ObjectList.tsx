@@ -30,6 +30,10 @@ interface Props {
   onRestore: (scene: Scene) => void
   /** jumlah objek LATAR (background kanvas) — tidak tampil sebagai baris */
   latarCount: number
+  /** geser SEMUA objek dalam satu folder (buka kartu geser) */
+  onMoveGroup: (gid: string) => void
+  /** hapus SEMUA objek dalam satu folder (dengan konfirmasi) */
+  onDeleteGroup: (gid: string) => void
   /** pindahkan objek bercetang ke lapisan LATAR */
   onSetLatar: () => void
   /** keluarkan semua objek dari lapisan LATAR */
@@ -291,7 +295,7 @@ export default function ObjectList(p: Props) {
         {lepas.map(o => objRow(o, false))}
       </div>
 
-      <div className="olfoot">folder bersarang · ☐ centang · ↑↓ tumpukan · 🔒 kunci · LATAR = background</div>
+      <div className="olfoot">folder: ✥ geser semua · 🗑 hapus semua · ☐ centang · ↑↓ tumpukan · LATAR = background</div>
     </div>
   )
 
@@ -342,6 +346,16 @@ export default function ObjectList(p: Props) {
                       if (!open) toggleFolder(gid)
                     }}
                   >✎</button>
+                  <button
+                    className="olbtn"
+                    title="geser SEMUA objek di folder ini (e / w)"
+                    onClick={ev => { ev.stopPropagation(); p.onMoveGroup(gid) }}
+                  >✥</button>
+                  <button
+                    className="olbtn del"
+                    title="hapus SEMUA objek di folder ini (diminta konfirmasi)"
+                    onClick={ev => { ev.stopPropagation(); p.onDeleteGroup(gid) }}
+                  >🗑</button>
                   <button
                     className="olbtn sub"
                     disabled={p.multi.length === 0}

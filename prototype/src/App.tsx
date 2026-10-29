@@ -44,6 +44,7 @@ export default function App() {
   const [simpan, setSimpan] = useState<'browser' | 'file'>('browser')
   const [panelDirty, setPanelDirty] = useState(false) // perubahan panel editor belum disimpan eksplisit
   const [showPreset, setShowPreset] = useState(false) // pemilih objek (+ TAMBAH)
+  const [geserGrup, setGeserGrup] = useState<{ gid: string; nama: string } | null>(null)
   const [dimuat, setDimuat] = useState(false)
   // KLIK OBJEK = HANYA INFO (permintaan user 2026-10-28: "objek dipilih dari
   // tombol objek, klik objek hanya memberi informasi nama objek").
@@ -154,7 +155,11 @@ export default function App() {
       if (dariFile && dariFile.objects.length > lokal.objects.length) {
         setUndo({ scene: lokal, label: 'scene sebelum dimuat dari file' })
         setLocked(false)
-        setScene(gabungLatar(dariFile, lokal))
+        const sc = gabungLatar(dariFile, lokal)
+        // tidak ada salinan TERKUNCI -> scene ini draf, jangan bawa meta.locked lama
+        setScene(loadLocked()
+          ? sc
+          : { ...sc, meta: { ...(sc.meta ?? { locked: false, savedAt: null }), locked: false } })
         setDipulihkan(dariFile.objects.length)
       }
       setDimuat(true)
@@ -438,6 +443,79 @@ export default function App() {
     }))
   }
 
+  // GESER FOLDER: semua anggota grup (termasuk sub-folder) digeser bersama.
+  // Permintaan user 2026-10-29 — memindahkan seluruh isi folder tanpa
+  // menyentuh satu per satu.
+  const geserFolder = (gid: string, de: number, dw: number, ikutSub: boolean) => {
+    // kumpulkan gid + semua turunannya
+    const semua: string[] = [gid]
+    if (ikutSub) {
+      let tambah = true
+      while (tambah) {
+        tambah = false
+        for (const o of sceneRef.current.objects) {
+          if (o.grupInduk && semua.includes(o.grupInduk) && o.grup && !semua.includes(o.grup)) {
+            semua.push(o.grup)
+            tambah = true
+          }
+        }
+      }
+    }
+    setScene(sc => ({
+      ...sc,
+      objects: sc.objects.map(o => {
+        if (!o.grup || !semua.includes(o.grup) || o.latar) return o
+        if (o.kunci === 'semua' || o.kunci === 'warna') return o // objek terkunci tidak ikut
+        return {
+          ...o,
+          pos: {
+            ...o.pos,
+            e: Math.round((o.pos.e + de) * 10) / 10,
+            w: Math.round((o.pos.w + dw) * 10) / 10,
+          },
+        }
+      }),
+    }))
+    setPanelDirty(true)
+  }
+
+  // HAPUS FOLDER: semua anggota grup (dan sub-folder) dihapus setelah konfirmasi
+  const hapusFolder = (gid: string) => {
+    const nama = sceneRef.current.objects.find(o => o.grup === gid)?.grupNama ?? 'folder'
+    const kelompok = new Set<string>([gid])
+    let tambah = true
+    while (tambah) {
+      tambah = false
+      for (const o of sceneRef.current.objects) {
+        if (o.grupInduk && kelompok.has(o.grupInduk) && o.grup && !kelompok.has(o.grup)) {
+          kelompok.add(o.grup)
+          tambah = true
+        }
+      }
+    }
+    const anggota = sceneRef.current.objects.filter(o => o.grup && kelompok.has(o.grup) && !o.latar)
+    if (anggota.length === 0) return
+    setConfirm({
+      title: `KONFIRMASI HAPUS FOLDER`,
+      lines: [
+        `Hapus folder "${nama}" beserta ${anggota.length} objek di dalamnya?`,
+        'termasuk objek di sub-folder',
+        'tombol URUNGKAN muncul ±8 detik setelah dihapus',
+      ],
+      confirmLabel: `YA, HAPUS ${anggota.length} OBJEK`,
+      danger: true,
+      onConfirm: () => {
+        const before = sceneRef.current
+        setUndo({ scene: before, label: `folder ${nama}` })
+        const ids = new Set(anggota.map(o => o.id))
+        setScene(sc => ({ ...sc, objects: sc.objects.filter(o => !ids.has(o.id)) }))
+        setSelectedId(null)
+        setMulti([])
+        setConfirm(null)
+      },
+    })
+  }
+
   // GABUNG GRUP: semua objek bercetang mendapat id grup yang sama, sehingga
   // menyeret salah satunya menggeser semuanya (jarak relatif tetap).
   const groupSelected = () => {
@@ -564,6 +642,9 @@ export default function App() {
   }
 
   const unlockScene = () => {
+    // scene kembali menjadi DRAF: meta.locked dimatikan supaya EXPORT/APK
+    // tidak mengira scene ini masih terkunci
+    setScene(s => ({ ...s, meta: { ...(s.meta ?? { locked: false, savedAt: null }), locked: false } }))
     setLocked(false)
     setMode('edit')
   }
@@ -874,6 +955,11 @@ export default function App() {
           onCycleKunci={id => cycleKunci(id)}
           onRaise={id => geser(id, 1)}
           onLower={id => geser(id, -1)}
+          onMoveGroup={gid => {
+            const nama = scene.objects.find(o => o.grup === gid)?.grupNama ?? 'folder'
+            setGeserGrup({ gid, nama })
+          }}
+          onDeleteGroup={gid => hapusFolder(gid)}
           onRestore={sc => restoreScene(sc)}
           onClose={() => setShowList(false)}
         />
@@ -886,6 +972,36 @@ export default function App() {
           <span>“{undo.label}” dihapus/diganti</span>
           <button className="sbtn" onClick={undoDelete}>URUNGKAN</button>
           <button className="sbtn" onClick={() => setUndo(null)}>✕</button>
+        </div>
+      )}
+
+      {geserGrup && (
+        <div className="modal" onClick={() => setGeserGrup(null)}>
+          <div className="mcard geser" onClick={ev => ev.stopPropagation()}>
+            <div className="mhead">
+              <span>GESER FOLDER · {geserGrup.nama}</span>
+              <button className="sbtn" onClick={() => setGeserGrup(null)}>✕</button>
+            </div>
+            <div className="phint">
+              semua objek dalam folder (termasuk sub-folder) ikut bergeser; objek
+              yang dikunci tidak ikut
+            </div>
+            {(
+              [
+                ['e', 'sumbu e (kanan-bawah)', -1, -0.1, 0.1, 1],
+                ['w', 'sumbu w (kiri-bawah)', -1, -0.1, 0.1, 1],
+              ] as const
+            ).map(([sumbu, ket, m1, m01, p01, p1]) => (
+              <div className="row" key={sumbu}>
+                <span className="rl">{sumbu}</span>
+                <button className="sbtn wide" onClick={() => geserFolder(geserGrup.gid, ...(sumbu === 'e' ? [m1, 0] : [0, m1]) as [number, number], true)}>−1</button>
+                <button className="sbtn wide" onClick={() => geserFolder(geserGrup.gid, ...(sumbu === 'e' ? [m01, 0] : [0, m01]) as [number, number], true)}>−0.1</button>
+                <button className="sbtn wide" onClick={() => geserFolder(geserGrup.gid, ...(sumbu === 'e' ? [p01, 0] : [0, p01]) as [number, number], true)}>+0.1</button>
+                <button className="sbtn wide" onClick={() => geserFolder(geserGrup.gid, ...(sumbu === 'e' ? [p1, 0] : [0, p1]) as [number, number], true)}>+1</button>
+              </div>
+            ))}
+            <div className="phint">untuk menggeser sub-folder saja, pakai ✥ pada baris sub-folder itu</div>
+          </div>
         </div>
       )}
 

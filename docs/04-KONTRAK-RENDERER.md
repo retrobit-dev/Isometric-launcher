@@ -142,6 +142,34 @@ Aturan wajib:
 
 ---
 
+## 4a. Bentuk tambahan: silinder & kerucut
+
+Field `bentuk` pada objek: `balok` (default) · `silinder` · `kerucut`.
+`bentuk` HANYA mengubah cara menggambar; footprint (`size.e × size.w`) tetap
+kotak pembatas, jadi hit-test, bbox, grup, tumpukan, dan kunci tidak berubah.
+
+| Bentuk | Geometri | Gambar |
+|---|---|---|
+| `silinder` | alas & tutup elips (jari-jari `size.e/2`, `size.w/2`), tinggi `size.z` | 24 segmen trapesium + tutup elips |
+| `kerucut` | alas elips, atas elips berskala `puncak` (default `0` = runcing) | 24 segmen trapesium, tutup atas hanya bila `puncak > 0` |
+
+Aturan wajib (harus identik di APK):
+
+1. **Jumlah segmen = 24**, mulai sudut 0, langkah `2π/24`. Jangan diubah —
+   jumlah segmen menentukan bentuk piksel.
+2. Titik dihitung di **koordinat dunia** lalu diproyeksikan dengan §2 (jangan
+   memakai elips layar yang "kira-kira").
+3. Segmen digambar urut **belakang → depan** berdasarkan y rata-rata titik
+   segmen (pengurutan painter).
+4. Tone per segmen: normal keluar `(cos t, sin t)`; bila
+   `cos t − sin t ≥ 0` pakai tone **right**, selain itu **left**.
+   Tutup atas memakai tone **top**.
+5. `refleksi: true` menukar tone left ⇄ right seperti balok.
+6. `puncak` = perbandingan jari-jari atas terhadap alas: `0` runcing,
+   `0.45` kap lampu, `1` sama dengan silinder, `1.15` pot bunga (melebar).
+   Nilai dibulatkan ke 0.01.
+7. Pantulan objek silinder/kerucut memakai fungsi yang sama (tinggi ×0.6).
+
 ## 5. Yang TIDAK boleh dilakukan APK (sumber beda tafsir)
 
 1. Mengganti algoritma pengurutan (mis. mengurutkan ulang berdasarkan z saja).

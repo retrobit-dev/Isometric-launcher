@@ -1,6 +1,6 @@
 import { CAM, CY, EXT_E, EXT_W, HH, IH, IW, ROOM, ROOM_VISIBLE, ZH, px, type P } from './space'
 import { PAL, floorMat, wallColors } from './palette'
-import { drawBox, footprintOf, sortedObjects } from './box'
+import { drawObject, footprintOf, sortedObjects } from './box'
 import type { SceneObject } from '../scene/types'
 
 function poly(ctx: CanvasRenderingContext2D, pts: P[], color: string) {
@@ -164,7 +164,7 @@ function drawReflections(ctx: CanvasRenderingContext2D, objects: SceneObject[]) 
   )
   for (const obj of sortedObjects(reflectable)) {
     const zh = obj.size.z * 0.6
-    drawBox(ctx, {
+    drawObject(ctx, {
       ...obj,
       pos: { ...obj.pos, z: -(obj.pos.z + zh) },
       size: { ...obj.size, z: zh },
@@ -331,10 +331,10 @@ export function drawScene(ctx: CanvasRenderingContext2D, o: DrawOpts) {
   const layerOf = (x: SceneObject) => x.layer ?? 'main'
   const solid = o.objects.filter(x => x.role !== 'lantai' && x.role !== 'dinding')
   // LATAR lebih dulu: apa pun objek latar, selalu di belakang perabot
-  for (const obj of sortedObjects(solid.filter(x => x.latar === true))) drawBox(ctx, obj)
-  for (const obj of sortedObjects(solid.filter(x => x.latar !== true && layerOf(x) === 'underlay'))) drawBox(ctx, obj)
-  for (const obj of sortedObjects(solid.filter(x => x.latar !== true && layerOf(x) === 'main'))) drawBox(ctx, obj)
-  for (const obj of sortedObjects(solid.filter(x => x.latar !== true && layerOf(x) === 'overlay'))) drawBox(ctx, obj)
+  for (const obj of sortedObjects(solid.filter(x => x.latar === true))) drawObject(ctx, obj)
+  for (const obj of sortedObjects(solid.filter(x => x.latar !== true && layerOf(x) === 'underlay'))) drawObject(ctx, obj)
+  for (const obj of sortedObjects(solid.filter(x => x.latar !== true && layerOf(x) === 'main'))) drawObject(ctx, obj)
+  for (const obj of sortedObjects(solid.filter(x => x.latar !== true && layerOf(x) === 'overlay'))) drawObject(ctx, obj)
 
   const marks = o.objects.filter(x =>
     x.id === o.selectedId || (o.highlightIds ?? []).includes(x.id))

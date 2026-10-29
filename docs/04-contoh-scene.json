@@ -133,14 +133,14 @@
    "id": "rak-buku-4",
    "label": "RAK BUKU 4",
    "pos": {
-    "e": 1.2,
+    "e": 1.4,
     "w": 8.2,
-    "z": 0.1
+    "z": 1.2
    },
    "size": {
-    "e": 3,
-    "w": 0.1,
-    "z": 0.2
+    "e": 2.6,
+    "w": 1,
+    "z": 0.1
    },
    "style": "wood-dark",
    "app": null,
@@ -155,7 +155,7 @@
    "pos": {
     "e": 1.4,
     "w": 8.2,
-    "z": 1.2
+    "z": 2.4
    },
    "size": {
     "e": 2.6,
@@ -173,16 +173,16 @@
    "id": "rak-buku-6",
    "label": "RAK BUKU 6",
    "pos": {
-    "e": 1.4,
-    "w": 8.2,
-    "z": 2.4
+    "e": 1.5,
+    "w": 8.3,
+    "z": 0.2
    },
    "size": {
-    "e": 2.6,
-    "w": 1,
-    "z": 0.1
+    "e": 1.2,
+    "w": 0.9,
+    "z": 0.9
    },
-   "style": "wood-dark",
+   "style": "book-green",
    "app": null,
    "layer": "main",
    "grup": "grup-contoh-1",
@@ -193,12 +193,12 @@
    "id": "rak-buku-7",
    "label": "RAK BUKU 7",
    "pos": {
-    "e": 1.5,
+    "e": 2.8,
     "w": 8.3,
-    "z": 0.3
+    "z": 0.2
    },
    "size": {
-    "e": 0.2,
+    "e": 1,
     "w": 0.9,
     "z": 0.9
    },
@@ -213,16 +213,16 @@
    "id": "rak-buku-8",
    "label": "RAK BUKU 8",
    "pos": {
-    "e": 1.7,
+    "e": 1.5,
     "w": 8.3,
-    "z": 0.3
+    "z": 1.3
    },
    "size": {
-    "e": 0.2,
+    "e": 1.5,
     "w": 0.9,
-    "z": 1
+    "z": 0.9
    },
-   "style": "book-green",
+   "style": "book-blue",
    "app": null,
    "layer": "main",
    "grup": "grup-contoh-1",
@@ -233,301 +233,21 @@
    "id": "rak-buku-9",
    "label": "RAK BUKU 9",
    "pos": {
-    "e": 1.9,
+    "e": 1.6,
     "w": 8.3,
-    "z": 0.3
+    "z": 2.5
    },
    "size": {
-    "e": 0.2,
+    "e": 2,
     "w": 0.9,
-    "z": 1.1
+    "z": 0.9
    },
-   "style": "book-blue",
+   "style": "book-green",
    "app": null,
    "layer": "main",
    "grup": "grup-contoh-1",
    "grupNama": "RAK BUKU",
    "urutan": 18
-  },
-  {
-   "id": "rak-buku-10",
-   "label": "RAK BUKU 10",
-   "pos": {
-    "e": 2.1,
-    "w": 8.3,
-    "z": 0.3
-   },
-   "size": {
-    "e": 0.2,
-    "w": 0.9,
-    "z": 0.9
-   },
-   "style": "paper-night",
-   "app": null,
-   "layer": "main",
-   "grup": "grup-contoh-1",
-   "grupNama": "RAK BUKU",
-   "urutan": 19
-  },
-  {
-   "id": "rak-buku-11",
-   "label": "RAK BUKU 11",
-   "pos": {
-    "e": 2.3,
-    "w": 8.3,
-    "z": 0.3
-   },
-   "size": {
-    "e": 0.2,
-    "w": 0.9,
-    "z": 1
-   },
-   "style": "book-red",
-   "app": null,
-   "layer": "main",
-   "grup": "grup-contoh-1",
-   "grupNama": "RAK BUKU",
-   "urutan": 20
-  },
-  {
-   "id": "rak-buku-12",
-   "label": "RAK BUKU 12",
-   "pos": {
-    "e": 2.5,
-    "w": 8.3,
-    "z": 0.3
-   },
-   "size": {
-    "e": 0.2,
-    "w": 0.9,
-    "z": 1.1
-   },
-   "style": "book-green",
-   "app": null,
-   "layer": "main",
-   "grup": "grup-contoh-1",
-   "grupNama": "RAK BUKU",
-   "urutan": 21
-  },
-  {
-   "id": "rak-buku-13",
-   "label": "RAK BUKU 13",
-   "pos": {
-    "e": 1.5,
-    "w": 8.3,
-    "z": 1.3
-   },
-   "size": {
-    "e": 0.2,
-    "w": 0.9,
-    "z": 0.9
-   },
-   "style": "book-blue",
-   "app": null,
-   "layer": "main",
-   "grup": "grup-contoh-1",
-   "grupNama": "RAK BUKU",
-   "urutan": 22
-  },
-  {
-   "id": "rak-buku-14",
-   "label": "RAK BUKU 14",
-   "pos": {
-    "e": 1.7,
-    "w": 8.3,
-    "z": 1.3
-   },
-   "size": {
-    "e": 0.2,
-    "w": 0.9,
-    "z": 1
-   },
-   "style": "book-red",
-   "app": null,
-   "layer": "main",
-   "grup": "grup-contoh-1",
-   "grupNama": "RAK BUKU",
-   "urutan": 23
-  },
-  {
-   "id": "rak-buku-15",
-   "label": "RAK BUKU 15",
-   "pos": {
-    "e": 1.9,
-    "w": 8.3,
-    "z": 1.3
-   },
-   "size": {
-    "e": 0.2,
-    "w": 0.9,
-    "z": 1.1
-   },
-   "style": "book-green",
-   "app": null,
-   "layer": "main",
-   "grup": "grup-contoh-1",
-   "grupNama": "RAK BUKU",
-   "urutan": 24
-  },
-  {
-   "id": "rak-buku-16",
-   "label": "RAK BUKU 16",
-   "pos": {
-    "e": 2.1,
-    "w": 8.3,
-    "z": 1.3
-   },
-   "size": {
-    "e": 0.2,
-    "w": 0.9,
-    "z": 0.9
-   },
-   "style": "book-blue",
-   "app": null,
-   "layer": "main",
-   "grup": "grup-contoh-1",
-   "grupNama": "RAK BUKU",
-   "urutan": 25
-  },
-  {
-   "id": "rak-buku-17",
-   "label": "RAK BUKU 17",
-   "pos": {
-    "e": 2.3,
-    "w": 8.3,
-    "z": 1.3
-   },
-   "size": {
-    "e": 0.2,
-    "w": 0.9,
-    "z": 1
-   },
-   "style": "book-red",
-   "app": null,
-   "layer": "main",
-   "grup": "grup-contoh-1",
-   "grupNama": "RAK BUKU",
-   "urutan": 26
-  },
-  {
-   "id": "rak-buku-18",
-   "label": "RAK BUKU 18",
-   "pos": {
-    "e": 2.5,
-    "w": 8.3,
-    "z": 1.3
-   },
-   "size": {
-    "e": 0.2,
-    "w": 0.9,
-    "z": 1.1
-   },
-   "style": "book-green",
-   "app": null,
-   "layer": "main",
-   "grup": "grup-contoh-1",
-   "grupNama": "RAK BUKU",
-   "urutan": 27
-  },
-  {
-   "id": "rak-buku-19",
-   "label": "RAK BUKU 19",
-   "pos": {
-    "e": 1.5,
-    "w": 8.3,
-    "z": 2.5
-   },
-   "size": {
-    "e": 0.2,
-    "w": 0.9,
-    "z": 0.9
-   },
-   "style": "book-green",
-   "app": null,
-   "layer": "main",
-   "grup": "grup-contoh-1",
-   "grupNama": "RAK BUKU",
-   "urutan": 28
-  },
-  {
-   "id": "rak-buku-20",
-   "label": "RAK BUKU 20",
-   "pos": {
-    "e": 1.7,
-    "w": 8.3,
-    "z": 2.5
-   },
-   "size": {
-    "e": 0.2,
-    "w": 0.9,
-    "z": 1
-   },
-   "style": "paper-night",
-   "app": null,
-   "layer": "main",
-   "grup": "grup-contoh-1",
-   "grupNama": "RAK BUKU",
-   "urutan": 29
-  },
-  {
-   "id": "rak-buku-21",
-   "label": "RAK BUKU 21",
-   "pos": {
-    "e": 1.9,
-    "w": 8.3,
-    "z": 2.5
-   },
-   "size": {
-    "e": 0.2,
-    "w": 0.9,
-    "z": 1.1
-   },
-   "style": "book-red",
-   "app": null,
-   "layer": "main",
-   "grup": "grup-contoh-1",
-   "grupNama": "RAK BUKU",
-   "urutan": 30
-  },
-  {
-   "id": "rak-buku-22",
-   "label": "RAK BUKU 22",
-   "pos": {
-    "e": 2.1,
-    "w": 8.3,
-    "z": 2.5
-   },
-   "size": {
-    "e": 0.2,
-    "w": 0.9,
-    "z": 0.9
-   },
-   "style": "book-green",
-   "app": null,
-   "layer": "main",
-   "grup": "grup-contoh-1",
-   "grupNama": "RAK BUKU",
-   "urutan": 31
-  },
-  {
-   "id": "rak-buku-23",
-   "label": "RAK BUKU 23",
-   "pos": {
-    "e": 2.3,
-    "w": 8.3,
-    "z": 2.5
-   },
-   "size": {
-    "e": 0.2,
-    "w": 0.9,
-    "z": 1
-   },
-   "style": "paper-night",
-   "app": null,
-   "layer": "main",
-   "grup": "grup-contoh-1",
-   "grupNama": "RAK BUKU",
-   "urutan": 32
   },
   {
    "id": "papan-tulis-1",
@@ -538,16 +258,17 @@
     "z": 0
    },
    "size": {
-    "e": 0.2,
-    "w": 0.2,
+    "e": 0.3,
+    "w": 0.3,
     "z": 2.4
    },
    "style": "metal-light",
+   "bentuk": "silinder",
    "app": null,
    "layer": "main",
    "grup": "grup-contoh-2",
    "grupNama": "PAPAN TULIS",
-   "urutan": 33
+   "urutan": 19
   },
   {
    "id": "papan-tulis-2",
@@ -558,27 +279,28 @@
     "z": 0
    },
    "size": {
-    "e": 0.2,
-    "w": 0.2,
+    "e": 0.3,
+    "w": 0.3,
     "z": 2.4
    },
    "style": "metal-light",
+   "bentuk": "silinder",
    "app": null,
    "layer": "main",
    "grup": "grup-contoh-2",
    "grupNama": "PAPAN TULIS",
-   "urutan": 34
+   "urutan": 20
   },
   {
    "id": "papan-tulis-3",
    "label": "PAPAN TULIS 3",
    "pos": {
-    "e": 1.4,
+    "e": 1.3,
     "w": 3.3,
     "z": 0.1
    },
    "size": {
-    "e": 0.4,
+    "e": 0.7,
     "w": 0.5,
     "z": 0.2
    },
@@ -587,18 +309,18 @@
    "layer": "main",
    "grup": "grup-contoh-2",
    "grupNama": "PAPAN TULIS",
-   "urutan": 35
+   "urutan": 21
   },
   {
    "id": "papan-tulis-4",
    "label": "PAPAN TULIS 4",
    "pos": {
-    "e": 4.6,
+    "e": 4.5,
     "w": 3.3,
     "z": 0.1
    },
    "size": {
-    "e": 0.4,
+    "e": 0.7,
     "w": 0.5,
     "z": 0.2
    },
@@ -607,7 +329,7 @@
    "layer": "main",
    "grup": "grup-contoh-2",
    "grupNama": "PAPAN TULIS",
-   "urutan": 36
+   "urutan": 22
   },
   {
    "id": "papan-tulis-5",
@@ -627,7 +349,7 @@
    "layer": "main",
    "grup": "grup-contoh-2",
    "grupNama": "PAPAN TULIS",
-   "urutan": 37
+   "urutan": 23
   },
   {
    "id": "papan-tulis-6",
@@ -640,26 +362,26 @@
    "size": {
     "e": 4.4,
     "w": 0.1,
-    "z": 0.2
+    "z": 2.8
    },
    "style": "metal-light",
    "app": null,
    "layer": "main",
    "grup": "grup-contoh-2",
    "grupNama": "PAPAN TULIS",
-   "urutan": 38
+   "urutan": 24
   },
   {
    "id": "papan-tulis-7",
    "label": "PAPAN TULIS 7",
    "pos": {
     "e": 1,
-    "w": 3.3,
-    "z": 4.7
+    "w": 3.2,
+    "z": 2.4
    },
    "size": {
-    "e": 4.4,
-    "w": 0.1,
+    "e": 0.4,
+    "w": 0.3,
     "z": 0.2
    },
    "style": "metal-light",
@@ -667,47 +389,7 @@
    "layer": "main",
    "grup": "grup-contoh-2",
    "grupNama": "PAPAN TULIS",
-   "urutan": 39
-  },
-  {
-   "id": "papan-tulis-8",
-   "label": "PAPAN TULIS 8",
-   "pos": {
-    "e": 1,
-    "w": 3.3,
-    "z": 2.1
-   },
-   "size": {
-    "e": 0.2,
-    "w": 0.1,
-    "z": 2.8
-   },
-   "style": "metal-light",
-   "app": null,
-   "layer": "main",
-   "grup": "grup-contoh-2",
-   "grupNama": "PAPAN TULIS",
-   "urutan": 40
-  },
-  {
-   "id": "papan-tulis-9",
-   "label": "PAPAN TULIS 9",
-   "pos": {
-    "e": 5.3,
-    "w": 3.3,
-    "z": 2.1
-   },
-   "size": {
-    "e": 0.2,
-    "w": 0.1,
-    "z": 2.8
-   },
-   "style": "metal-light",
-   "app": null,
-   "layer": "main",
-   "grup": "grup-contoh-2",
-   "grupNama": "PAPAN TULIS",
-   "urutan": 41
+   "urutan": 25
   },
   {
    "id": "papan-gabus-1",
@@ -727,7 +409,7 @@
    "layer": "main",
    "grup": "grup-contoh-3",
    "grupNama": "PAPAN GABUS",
-   "urutan": 42
+   "urutan": 26
   },
   {
    "id": "papan-gabus-2",
@@ -747,7 +429,7 @@
    "layer": "main",
    "grup": "grup-contoh-3",
    "grupNama": "PAPAN GABUS",
-   "urutan": 43
+   "urutan": 27
   },
   {
    "id": "papan-gabus-3",
@@ -767,7 +449,7 @@
    "layer": "main",
    "grup": "grup-contoh-3",
    "grupNama": "PAPAN GABUS",
-   "urutan": 44
+   "urutan": 28
   },
   {
    "id": "papan-gabus-4",
@@ -787,7 +469,7 @@
    "layer": "main",
    "grup": "grup-contoh-3",
    "grupNama": "PAPAN GABUS",
-   "urutan": 45
+   "urutan": 29
   },
   {
    "id": "papan-gabus-5",
@@ -807,67 +489,47 @@
    "layer": "main",
    "grup": "grup-contoh-3",
    "grupNama": "PAPAN GABUS",
-   "urutan": 46
+   "urutan": 30
   },
   {
    "id": "papan-gabus-6",
    "label": "PAPAN GABUS 6",
    "pos": {
-    "e": 0.4,
+    "e": 0.5,
     "w": 12.6,
-    "z": 3.4
+    "z": 3.3
    },
    "size": {
-    "e": 0.6,
+    "e": 0.7,
     "w": 0.1,
-    "z": 0.8
+    "z": 0.9
    },
    "style": "paper-night",
    "app": null,
    "layer": "main",
    "grup": "grup-contoh-3",
    "grupNama": "PAPAN GABUS",
-   "urutan": 47
+   "urutan": 31
   },
   {
    "id": "papan-gabus-7",
    "label": "PAPAN GABUS 7",
    "pos": {
-    "e": 1.1,
+    "e": 1.8,
     "w": 12.6,
-    "z": 2.8
+    "z": 2.7
    },
    "size": {
-    "e": 0.6,
+    "e": 0.7,
     "w": 0.1,
-    "z": 0.8
+    "z": 0.9
    },
    "style": "paper-night",
    "app": null,
    "layer": "main",
    "grup": "grup-contoh-3",
    "grupNama": "PAPAN GABUS",
-   "urutan": 48
-  },
-  {
-   "id": "papan-gabus-8",
-   "label": "PAPAN GABUS 8",
-   "pos": {
-    "e": 2,
-    "w": 12.6,
-    "z": 3.6
-   },
-   "size": {
-    "e": 0.6,
-    "w": 0.1,
-    "z": 0.8
-   },
-   "style": "paper-night",
-   "app": null,
-   "layer": "main",
-   "grup": "grup-contoh-3",
-   "grupNama": "PAPAN GABUS",
-   "urutan": 49
+   "urutan": 32
   },
   {
    "id": "meja-guru-1",
@@ -887,7 +549,7 @@
    "layer": "main",
    "grup": "grup-contoh-4",
    "grupNama": "MEJA GURU",
-   "urutan": 50
+   "urutan": 33
   },
   {
    "id": "meja-guru-2",
@@ -907,7 +569,7 @@
    "layer": "main",
    "grup": "grup-contoh-4",
    "grupNama": "MEJA GURU",
-   "urutan": 51
+   "urutan": 34
   },
   {
    "id": "meja-guru-3",
@@ -927,7 +589,7 @@
    "layer": "main",
    "grup": "grup-contoh-4",
    "grupNama": "MEJA GURU",
-   "urutan": 52
+   "urutan": 35
   },
   {
    "id": "meja-guru-4",
@@ -947,7 +609,7 @@
    "layer": "main",
    "grup": "grup-contoh-4",
    "grupNama": "MEJA GURU",
-   "urutan": 53
+   "urutan": 36
   },
   {
    "id": "meja-guru-5",
@@ -967,7 +629,7 @@
    "layer": "main",
    "grup": "grup-contoh-4",
    "grupNama": "MEJA GURU",
-   "urutan": 54
+   "urutan": 37
   },
   {
    "id": "meja-guru-6",
@@ -987,7 +649,7 @@
    "layer": "main",
    "grup": "grup-contoh-4",
    "grupNama": "MEJA GURU",
-   "urutan": 55
+   "urutan": 38
   },
   {
    "id": "meja-guru-7",
@@ -998,7 +660,7 @@
     "z": 1.5
    },
    "size": {
-    "e": 0.5,
+    "e": 0.9,
     "w": 0.7,
     "z": 0.6
    },
@@ -1007,27 +669,7 @@
    "layer": "main",
    "grup": "grup-contoh-4",
    "grupNama": "MEJA GURU",
-   "urutan": 56
-  },
-  {
-   "id": "meja-guru-8",
-   "label": "MEJA GURU 8",
-   "pos": {
-    "e": 10.1,
-    "w": 3.4,
-    "z": 1.5
-   },
-   "size": {
-    "e": 0.5,
-    "w": 0.7,
-    "z": 0.6
-   },
-   "style": "book-green",
-   "app": null,
-   "layer": "main",
-   "grup": "grup-contoh-4",
-   "grupNama": "MEJA GURU",
-   "urutan": 57
+   "urutan": 39
   },
   {
    "id": "kursi-putar-1",
@@ -1039,59 +681,41 @@
    },
    "size": {
     "e": 1.2,
-    "w": 0.2,
-    "z": 0.2
-   },
-   "style": "chair-dark",
-   "app": null,
-   "layer": "main",
-   "grup": "grup-contoh-5",
-   "grupNama": "KURSI PUTAR",
-   "urutan": 58
-  },
-  {
-   "id": "kursi-putar-2",
-   "label": "KURSI PUTAR 2",
-   "pos": {
-    "e": 9.5,
-    "w": 4.5,
-    "z": 0
-   },
-   "size": {
-    "e": 0.2,
     "w": 1.2,
     "z": 0.2
    },
    "style": "chair-dark",
+   "bentuk": "silinder",
    "app": null,
    "layer": "main",
    "grup": "grup-contoh-5",
    "grupNama": "KURSI PUTAR",
-   "urutan": 59
+   "urutan": 40
   },
   {
-   "id": "kursi-putar-3",
-   "label": "KURSI PUTAR 3",
+   "id": "kursi-putar-2",
+   "label": "KURSI PUTAR 2",
    "pos": {
     "e": 10,
     "w": 5,
     "z": 0.2
    },
    "size": {
-    "e": 0.2,
-    "w": 0.2,
+    "e": 0.3,
+    "w": 0.3,
     "z": 0.9
    },
    "style": "metal-light",
+   "bentuk": "silinder",
    "app": null,
    "layer": "main",
    "grup": "grup-contoh-5",
    "grupNama": "KURSI PUTAR",
-   "urutan": 60
+   "urutan": 41
   },
   {
-   "id": "kursi-putar-4",
-   "label": "KURSI PUTAR 4",
+   "id": "kursi-putar-3",
+   "label": "KURSI PUTAR 3",
    "pos": {
     "e": 9.5,
     "w": 4.5,
@@ -1107,11 +731,11 @@
    "layer": "main",
    "grup": "grup-contoh-5",
    "grupNama": "KURSI PUTAR",
-   "urutan": 61
+   "urutan": 42
   },
   {
-   "id": "kursi-putar-5",
-   "label": "KURSI PUTAR 5",
+   "id": "kursi-putar-4",
+   "label": "KURSI PUTAR 4",
    "pos": {
     "e": 9.5,
     "w": 4.5,
@@ -1127,11 +751,11 @@
    "layer": "main",
    "grup": "grup-contoh-5",
    "grupNama": "KURSI PUTAR",
-   "urutan": 62
+   "urutan": 43
   },
   {
-   "id": "kursi-putar-6",
-   "label": "KURSI PUTAR 6",
+   "id": "kursi-putar-5",
+   "label": "KURSI PUTAR 5",
    "pos": {
     "e": 9.5,
     "w": 4.5,
@@ -1147,7 +771,7 @@
    "layer": "main",
    "grup": "grup-contoh-5",
    "grupNama": "KURSI PUTAR",
-   "urutan": 63
+   "urutan": 44
   },
   {
    "id": "laptop-1",
@@ -1167,7 +791,7 @@
    "layer": "main",
    "grup": "grup-contoh-6",
    "grupNama": "LAPTOP",
-   "urutan": 64
+   "urutan": 45
   },
   {
    "id": "laptop-2",
@@ -1187,31 +811,11 @@
    "layer": "main",
    "grup": "grup-contoh-6",
    "grupNama": "LAPTOP",
-   "urutan": 65
+   "urutan": 46
   },
   {
    "id": "laptop-3",
    "label": "LAPTOP 3",
-   "pos": {
-    "e": 9,
-    "w": 2.1,
-    "z": 2.5
-   },
-   "size": {
-    "e": 1.3,
-    "w": 0.2,
-    "z": 0.1
-   },
-   "style": "slate",
-   "app": null,
-   "layer": "main",
-   "grup": "grup-contoh-6",
-   "grupNama": "LAPTOP",
-   "urutan": 66
-  },
-  {
-   "id": "laptop-4",
-   "label": "LAPTOP 4",
    "pos": {
     "e": 8.9,
     "w": 2.1,
@@ -1227,11 +831,11 @@
    "layer": "main",
    "grup": "grup-contoh-6",
    "grupNama": "LAPTOP",
-   "urutan": 67
+   "urutan": 47
   },
   {
-   "id": "laptop-5",
-   "label": "LAPTOP 5",
+   "id": "laptop-4",
+   "label": "LAPTOP 4",
    "pos": {
     "e": 9,
     "w": 2.1,
@@ -1247,7 +851,7 @@
    "layer": "main",
    "grup": "grup-contoh-6",
    "grupNama": "LAPTOP",
-   "urutan": 68
+   "urutan": 48
   },
   {
    "id": "lampu-meja-1",
@@ -1263,11 +867,12 @@
     "z": 0.2
    },
    "style": "slate",
+   "bentuk": "silinder",
    "app": null,
    "layer": "main",
    "grup": "grup-contoh-7",
    "grupNama": "LAMPU MEJA",
-   "urutan": 69
+   "urutan": 49
   },
   {
    "id": "lampu-meja-2",
@@ -1280,74 +885,37 @@
    "size": {
     "e": 0.2,
     "w": 0.2,
-    "z": 1.5
+    "z": 1.6
    },
    "style": "metal-light",
+   "bentuk": "silinder",
    "app": null,
    "layer": "main",
    "grup": "grup-contoh-7",
    "grupNama": "LAMPU MEJA",
-   "urutan": 70
+   "urutan": 50
   },
   {
    "id": "lampu-meja-3",
    "label": "LAMPU MEJA 3",
    "pos": {
-    "e": 11.6,
-    "w": 2.4,
+    "e": 11.5,
+    "w": 2.1,
     "z": 4
    },
    "size": {
-    "e": 0.8,
-    "w": 0.2,
-    "z": 0.2
-   },
-   "style": "metal-light",
-   "app": null,
-   "layer": "main",
-   "grup": "grup-contoh-7",
-   "grupNama": "LAMPU MEJA",
-   "urutan": 71
-  },
-  {
-   "id": "lampu-meja-4",
-   "label": "LAMPU MEJA 4",
-   "pos": {
-    "e": 11.5,
-    "w": 2.3,
-    "z": 4.1
-   },
-   "size": {
     "e": 0.9,
-    "w": 0.5,
-    "z": 0.5
+    "w": 0.9,
+    "z": 0.7
    },
    "style": "chair-dark",
+   "bentuk": "kerucut",
+   "puncak": 0.45,
    "app": null,
    "layer": "main",
    "grup": "grup-contoh-7",
    "grupNama": "LAMPU MEJA",
-   "urutan": 72
-  },
-  {
-   "id": "lampu-meja-5",
-   "label": "LAMPU MEJA 5",
-   "pos": {
-    "e": 11.6,
-    "w": 2.4,
-    "z": 4.1
-   },
-   "size": {
-    "e": 0.7,
-    "w": 0.4,
-    "z": 0.1
-   },
-   "style": "lamp-amber",
-   "app": null,
-   "layer": "main",
-   "grup": "grup-contoh-7",
-   "grupNama": "LAMPU MEJA",
-   "urutan": 73
+   "urutan": 51
   },
   {
    "id": "tumpukan-buku-1",
@@ -1367,7 +935,7 @@
    "layer": "main",
    "grup": "grup-contoh-8",
    "grupNama": "TUMPUKAN BUKU",
-   "urutan": 74
+   "urutan": 52
   },
   {
    "id": "tumpukan-buku-2",
@@ -1387,15 +955,15 @@
    "layer": "main",
    "grup": "grup-contoh-8",
    "grupNama": "TUMPUKAN BUKU",
-   "urutan": 75
+   "urutan": 53
   },
   {
    "id": "tumpukan-buku-3",
    "label": "TUMPUKAN BUKU 3",
    "pos": {
-    "e": 8.1,
+    "e": 8.2,
     "w": 2.3,
-    "z": 2.7
+    "z": 2.8
    },
    "size": {
     "e": 1.5,
@@ -1407,47 +975,7 @@
    "layer": "main",
    "grup": "grup-contoh-8",
    "grupNama": "TUMPUKAN BUKU",
-   "urutan": 76
-  },
-  {
-   "id": "tumpukan-buku-4",
-   "label": "TUMPUKAN BUKU 4",
-   "pos": {
-    "e": 8.2,
-    "w": 2.4,
-    "z": 2.9
-   },
-   "size": {
-    "e": 1.3,
-    "w": 0.9,
-    "z": 0.2
-   },
-   "style": "paper-night",
-   "app": null,
-   "layer": "main",
-   "grup": "grup-contoh-8",
-   "grupNama": "TUMPUKAN BUKU",
-   "urutan": 77
-  },
-  {
-   "id": "tumpukan-buku-5",
-   "label": "TUMPUKAN BUKU 5",
-   "pos": {
-    "e": 8.2,
-    "w": 2.3,
-    "z": 3
-   },
-   "size": {
-    "e": 1.4,
-    "w": 1,
-    "z": 0.2
-   },
-   "style": "book-blue",
-   "app": null,
-   "layer": "main",
-   "grup": "grup-contoh-8",
-   "grupNama": "TUMPUKAN BUKU",
-   "urutan": 78
+   "urutan": 54
   },
   {
    "id": "kalkulator-1",
@@ -1467,7 +995,7 @@
    "layer": "main",
    "grup": "grup-contoh-9",
    "grupNama": "KALKULATOR",
-   "urutan": 79
+   "urutan": 55
   },
   {
    "id": "kalkulator-2",
@@ -1479,7 +1007,7 @@
    },
    "size": {
     "e": 0.7,
-    "w": 0.2,
+    "w": 0.3,
     "z": 0.1
    },
    "style": "paper-night",
@@ -1487,27 +1015,7 @@
    "layer": "main",
    "grup": "grup-contoh-9",
    "grupNama": "KALKULATOR",
-   "urutan": 80
-  },
-  {
-   "id": "kalkulator-3",
-   "label": "KALKULATOR 3",
-   "pos": {
-    "e": 11,
-    "w": 3.2,
-    "z": 2.6
-   },
-   "size": {
-    "e": 0.7,
-    "w": 0.3,
-    "z": 0.1
-   },
-   "style": "metal",
-   "app": null,
-   "layer": "main",
-   "grup": "grup-contoh-9",
-   "grupNama": "KALKULATOR",
-   "urutan": 81
+   "urutan": 56
   },
   {
    "id": "tanaman-pot-1",
@@ -1523,35 +1031,17 @@
     "z": 0.7
    },
    "style": "terracotta",
+   "bentuk": "kerucut",
+   "puncak": 1.15,
    "app": null,
    "layer": "main",
    "grup": "grup-contoh-10",
    "grupNama": "TANAMAN POT",
-   "urutan": 82
+   "urutan": 57
   },
   {
    "id": "tanaman-pot-2",
    "label": "TANAMAN POT 2",
-   "pos": {
-    "e": 16.6,
-    "w": 2.2,
-    "z": 0.7
-   },
-   "size": {
-    "e": 0.6,
-    "w": 0.6,
-    "z": 0.1
-   },
-   "style": "wood-dark",
-   "app": null,
-   "layer": "main",
-   "grup": "grup-contoh-10",
-   "grupNama": "TANAMAN POT",
-   "urutan": 83
-  },
-  {
-   "id": "tanaman-pot-3",
-   "label": "TANAMAN POT 3",
    "pos": {
     "e": 16.8,
     "w": 2.4,
@@ -1560,94 +1050,59 @@
    "size": {
     "e": 0.2,
     "w": 0.2,
-    "z": 1.5
+    "z": 1.3
    },
    "style": "plant",
+   "bentuk": "silinder",
    "app": null,
    "layer": "main",
    "grup": "grup-contoh-10",
    "grupNama": "TANAMAN POT",
-   "urutan": 84
+   "urutan": 58
+  },
+  {
+   "id": "tanaman-pot-3",
+   "label": "TANAMAN POT 3",
+   "pos": {
+    "e": 16.5,
+    "w": 2.2,
+    "z": 1.3
+   },
+   "size": {
+    "e": 0.8,
+    "w": 0.7,
+    "z": 0.7
+   },
+   "style": "plant",
+   "bentuk": "kerucut",
+   "puncak": 0.2,
+   "app": null,
+   "layer": "main",
+   "grup": "grup-contoh-10",
+   "grupNama": "TANAMAN POT",
+   "urutan": 59
   },
   {
    "id": "tanaman-pot-4",
    "label": "TANAMAN POT 4",
    "pos": {
-    "e": 16.6,
+    "e": 16.7,
     "w": 2.3,
-    "z": 1.4
+    "z": 1.8
    },
    "size": {
-    "e": 0.5,
-    "w": 0.3,
-    "z": 0.5
+    "e": 0.6,
+    "w": 0.5,
+    "z": 0.6
    },
    "style": "plant",
+   "bentuk": "kerucut",
+   "puncak": 0.1,
    "app": null,
    "layer": "main",
    "grup": "grup-contoh-10",
    "grupNama": "TANAMAN POT",
-   "urutan": 85
-  },
-  {
-   "id": "tanaman-pot-5",
-   "label": "TANAMAN POT 5",
-   "pos": {
-    "e": 17,
-    "w": 2.2,
-    "z": 1.7
-   },
-   "size": {
-    "e": 0.5,
-    "w": 0.3,
-    "z": 0.5
-   },
-   "style": "plant",
-   "app": null,
-   "layer": "main",
-   "grup": "grup-contoh-10",
-   "grupNama": "TANAMAN POT",
-   "urutan": 86
-  },
-  {
-   "id": "tanaman-pot-6",
-   "label": "TANAMAN POT 6",
-   "pos": {
-    "e": 16.8,
-    "w": 2.1,
-    "z": 2
-   },
-   "size": {
-    "e": 0.3,
-    "w": 0.4,
-    "z": 0.4
-   },
-   "style": "plant",
-   "app": null,
-   "layer": "main",
-   "grup": "grup-contoh-10",
-   "grupNama": "TANAMAN POT",
-   "urutan": 87
-  },
-  {
-   "id": "tanaman-pot-7",
-   "label": "TANAMAN POT 7",
-   "pos": {
-    "e": 16.8,
-    "w": 2.5,
-    "z": 1.2
-   },
-   "size": {
-    "e": 0.3,
-    "w": 0.4,
-    "z": 0.4
-   },
-   "style": "plant",
-   "app": null,
-   "layer": "main",
-   "grup": "grup-contoh-10",
-   "grupNama": "TANAMAN POT",
-   "urutan": 88
+   "urutan": 60
   },
   {
    "id": "tempat-sampah-1",
@@ -1663,39 +1118,21 @@
     "z": 1.2
    },
    "style": "slate",
+   "bentuk": "kerucut",
+   "puncak": 1.1,
    "app": null,
    "layer": "main",
    "grup": "grup-contoh-11",
    "grupNama": "TEMPAT SAMPAH",
-   "urutan": 89
+   "urutan": 61
   },
   {
    "id": "tempat-sampah-2",
    "label": "TEMPAT SAMPAH 2",
    "pos": {
-    "e": 0.9,
-    "w": 12.3,
-    "z": 1.2
-   },
-   "size": {
-    "e": 1.1,
-    "w": 1.1,
-    "z": 0.1
-   },
-   "style": "metal",
-   "app": null,
-   "layer": "main",
-   "grup": "grup-contoh-11",
-   "grupNama": "TEMPAT SAMPAH",
-   "urutan": 90
-  },
-  {
-   "id": "tempat-sampah-3",
-   "label": "TEMPAT SAMPAH 3",
-   "pos": {
-    "e": 1.1,
+    "e": 1.2,
     "w": 12.5,
-    "z": 1.2
+    "z": 1.1
    },
    "size": {
     "e": 0.3,
@@ -1707,15 +1144,15 @@
    "layer": "main",
    "grup": "grup-contoh-11",
    "grupNama": "TEMPAT SAMPAH",
-   "urutan": 91
+   "urutan": 62
   },
   {
-   "id": "tempat-sampah-4",
-   "label": "TEMPAT SAMPAH 4",
+   "id": "tempat-sampah-3",
+   "label": "TEMPAT SAMPAH 3",
    "pos": {
     "e": 1.4,
     "w": 12.6,
-    "z": 1.2
+    "z": 1.1
    },
    "size": {
     "e": 0.3,
@@ -1727,34 +1164,114 @@
    "layer": "main",
    "grup": "grup-contoh-11",
    "grupNama": "TEMPAT SAMPAH",
-   "urutan": 92
+   "urutan": 63
   },
   {
    "id": "jendela-1",
    "label": "JENDELA 1",
    "pos": {
-    "e": 13.1,
-    "w": 0.2,
+    "e": 13.2,
+    "w": 0.1,
+    "z": 1.8
+   },
+   "size": {
+    "e": 4,
+    "w": 0.1,
+    "z": 0.2
+   },
+   "style": "board",
+   "app": null,
+   "layer": "main",
+   "grup": "grup-contoh-12",
+   "grupNama": "JENDELA",
+   "urutan": 64
+  },
+  {
+   "id": "jendela-2",
+   "label": "JENDELA 2",
+   "pos": {
+    "e": 13.2,
+    "w": 0.1,
+    "z": 5
+   },
+   "size": {
+    "e": 4,
+    "w": 0.1,
+    "z": 0.2
+   },
+   "style": "board",
+   "app": null,
+   "layer": "main",
+   "grup": "grup-contoh-12",
+   "grupNama": "JENDELA",
+   "urutan": 65
+  },
+  {
+   "id": "jendela-3",
+   "label": "JENDELA 3",
+   "pos": {
+    "e": 13.2,
+    "w": 0.1,
+    "z": 1.8
+   },
+   "size": {
+    "e": 0.2,
+    "w": 0.1,
+    "z": 3.4
+   },
+   "style": "board",
+   "app": null,
+   "layer": "main",
+   "grup": "grup-contoh-12",
+   "grupNama": "JENDELA",
+   "urutan": 66
+  },
+  {
+   "id": "jendela-4",
+   "label": "JENDELA 4",
+   "pos": {
+    "e": 17,
+    "w": 0.1,
+    "z": 1.8
+   },
+   "size": {
+    "e": 0.2,
+    "w": 0.1,
+    "z": 3.4
+   },
+   "style": "board",
+   "app": null,
+   "layer": "main",
+   "grup": "grup-contoh-12",
+   "grupNama": "JENDELA",
+   "urutan": 67
+  },
+  {
+   "id": "jendela-5",
+   "label": "JENDELA 5",
+   "pos": {
+    "e": 13.4,
+    "w": 0.1,
     "z": 2
    },
    "size": {
     "e": 3.6,
     "w": 0.1,
-    "z": 1.6
+    "z": 1.4
    },
    "style": "pastel-blue",
    "app": null,
    "layer": "main",
    "grup": "grup-contoh-12",
    "grupNama": "JENDELA",
-   "urutan": 93
+   "urutan": 68
   },
   {
-   "id": "jendela-2",
-   "label": "JENDELA 2",
+   "id": "jendela-6",
+   "label": "JENDELA 6",
    "pos": {
-    "e": 13.1,
-    "w": 0.2,
+    "e": 13.4,
+    "w": 0.1,
     "z": 3.6
    },
    "size": {
@@ -1762,172 +1279,333 @@
     "w": 0.1,
     "z": 1.4
    },
-   "style": "paper-night",
+   "style": "book-blue",
    "app": null,
    "layer": "main",
    "grup": "grup-contoh-12",
    "grupNama": "JENDELA",
-   "urutan": 94
-  },
-  {
-   "id": "jendela-3",
-   "label": "JENDELA 3",
-   "pos": {
-    "e": 13.1,
-    "w": 0.1,
-    "z": 1.8
-   },
-   "size": {
-    "e": 3.6,
-    "w": 0.2,
-    "z": 0.2
-   },
-   "style": "paper",
-   "app": null,
-   "layer": "main",
-   "grup": "grup-contoh-12",
-   "grupNama": "JENDELA",
-   "urutan": 95
-  },
-  {
-   "id": "jendela-4",
-   "label": "JENDELA 4",
-   "pos": {
-    "e": 13.1,
-    "w": 0.1,
-    "z": 5
-   },
-   "size": {
-    "e": 3.6,
-    "w": 0.2,
-    "z": 0.2
-   },
-   "style": "paper",
-   "app": null,
-   "layer": "main",
-   "grup": "grup-contoh-12",
-   "grupNama": "JENDELA",
-   "urutan": 96
-  },
-  {
-   "id": "jendela-5",
-   "label": "JENDELA 5",
-   "pos": {
-    "e": 13.1,
-    "w": 0.1,
-    "z": 1.8
-   },
-   "size": {
-    "e": 0.2,
-    "w": 0.2,
-    "z": 3.4
-   },
-   "style": "paper",
-   "app": null,
-   "layer": "main",
-   "grup": "grup-contoh-12",
-   "grupNama": "JENDELA",
-   "urutan": 97
-  },
-  {
-   "id": "jendela-6",
-   "label": "JENDELA 6",
-   "pos": {
-    "e": 16.5,
-    "w": 0.1,
-    "z": 1.8
-   },
-   "size": {
-    "e": 0.2,
-    "w": 0.2,
-    "z": 3.4
-   },
-   "style": "paper",
-   "app": null,
-   "layer": "main",
-   "grup": "grup-contoh-12",
-   "grupNama": "JENDELA",
-   "urutan": 98
+   "urutan": 69
   },
   {
    "id": "jendela-7",
    "label": "JENDELA 7",
    "pos": {
-    "e": 14.8,
-    "w": 0.1,
-    "z": 2
+    "e": 16,
+    "w": 0.2,
+    "z": 4.3
    },
    "size": {
-    "e": 0.2,
+    "e": 0.5,
+    "w": 0.1,
+    "z": 0.5
+   },
+   "style": "pastel-butter",
+   "app": null,
+   "layer": "main",
+   "grup": "grup-contoh-12",
+   "grupNama": "JENDELA",
+   "urutan": 70
+  },
+  {
+   "id": "jendela-8",
+   "label": "JENDELA 8",
+   "pos": {
+    "e": 14.8,
     "w": 0.2,
-    "z": 3
+    "z": 4.1
+   },
+   "size": {
+    "e": 0.7,
+    "w": 0.1,
+    "z": 0.2
    },
    "style": "paper",
    "app": null,
    "layer": "main",
    "grup": "grup-contoh-12",
    "grupNama": "JENDELA",
-   "urutan": 99
-  },
-  {
-   "id": "jendela-8",
-   "label": "JENDELA 8",
-   "pos": {
-    "e": 12.8,
-    "w": 0.2,
-    "z": 1.8
-   },
-   "size": {
-    "e": 0.6,
-    "w": 0.1,
-    "z": 3.4
-   },
-   "style": "curtain",
-   "app": null,
-   "layer": "main",
-   "grup": "grup-contoh-12",
-   "grupNama": "JENDELA",
-   "urutan": 100
+   "urutan": 71
   },
   {
    "id": "jendela-9",
    "label": "JENDELA 9",
    "pos": {
-    "e": 16.4,
+    "e": 13.5,
     "w": 0.2,
-    "z": 1.8
+    "z": 3.1
    },
    "size": {
     "e": 0.6,
     "w": 0.1,
+    "z": 0.2
+   },
+   "style": "paper",
+   "app": null,
+   "layer": "main",
+   "grup": "grup-contoh-12",
+   "grupNama": "JENDELA",
+   "urutan": 72
+  },
+  {
+   "id": "jendela-10",
+   "label": "JENDELA 10",
+   "pos": {
+    "e": 14.5,
+    "w": 0.2,
+    "z": 2
+   },
+   "size": {
+    "e": 0.1,
+    "w": 0.1,
+    "z": 3
+   },
+   "style": "board",
+   "app": null,
+   "layer": "main",
+   "grup": "grup-contoh-12",
+   "grupNama": "JENDELA",
+   "urutan": 73
+  },
+  {
+   "id": "jendela-11",
+   "label": "JENDELA 11",
+   "pos": {
+    "e": 15.8,
+    "w": 0.2,
+    "z": 2
+   },
+   "size": {
+    "e": 0.1,
+    "w": 0.1,
+    "z": 3
+   },
+   "style": "board",
+   "app": null,
+   "layer": "main",
+   "grup": "grup-contoh-12",
+   "grupNama": "JENDELA",
+   "urutan": 74
+  },
+  {
+   "id": "jendela-12",
+   "label": "JENDELA 12",
+   "pos": {
+    "e": 13.4,
+    "w": 0.2,
     "z": 3.4
+   },
+   "size": {
+    "e": 3.6,
+    "w": 0.1,
+    "z": 0.1
+   },
+   "style": "board",
+   "app": null,
+   "layer": "main",
+   "grup": "grup-contoh-12",
+   "grupNama": "JENDELA",
+   "urutan": 75
+  },
+  {
+   "id": "jendela-13",
+   "label": "JENDELA 13",
+   "pos": {
+    "e": 13.1,
+    "w": 0.2,
+    "z": 1.6
+   },
+   "size": {
+    "e": 4.3,
+    "w": 0.3,
+    "z": 0.2
+   },
+   "style": "paper",
+   "app": null,
+   "layer": "main",
+   "grup": "grup-contoh-12",
+   "grupNama": "JENDELA",
+   "urutan": 76
+  },
+  {
+   "id": "jendela-14",
+   "label": "JENDELA 14",
+   "pos": {
+    "e": 12.7,
+    "w": 0.3,
+    "z": 3.5
+   },
+   "size": {
+    "e": 0.8,
+    "w": 0.1,
+    "z": 1.9
    },
    "style": "curtain",
    "app": null,
    "layer": "main",
    "grup": "grup-contoh-12",
    "grupNama": "JENDELA",
-   "urutan": 101
+   "urutan": 77
   },
   {
-   "id": "jendela-10",
-   "label": "JENDELA 10",
+   "id": "jendela-15",
+   "label": "JENDELA 15",
    "pos": {
-    "e": 12.6,
-    "w": 0.2,
-    "z": 5.2
+    "e": 12.8,
+    "w": 0.3,
+    "z": 1.7
    },
    "size": {
-    "e": 4.6,
-    "w": 0.2,
-    "z": 0.2
+    "e": 0.7,
+    "w": 0.1,
+    "z": 1.8
    },
-   "style": "metal-light",
+   "style": "curtain",
    "app": null,
    "layer": "main",
    "grup": "grup-contoh-12",
    "grupNama": "JENDELA",
-   "urutan": 102
+   "urutan": 78
+  },
+  {
+   "id": "jendela-16",
+   "label": "JENDELA 16",
+   "pos": {
+    "e": 16.9,
+    "w": 0.3,
+    "z": 3.5
+   },
+   "size": {
+    "e": 0.8,
+    "w": 0.1,
+    "z": 1.9
+   },
+   "style": "curtain",
+   "app": null,
+   "layer": "main",
+   "grup": "grup-contoh-12",
+   "grupNama": "JENDELA",
+   "urutan": 79
+  },
+  {
+   "id": "jendela-17",
+   "label": "JENDELA 17",
+   "pos": {
+    "e": 16.9,
+    "w": 0.3,
+    "z": 1.7
+   },
+   "size": {
+    "e": 0.7,
+    "w": 0.1,
+    "z": 1.8
+   },
+   "style": "curtain",
+   "app": null,
+   "layer": "main",
+   "grup": "grup-contoh-12",
+   "grupNama": "JENDELA",
+   "urutan": 80
+  },
+  {
+   "id": "jendela-18",
+   "label": "JENDELA 18",
+   "pos": {
+    "e": 12.9,
+    "w": 0.3,
+    "z": 3.3
+   },
+   "size": {
+    "e": 0.4,
+    "w": 0.2,
+    "z": 0.2
+   },
+   "style": "paper",
+   "app": null,
+   "layer": "main",
+   "grup": "grup-contoh-12",
+   "grupNama": "JENDELA",
+   "urutan": 81
+  },
+  {
+   "id": "jendela-19",
+   "label": "JENDELA 19",
+   "pos": {
+    "e": 17.1,
+    "w": 0.3,
+    "z": 3.3
+   },
+   "size": {
+    "e": 0.4,
+    "w": 0.2,
+    "z": 0.2
+   },
+   "style": "paper",
+   "app": null,
+   "layer": "main",
+   "grup": "grup-contoh-12",
+   "grupNama": "JENDELA",
+   "urutan": 82
+  },
+  {
+   "id": "jendela-20",
+   "label": "JENDELA 20",
+   "pos": {
+    "e": 12.7,
+    "w": 0.3,
+    "z": 5.3
+   },
+   "size": {
+    "e": 5.1,
+    "w": 0.1,
+    "z": 0.1
+   },
+   "style": "metal-light",
+   "bentuk": "silinder",
+   "app": null,
+   "layer": "main",
+   "grup": "grup-contoh-12",
+   "grupNama": "JENDELA",
+   "urutan": 83
+  },
+  {
+   "id": "jendela-21",
+   "label": "JENDELA 21",
+   "pos": {
+    "e": 13,
+    "w": 0.2,
+    "z": 5.3
+   },
+   "size": {
+    "e": 0.1,
+    "w": 0.2,
+    "z": 0.2
+   },
+   "style": "board",
+   "app": null,
+   "layer": "main",
+   "grup": "grup-contoh-12",
+   "grupNama": "JENDELA",
+   "urutan": 84
+  },
+  {
+   "id": "jendela-22",
+   "label": "JENDELA 22",
+   "pos": {
+    "e": 17.3,
+    "w": 0.2,
+    "z": 5.3
+   },
+   "size": {
+    "e": 0.1,
+    "w": 0.2,
+    "z": 0.2
+   },
+   "style": "board",
+   "app": null,
+   "layer": "main",
+   "grup": "grup-contoh-12",
+   "grupNama": "JENDELA",
+   "urutan": 85
   }
  ],
  "meta": {

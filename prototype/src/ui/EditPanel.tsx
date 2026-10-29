@@ -33,6 +33,48 @@ const snap = (v: number) => Math.round(v * 10) / 10
  * Nilai diketik disimpan sebagai teks lokal supaya mengetik "1." atau "-"
  * tidak langsung dipaksa; commit terjadi saat Enter, blur, atau tombol ±.
  */
+/**
+ * Tombol − / + yang bisa DITAHAN (permintaan user 2026-10-29: "buat tombol +
+ * dan − bisa ditahan agar tidak perlu klik satu-satu berulang").
+ * Ketuk = satu langkah 0.1. Tahan > 320 ms = berulang otomatis tiap 70 ms.
+ * Memakai pointer capture supaya tetap berhenti walau jari bergeser keluar.
+ */
+function HoldBtn(p: {
+  dir: 1 | -1
+  onStep: (dir: 1 | -1) => void
+  disabled?: boolean
+}) {
+  const tunda = useRef<number | null>(null)
+  const ulang = useRef<number | null>(null)
+  const stop = () => {
+    if (tunda.current !== null) { window.clearTimeout(tunda.current); tunda.current = null }
+    if (ulang.current !== null) { window.clearInterval(ulang.current); ulang.current = null }
+  }
+  useEffect(() => stop, [])
+  return (
+    <button
+      className="sbtn hold"
+      disabled={p.disabled}
+      aria-label={p.dir > 0 ? 'tambah 0.1 (tahan untuk berulang)' : 'kurangi 0.1 (tahan untuk berulang)'}
+      onPointerDown={ev => {
+        ev.preventDefault()
+        try { (ev.currentTarget as HTMLElement).setPointerCapture(ev.pointerId) } catch { /* abaikan */ }
+        p.onStep(p.dir)
+        tunda.current = window.setTimeout(() => {
+          ulang.current = window.setInterval(() => p.onStep(p.dir), 70)
+        }, 320)
+      }}
+      onPointerUp={stop}
+      onPointerCancel={stop}
+      onPointerLeave={stop}
+      onBlur={stop}
+      onContextMenu={ev => ev.preventDefault()}
+    >
+      {p.dir > 0 ? '+' : '−'}
+    </button>
+  )
+}
+
 function NumField(p: {
   label: string
   value: number
@@ -42,11 +84,25 @@ function NumField(p: {
 }) {
   const [text, setText] = useState(p.value.toFixed(1))
   const [focused, setFocused] = useState(false)
+  // nilai acuan untuk penambahan berulang: prop bisa tertinggal satu render,
+  // jadi langkah dihitung dari ref ini supaya tahan-tombol tidak "macet".
+  const nilaiRef = useRef(p.value)
 
   // sinkron dari luar (drag objek, tombol ±, ganti objek terpilih)
   useEffect(() => {
+    nilaiRef.current = p.value
     if (!focused) setText(p.value.toFixed(1))
   }, [p.value, focused])
+
+  /** satu langkah 0.1 untuk tombol tahan */
+  const step = (dir: 1 | -1) => {
+    const diketik = parseFloat(text.replace(',', '.'))
+    const dasar = focused && Number.isFinite(diketik) ? snap(diketik) : nilaiRef.current
+    const v = Math.max(p.min, snap(dasar + dir * 0.1))
+    nilaiRef.current = v
+    p.onChange(v)
+    setText(v.toFixed(1))
+  }
 
   const commit = (raw?: string) => {
     const src = raw ?? text
@@ -60,7 +116,7 @@ function NumField(p: {
   return (
     <div className="row">
       <span className="rl">{p.label}</span>
-      <button className="sbtn" disabled={p.disabled} onClick={() => commit(String(p.value - 0.1))}>−</button>
+      <HoldBtn dir={-1} disabled={p.disabled} onStep={step} />
       <input
         className="rinput"
         inputMode="decimal"
@@ -76,7 +132,7 @@ function NumField(p: {
         }}
         aria-label={`${p.label} objek (bisa diketik)`}
       />
-      <button className="sbtn" disabled={p.disabled} onClick={() => commit(String(p.value + 0.1))}>+</button>
+      <HoldBtn dir={1} disabled={p.disabled} onStep={step} />
     </div>
   )
 }
@@ -311,7 +367,7 @@ export default function EditPanel(p: Props) {
             ? 'terkunci total — ubah baris KUNCI untuk membuka'
             : p.dirty
               ? 'ada perubahan belum disimpan — ketuk SIMPAN'
-              : 'perubahan langsung terlihat · ketuk SIMPAN untuk menyimpan sekarang'}
+              : 'perubahan langsung terlihat · ketuk SIMPAN untuk menyimpan sekarang · tahan − / + untuk berulang'}
       </div>
       </div>
       <div className="pfoot">

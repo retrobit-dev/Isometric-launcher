@@ -87,9 +87,18 @@ try {
         && kelipatan01(o.size.e) && kelipatan01(o.size.w) && kelipatan01(o.size.z))
       && new Set(bagian.map(o => o.id)).size === bagian.length
       && bagian.every(o => o.grup === 'grup-uji')
+      // bentuk hanya boleh balok (tidak diisi) / silinder / kerucut
+      && bagian.every(o => o.bentuk === undefined || o.bentuk === 'silinder' || o.bentuk === 'kerucut')
+      // puncak hanya untuk kerucut, nilainya >= 0 dan 2 desimal
+      && bagian.every(o => o.puncak === undefined
+        || (o.bentuk === 'kerucut' && o.puncak >= 0
+          && Math.abs(o.puncak * 100 - Math.round(o.puncak * 100)) < 1e-6))
     if (!sah) { katalogSah = false; katalogDetail += ` ${p.id}` }
   }
-  cek('semua preset sah (ukuran, koordinat, id, grup)', katalogSah, katalogDetail || `${bagianTotal} balok`)
+  cek('semua preset sah (ukuran, koordinat, id, grup, bentuk)', katalogSah, katalogDetail || `${bagianTotal} bagian`)
+  const bentukPakai = new Set(daftar.flatMap(pr => pr.bagian.map(x => x.bentuk ?? 'balok')))
+  cek('katalog memakai bentuk baru', bentukPakai.has('silinder') && bentukPakai.has('kerucut'),
+    [...bentukPakai].join(','))
   cek('id preset unik', new Set(daftar.map(p => p.id)).size === daftar.length)
 
   // --------------------------------------------------------- 3. urutan gambar

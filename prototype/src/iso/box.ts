@@ -52,6 +52,95 @@ export function drawBox(ctx: CanvasRenderingContext2D, o: SceneObject) {
   poly(ctx, [t00, t10, t11, t01], c.top)
 }
 
+// ---------------------------------------------------------------------------
+// BENTUK SILINDER & KERUCUT (permintaan user 2026-10-29)
+// Alas berbentuk elips di bidang e-w. Karena proyeksi isometrik, elips di
+// dunia menjadi elips 2:1 di layar — titik-titiknya dihitung di dunia lalu
+// diproyeksikan lewat px(), jadi hasilnya sama dengan renderer APK nanti
+// (lihat docs/04-KONTRAK-RENDERER.md §4a).
+// ---------------------------------------------------------------------------
+const SEGMEN = 24
+
+/** titik alas (z = pos.z) & titik atas (z + size.z) untuk silinder/kerucut */
+function cincin(o: SceneObject) {
+  const { e, w, z } = o.pos
+  const { se, sw } = footprintOf(o)
+  const ce = e + se / 2
+  const cw = w + sw / 2
+  const re = se / 2
+  const rw = sw / 2
+  const bawah: P[] = []
+  const atas: P[] = []
+  const sudut: number[] = []
+  for (let i = 0; i < SEGMEN; i++) {
+    const t = (i / SEGMEN) * Math.PI * 2
+    const ee = ce + re * Math.cos(t)
+    const ww = cw + rw * Math.sin(t)
+    bawah.push(px(ee, ww, z))
+    atas.push(px(ee, ww, z + o.size.z))
+    sudut.push(t)
+  }
+  return { bawah, atas, sudut }
+}
+
+/** warna 3 tone yang sudah memperhitungkan `refleksi` */
+function toneOf(o: SceneObject) {
+  const c = colorsOf(o)
+  return o.refleksi ? { top: c.top, left: c.right, right: c.left } : c
+}
+
+export function drawSilinder(ctx: CanvasRenderingContext2D, o: SceneObject) {
+  const { bawah, atas, sudut } = cincin(o)
+  const c = toneOf(o)
+  // segmen digambar dari belakang ke depan supaya saling menutup dengan benar
+  const seg = sudut.map((t, i) => {
+    const j = (i + 1) % SEGMEN
+    const tengahY = (bawah[i].y + bawah[j].y + atas[i].y + atas[j].y) / 4
+    // normal keluar: +e (kanan layar) & -w (kanan layar) -> tone kanan
+    const kanan = (Math.cos(t) + Math.cos(sudut[j])) - (Math.sin(t) + Math.sin(sudut[j]))
+    return { i, j, tengahY, warna: kanan >= 0 ? c.right : c.left }
+  }).sort((a, b) => a.tengahY - b.tengahY)
+  for (const s of seg) {
+    poly(ctx, [bawah[s.i], bawah[s.j], atas[s.j], atas[s.i]], s.warna)
+  }
+  // tutup atas: elips penuh
+  poly(ctx, atas, c.top)
+}
+
+export function drawKerucut(ctx: CanvasRenderingContext2D, o: SceneObject) {
+  const { e, w, z } = o.pos
+  const { se, sw } = footprintOf(o)
+  const { bawah, sudut } = cincin(o)
+  const ce = e + se / 2
+  const cw = w + sw / 2
+  const re = se / 2
+  const rw = sw / 2
+  // `puncak` = perbandingan jari-jari atas (0 = runcing, 1 = silinder,
+  // >1 = melebar ke atas seperti pot bunga)
+  const rasio = Math.max(0, o.puncak ?? 0)
+  const atas: P[] = rasio === 0
+    ? sudut.map(() => px(ce, cw, z + o.size.z))
+    : sudut.map(t => px(ce + re * rasio * Math.cos(t), cw + rw * rasio * Math.sin(t), z + o.size.z))
+  const c = toneOf(o)
+  const seg = sudut.map((t, i) => {
+    const j = (i + 1) % SEGMEN
+    const tengahY = (bawah[i].y + bawah[j].y + atas[i].y + atas[j].y) / 4
+    const kanan = (Math.cos(t) + Math.cos(sudut[j])) - (Math.sin(t) + Math.sin(sudut[j]))
+    return { i, j, tengahY, warna: kanan >= 0 ? c.right : c.left }
+  }).sort((a, b) => a.tengahY - b.tengahY)
+  for (const s of seg) {
+    poly(ctx, [bawah[s.i], bawah[s.j], atas[s.j], atas[s.i]], s.warna)
+  }
+  if (rasio > 0) poly(ctx, atas, c.top)
+}
+
+/** penggambar objek: pilih bentuk sesuai field `bentuk` */
+export function drawObject(ctx: CanvasRenderingContext2D, o: SceneObject) {
+  if (o.bentuk === 'silinder') return drawSilinder(ctx, o)
+  if (o.bentuk === 'kerucut') return drawKerucut(ctx, o)
+  return drawBox(ctx, o)
+}
+
 export function bboxOf(o: SceneObject): Box {
   const { e, w, z } = o.pos
   const { se, sw } = footprintOf(o)

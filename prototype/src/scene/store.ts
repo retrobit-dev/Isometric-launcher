@@ -4,8 +4,11 @@ import { ROOM_FROM_FILE, ROOM_FIXED, type Scene, type SceneObject } from './type
 // v4: ruangan saja (fase penyamaan ruangan dengan referensi; objek menyusul)
 // v5: objek bisa berperan sebagai LANTAI ruangan (role 'lantai')
 // v6: lantai memakai palet kayu selang-seling (style dari FLOOR_MATERIALS)
-const DRAFT_KEY = 'isola-draft-v6'
-const LOCKED_KEY = 'isola-locked-v6'
+// v7 (2026-10-29): draf v6 yang berisi objek JENDELA lama (versi balok)
+// sengaja DITINGGALKAN — user meminta jendela lama dihapus dari kanvas dan
+// diganti bentuk baru (silinder/kerucut). Draf lama tidak dimigrasikan.
+const DRAFT_KEY = 'isola-draft-v7'
+const LOCKED_KEY = 'isola-locked-v7'
 const PREV_DRAFT_KEYS = ['isola-draft-v5', 'isola-draft-v4'] as const
 
 // ---------------------------------------------------------------------------
@@ -385,6 +388,9 @@ export function validateScene(data: unknown): Scene | null {
       ...(typeof ob.grupNama === 'string' && ob.grupNama ? { grupNama: ob.grupNama } : {}),
       ...(typeof ob.grupInduk === 'string' && ob.grupInduk ? { grupInduk: ob.grupInduk } : {}),
       ...(ob.kunci === 'warna' || ob.kunci === 'semua' ? { kunci: ob.kunci } : {}),
+      ...(ob.bentuk === 'silinder' || ob.bentuk === 'kerucut' ? { bentuk: ob.bentuk } : {}),
+      ...(typeof ob.puncak === 'number' && Number.isFinite(ob.puncak) && ob.puncak >= 0
+        ? { puncak: Math.round(ob.puncak * 100) / 100 } : {}),
       ...(ob.latar === true ? { latar: true } : {}),
       ...(typeof ob.urutan === 'number' && Number.isFinite(ob.urutan) ? { urutan: Math.round(ob.urutan) } : {}),
     })
