@@ -321,6 +321,28 @@ Transform **hanya saat menggambar** (`ctx.save` → transform → gambar →
 `DENS = 1.775` (lihat §0 di bawah). `refleksi` tetap memakai transform yang
 sama, jadi pantulan ikut bergerak.
 
+## 4b-1. Langit dinamis (diperhalus 2026-10-29)
+
+Bidang kaca ber-`langit: true` digambar oleh `iso/langit.ts` (web) dan
+`draw_langit()` (`tools/render_scene.py`). Permintaan user: **"bisakah buat
+langit lebih realistis?"** — jawaban user: **semua aspek**, dan gradasi
+**boleh mulus (blend)**.
+
+| Elemen | Aturan (WAJIB sama di web & APK) |
+|---|---|
+| warna kendali | tetap **6 warna palet** per fase (§ langitFase); tidak ada warna baru sebagai kendali |
+| gradasi | **14 pita**: `pitaHalus(kendali, 14)` = campuran linear dua kendali bersebelahan (`campur()` 0..1). Pita ke-1 dan ke-14 persis warna kendali |
+| kabut horizon | warna pita bawah dicampur warna kabut, kekuatan `((v−0,55)/0,45)² × 0,55` (malam 0,30). Kabut: pagi/siang = campuran `pita[5]` + abu terang; fajar/senja = keemasan; malam = sisa cahaya kota |
+| matahari | 4 lapis: halo luar (`campur(langit, inti, 0,30)`, r 0,135×0,235), halo dalam (`0,62`, 0,108×0,188), tepi (r 0,082×0,144), inti (0,058×0,102). Siang: tepi `warna(3,2)` inti `warna(3,1)`; fajar/senja: tepi `warna(2,4)` inti `warna(3,2)` |
+| bulan | halo 2 lapis tipis + bola `warna(18,2)` + sorotan + **3 kawah** `warna(18,3)` |
+| bintang | **34 butir**, ukuran & fase kedip berbeda; `besar > 0,55` diberi salib tipis; warna `warna(18,1)` / satu tingkat lebih gelap saat redup |
+| awan | gumpalan kumulus: 3 elips lingkar (campuran awan→langit, tepi lembut) + alas rata gelap + 3 gumpalan terang + 1 puncak sorotan. Jumlah awan tetap dari `efekCuaca()` |
+| kilat | **bercabang**: batang utama (10 titik) + 2 cabang, warna `warna(3,1)` |
+
+Aturan anti-alias: **gradasi** langit boleh hasil blend warna (keputusan user),
+tetapi semua **bentuk** (matahari, awan, bintang, kilat, kusen) tetap poligon
+koordinat bulat tanpa anti-alias.
+
 ## 4c. Tema & elemen gambar (2026-10-29)
 
 Palet dan aturan gaya: lihat `docs/05-TEMA-DIORAMA-HANGAT.md`. Yang WAJIB

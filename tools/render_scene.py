@@ -574,6 +574,58 @@ def _kotak(k, u0, v0, du, dv, warn):
     _isi([_titik(k, u, v), _titik(k, u + du, v), _titik(k, u + du, v + dv), _titik(k, u, v + dv)], warn)
 
 
+def _campur(a, b, t):
+    """Campur dua warna hex (t=0 -> a, t=1 -> b). Cermin campur() di iso/langit.ts.
+
+    Dipakai HANYA untuk gradasi langit: warna kendali tetap 6 warna palet,
+    warna antaranya kombinasi linear keduanya (permintaan user 2026-10-29
+    "bisakah buat langit lebih realistis?" -> gradasi boleh mulus).
+    """
+    t = max(0.0, min(1.0, t))
+    a = a.lstrip('#')
+    b = b.lstrip('#')
+    out = []
+    for i in (0, 2, 4):
+        ca = int(a[i:i + 2], 16)
+        cb = int(b[i:i + 2], 16)
+        out.append(max(0, min(255, round(ca + (cb - ca) * t))))
+    return '#%02x%02x%02x' % tuple(out)
+
+
+def _pita_halus(kendali, n=14):
+    """N warna langit dari 6 warna kendali (cermin pitaHalus di iso/langit.ts)."""
+    seg = len(kendali) - 1
+    out = []
+    for i in range(n):
+        t = (i / (n - 1)) * seg
+        i0 = min(seg - 1, int(math.floor(t)))
+        out.append(_campur(kendali[i0], kendali[i0 + 1], t - i0))
+    return out
+
+
+def _cakram(k, u, v, ru, rv, warn, seg=12):
+    """bulatan/elips di koordinat bidang kaca, tepi tetap tajam (tanpa AA)"""
+    pts = []
+    for i in range(seg):
+        a = (i / seg) * 6.283185307
+        pts.append(_titik(k, u + math.cos(a) * ru, v + math.sin(a) * rv))
+    _isi(pts, warn)
+
+
+def _awan_satu(k, u, v, lebar, skala, atas, bawah, lingkar):
+    """awan kumulus: alas rata + 3 gumpalan elips (cermin awanSatu() di TS)"""
+    h = 0.075 * skala
+    dasar = v + h * 0.55
+    _cakram(k, u + lebar * 0.30, dasar - h * 0.10, lebar * 0.26, h * 0.55, lingkar)
+    _cakram(k, u + lebar * 0.58, dasar - h * 0.18, lebar * 0.30, h * 0.60, lingkar)
+    _cakram(k, u + lebar * 0.82, dasar - h * 0.05, lebar * 0.22, h * 0.50, lingkar)
+    _kotak(k, u + lebar * 0.10, dasar - h * 0.35, lebar * 0.80, h * 0.40, bawah)
+    _cakram(k, u + lebar * 0.30, dasar - h * 0.40, lebar * 0.24, h * 0.56, atas)
+    _cakram(k, u + lebar * 0.60, dasar - h * 0.46, lebar * 0.29, h * 0.62, atas)
+    _cakram(k, u + lebar * 0.84, dasar - h * 0.34, lebar * 0.20, h * 0.48, atas)
+    _cakram(k, u + lebar * 0.50, dasar - h * 0.72, lebar * 0.17, h * 0.40, atas)
+
+
 def bidang_kaca(o):
     e, w, z = o['pos']['e'], o['pos']['w'], o['pos']['z']
     se, sw = footing(o)
@@ -601,13 +653,46 @@ def draw_langit(o):
     jml_awan, jml_hujan, kilat, pelangi, mendung = efek_cuaca(CUACA)
     warna_pita = mendung if mendung else pita_warna
 
-    for i in range(6):
-        _isi([_titik(k, 0, i / 6), _titik(k, 1, i / 6), _titik(k, 1, (i + 1) / 6), _titik(k, 0, (i + 1) / 6)],
-             warna_pita[i])
+    # 1) LANGIT: 14 pita halus (campuran 6 warna kendali) + KABUT horizon
+    N = 14
+    halus = _pita_halus(warna_pita, N)
+    if fase in ('fajar', 'senja'):
+        kabut = _campur(_warna(3, 2), _warna(18, 2), 0.45)
+    elif fase == 'malam':
+        kabut = _campur(_warna(18, 4), _warna(3, 2), 0.22)
+    else:
+        kabut = _campur(warna_pita[5], _warna(18, 1), 0.52)
+    kuat_kabut = 0.30 if fase == 'malam' else 0.55
+    warnaLangit = []
+    for i in range(N):
+        v0, v1 = i / N, (i + 1) / N
+        tengah = (v0 + v1) / 2
+        kuat = (max(0.0, (tengah - 0.55) / 0.45) ** 2) * kuat_kabut
+        w = _campur(halus[i], kabut, kuat)
+        warnaLangit.append(w)
+        _isi([_titik(k, 0, v0), _titik(k, 1, v0), _titik(k, 1, v1), _titik(k, 0, v1)], w)
 
+    def langit_di(v):
+        i = max(0, min(N - 1, int(round(v * (N - 1)))))
+        return warnaLangit[i]
+
+    # 2) bintang: 34 butir, tiga ukuran, salib untuk yang paling terang
     if bintang and not mendung:
-        for i in range(22):
-            _kotak(k, _acak(i, 7), _acak(i, 8) * 0.72, 0.012, 0.03, _warna(18, 1))
+        redup = gelap(_warna(18, 1), 1)
+        for i in range(34):
+            u = _acak(i, 7)
+            v = _acak(i, 8) * 0.78
+            besar = _acak(i, 13)
+            if besar > 0.55:
+                wb = _warna(18, 1)
+            else:
+                wb = redup
+            w = 0.008 + besar * 0.010
+            h = 0.018 + besar * 0.026
+            _kotak(k, u, v, w, h, wb)
+            if besar > 0.55:
+                _kotak(k, u - w * 0.9, v + h * 0.35, w * 2.8, h * 0.28, wb)
+                _kotak(k, u + w * 0.1, v - h * 0.35, w * 0.85, h * 1.7, wb)
 
     if pelangi and fase in ('pagi', 'siang'):
         # busur setengah lingkaran, tiga pita (sama dengan pelangi() di TS)
@@ -624,35 +709,46 @@ def draw_langit(o):
                 pts.append(_titik(k, 0.5 + math.cos(a) * rd, 1.05 - math.sin(a) * rd * 1.7))
             _isi(pts, c)
 
-    # matahari / bulan
+    # 3) MATAHARI / BULAN + HALO berlapis (cermin drawLangit di iso/langit.ts)
     if fase == 'malam':
         t = (JAM - 18) / 11 if JAM >= 18 else (JAM + 6) / 11
         u, v = 0.14 + 0.72 * t, 0.62 - 0.42 * math.sin(math.pi * t)
-        _isi([_titik(k, u + math.cos(x / 10 * 6.2832) * 0.075, v + math.sin(x / 10 * 6.2832) * 0.13) for x in range(10)], _warna(18, 2))
-        _isi([_titik(k, u - 0.015 + math.cos(x / 10 * 6.2832) * 0.052, v - 0.02 + math.sin(x / 10 * 6.2832) * 0.09) for x in range(10)], _warna(18, 1))
+        sekitar = langit_di(v)
+        _cakram(k, u, v, 0.125, 0.22, _campur(sekitar, _warna(18, 1), 0.30))
+        _cakram(k, u, v, 0.100, 0.175, _campur(sekitar, _warna(18, 1), 0.55))
+        _cakram(k, u, v, 0.082, 0.142, _warna(18, 2))
+        _cakram(k, u - 0.012, v - 0.018, 0.058, 0.100, _warna(18, 1))
+        # kawah
+        _cakram(k, u + 0.021, v + 0.017, 0.014, 0.025, _warna(18, 3), 8)
+        _cakram(k, u - 0.016, v + 0.045, 0.010, 0.018, _warna(18, 3), 8)
+        _cakram(k, u + 0.004, v - 0.042, 0.008, 0.014, _warna(18, 3), 8)
     elif not mendung or jml_hujan == 0:
         t = min(1.0, max(0.0, (JAM - 5) / 13))
         u, v = 0.14 + 0.72 * t, 0.62 - 0.46 * math.sin(math.pi * t)
         hangat = fase in ('fajar', 'senja')
-        tepi = _warna(2, 3) if hangat else _warna(3, 3)
-        inti = _warna(2, 2) if hangat else _warna(3, 2)
-        _isi([_titik(k, u + math.cos(x / 10 * 6.2832) * 0.085, v + math.sin(x / 10 * 6.2832) * 0.15) for x in range(10)], tepi)
-        _isi([_titik(k, u - 0.012 + math.cos(x / 10 * 6.2832) * 0.062, v - 0.02 + math.sin(x / 10 * 6.2832) * 0.11) for x in range(10)], inti)
+        tepi = _warna(2, 4) if hangat else _warna(3, 2)
+        inti = _warna(3, 2) if hangat else _warna(3, 1)
+        sekitar = langit_di(v)
+        # halo SEMPIT berlapis (cermin iso/langit.ts)
+        _cakram(k, u, v, 0.135, 0.235, _campur(sekitar, inti, 0.30))
+        _cakram(k, u, v, 0.108, 0.188, _campur(sekitar, inti, 0.62))
+        _cakram(k, u, v, 0.082, 0.144, tepi)
+        _cakram(k, u - 0.010, v - 0.016, 0.058, 0.102, inti)
 
-    # awan: tiga tumpuk balok, selalu di dalam kaca
+    # 4) awan gumpal (bukan tumpukan kotak)
     if mendung:
         awan_dasar = gelap(awan_warna, 5 if CUACA == 'badai' else 4 if CUACA == 'hujan' else 3)
     else:
         awan_dasar = awan_warna
     for i in range(jml_awan):
-        lebar = 0.26 + _acak(i, 3) * 0.14
-        vv = 0.12 + _acak(i, 4) * 0.38
+        lebar = 0.24 + _acak(i, 3) * 0.16
+        skala = 0.85 + _acak(i, 9) * 0.45
+        vv = 0.10 + _acak(i, 4) * 0.40
         uu = _acak(i, 5)
-        bawah = gelap(awan_dasar, 1)
-        _kotak(k, uu, vv, lebar, 0.075, awan_dasar)
-        _kotak(k, uu + lebar * 0.14, vv + 0.07, lebar * 0.66, 0.055, bawah)
-        _kotak(k, uu + lebar * 0.30, vv - 0.055, lebar * 0.42, 0.065, awan_dasar)
-        _kotak(k, uu + lebar * 0.62, vv + 0.03, lebar * 0.26, 0.05, bawah)
+        atas = awan_dasar if i % 2 == 0 else gelap(awan_dasar, 1)
+        bawah = gelap(awan_dasar, 2)
+        lingkar = _campur(atas, gelap(awan_dasar, 3), 0.45)
+        _awan_satu(k, uu, vv, lebar, skala, atas, bawah, lingkar)
 
     # hujan (kerangka diam supaya PNG dapat diulang)
     if jml_hujan:
@@ -666,7 +762,15 @@ def draw_langit(o):
             _kotak(k, uu, fasa * (1 - tinggi), lebar_tetes, tinggi, warna_hujan)
 
     if kilat:
-        _kotak(k, 0.5, 0.0, 0.02, 0.6, _warna(3, 1))
+        # KILAT BERCABANG: batang utama + dua cabang (cermin iso/langit.ts)
+        petir = [
+            [(0.56, 0.02), (0.49, 0.20), (0.55, 0.24), (0.46, 0.46), (0.52, 0.50),
+             (0.42, 0.72), (0.45, 0.50), (0.40, 0.45), (0.48, 0.23), (0.44, 0.19)],
+            [(0.53, 0.24), (0.46, 0.34), (0.40, 0.40), (0.47, 0.30), (0.51, 0.26)],
+            [(0.52, 0.50), (0.58, 0.58), (0.62, 0.62), (0.57, 0.54), (0.51, 0.47)],
+        ]
+        for bentuk in petir:
+            _isi([_titik(k, u, v) for u, v in bentuk], _warna(3, 1))
 
 
 def draw_obj(o):

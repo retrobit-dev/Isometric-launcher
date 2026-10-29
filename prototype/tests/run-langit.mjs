@@ -64,6 +64,23 @@ try {
   cek('siang tidak menampilkan bintang', L.langitFase('siang').bintang === false)
   cek('tiap fase punya 6 pita', fase.every(f => L.langitFase(f).pita.length === 6))
 
+  console.log('2b. gradasi halus (permintaan user 2026-10-29: langit lebih realistis)')
+  const halus = L.pitaHalus(L.langitFase('siang').pita, 14)
+  cek('pitaHalus menghasilkan N pita', halus.length === 14, String(halus.length))
+  cek('ujung gradasi = warna kendali palet',
+    halus[0] === L.langitFase('siang').pita[0]
+    && halus[13] === L.langitFase('siang').pita[5],
+    `${halus[0]} .. ${halus[13]}`)
+  cek('semua pita halus berupa hex 6 digit',
+    halus.every(h => /^#[0-9a-f]{6}$/.test(h)), halus.slice(0, 3).join(','))
+  cek('antar pita berubah halus (tidak melompat)',
+    halus.every((h, i) => i === 0 || Math.abs(
+      parseInt(h.slice(1, 3), 16) - parseInt(halus[i - 1].slice(1, 3), 16)) <= 40))
+  cek('campur(a,b,0)=a dan campur(a,b,1)=b',
+    L.campur('#000000', '#ffffff', 0) === '#000000'
+    && L.campur('#000000', '#ffffff', 1) === '#ffffff'
+    && L.campur('#000000', '#ffffff', 0.5) === '#808080')
+
   console.log('3. cuaca')
   const cuaca = ['cerah', 'berawan', 'gerimis', 'hujan', 'badai']
   cek('cerah = tanpa hujan', L.efekCuaca('cerah').hujan === 0)
