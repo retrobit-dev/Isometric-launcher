@@ -12,7 +12,8 @@ import { ROTASI_LANGKAH, UKURAN_MIN, normalRotasi, ukuranSah } from './scene/typ
 import { LATAR_TAG, gabungLatar, geserTumpukan, hapusLatarImage, latarImageUrl, loadCandidates, loadDraft, loadLocked, loadSceneFile, normalisasiScene, objekBiasa, objekLatar, saveDraftGuarded, saveLatarImage, saveLocked, saveSceneFile, storageWorks, validateScene } from './scene/store'
 import { type JenisAnim, type Scene, type SceneObject } from './scene/types'
 import { SEMUA_CUACA, faseDariJam, getLangit, langitFase, efekCuaca, setLangit, type Cuaca } from './iso/langit'
-import { ambilCuacaNyata, jamPerangkat, muatPengaturanCuaca, simpanPengaturanCuaca, type PengaturanCuaca } from './scene/cuaca'
+import { ambilCuacaNyata, gantiKota, jamPerangkat, muatPengaturanCuaca, simpanPengaturanCuaca, type PengaturanCuaca } from './scene/cuaca'
+import KartuCuaca from './ui/KartuCuaca'
 import EditPanel from './ui/EditPanel'
 import ObjectList from './ui/ObjectList'
 import { anggotaFolder, bboxFolder, duplikatFolder, hapusFolder, opasitasFolder, opasitasRata, pindahFolder, putarFolder, skalaFolder, type Sumbu } from './scene/folder'
@@ -62,6 +63,7 @@ export default function App() {
   const [cuacaKini, setCuacaKini] = useState<Cuaca>(() => muatPengaturanCuaca().manual)
   const cuacaRef = useRef<Cuaca>(cuacaKini)
   const [jamKini, setJamKini] = useState(() => jamPerangkat())
+  const [showCuaca, setShowCuaca] = useState(false)
   const jamRef = useRef<number>(jamKini)
   const [dimuat, setDimuat] = useState(false)
   // GAMBAR LATAR (background kanvas) — permintaan user 2026-10-29.
@@ -282,6 +284,26 @@ export default function App() {
     const t = window.setInterval(() => void tentukan(), 10 * 60_000)
     return () => { batal = true; window.clearInterval(t) }
   }, [cuacaSet])
+
+  // sumber lokasi cuaca: PERANGKAT (minta izin) atau KOTA pilihan
+  const setSumberCuaca = (sumber: PengaturanCuaca['sumber']) => {
+    setCuacaSet(c => {
+      const next: PengaturanCuaca = sumber === 'kota'
+        ? gantiKota(c, c.kota)
+        : { ...c, sumber: 'perangkat' }
+      simpanPengaturanCuaca(next)
+      return next
+    })
+  }
+
+  // ganti kota pilihan -> koordinat ikut pindah (cache cuaca per koordinat)
+  const setKotaCuaca = (id: string) => {
+    setCuacaSet(c => {
+      const next = gantiKota(c, id)
+      simpanPengaturanCuaca(next)
+      return next
+    })
+  }
 
   // siklus cuaca untuk tombol toolbar: OTOMATIS -> CERAH -> ... -> OTOMATIS
   const gantiCuaca = () => {
@@ -1100,6 +1122,13 @@ export default function App() {
               {faseDariJam(jamKini).toUpperCase()} · {efekCuaca(cuacaKini).label}
               {cuacaSet.mode === 'otomatis' ? ' ⟳' : ''}
             </button>
+            <button
+              className={showCuaca ? 'tbtn on' : 'tbtn'}
+              onClick={() => setShowCuaca(v => !v)}
+              title="pengaturan cuaca: sumber lokasi (perangkat atau kota pilihan)"
+            >
+              ⚙
+            </button>
           </>
         )}
         <button
@@ -1192,6 +1221,16 @@ export default function App() {
           onDuplicate={() => duplicateObject(selected.id)}
           onDelete={() => requestDelete(selected.id)}
           onClose={() => setSelectedId(null)}
+        />
+      )}
+
+      {showCuaca && (
+        <KartuCuaca
+          pengaturan={cuacaSet}
+          aktif={efekCuaca(cuacaKini).label}
+          onSumber={setSumberCuaca}
+          onKota={setKotaCuaca}
+          onClose={() => setShowCuaca(false)}
         />
       )}
 
