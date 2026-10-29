@@ -8,7 +8,7 @@ import { bboxOf, sortedObjects } from './iso/box'
 import { FLOOR_DEFAULT, FLOOR_KEYS, MATERIAL_KEYS, WALL_STYLE_KEYS } from './iso/palette'
 import PresetPicker from './ui/PresetPicker'
 import { buatPreset, type Preset } from './scene/presets'
-import { LATAR_TAG, gabungLatar, geserTumpukan, loadCandidates, loadDraft, loadLocked, loadSceneFile, normalisasiScene, objekBiasa, objekLatar, saveDraftGuarded, saveLocked, saveSceneFile, storageWorks, validateScene } from './scene/store'
+import { LATAR_TAG, gabungLatar, geserTumpukan, hapusLatarImage, latarImageUrl, loadCandidates, loadDraft, loadLocked, loadSceneFile, normalisasiScene, objekBiasa, objekLatar, saveDraftGuarded, saveLatarImage, saveLocked, saveSceneFile, storageWorks, validateScene } from './scene/store'
 import { type Scene, type SceneObject } from './scene/types'
 import EditPanel from './ui/EditPanel'
 import ObjectList from './ui/ObjectList'
@@ -46,6 +46,13 @@ export default function App() {
   const [showPreset, setShowPreset] = useState(false) // pemilih objek (+ TAMBAH)
   const [geserGrup, setGeserGrup] = useState<{ gid: string; nama: string } | null>(null)
   const [dimuat, setDimuat] = useState(false)
+  // GAMBAR LATAR (background kanvas) — permintaan user 2026-10-29.
+  // `gambarLatar` untuk memicu render ulang tombol; `latarRef` dibaca loop
+  // gambar (rAF) supaya tidak perlu restart animation frame.
+  const [gambarLatar, setGambarLatar] = useState<HTMLImageElement | null>(null)
+  const [pesanLatar, setPesanLatar] = useState<string | null>(null)
+  const latarRef = useRef<HTMLImageElement | null>(null)
+  const fileLatarRef = useRef<HTMLInputElement>(null)
   // KLIK OBJEK = HANYA INFO (permintaan user 2026-10-28: "objek dipilih dari
   // tombol objek, klik objek hanya memberi informasi nama objek").
   // Klik di kanvas tidak lagi memilih / menggeser objek apa pun.
@@ -135,13 +142,47 @@ export default function App() {
     forceZoomLabel(v => v + 1)
   }
 
-  // autosave: localStorage (cepat) + file server (tahan restart browser)
+  // pesan gambar latar hilang sendiri setelah 4 detik
   useEffect(() => {
-    saveDraftGuarded(scene)
-    setSimpan(storageWorks() ? 'browser' : 'file')
-    const t = setTimeout(() => { void saveSceneFile(scene) }, 600)
+    if (!pesanLatar) return
+    const t = setTimeout(() => setPesanLatar(null), 4000)
     return () => clearTimeout(t)
-  }, [scene])
+  }, [pesanLatar])
+
+  // GAMBAR LATAR: muat berkasnya setiap kali token versi berubah
+  useEffect(() => {
+    const token = scene.meta?.latarGambar
+    if (!token) {
+      latarRef.current = null
+      setGambarLatar(null)
+      return
+    }
+    const img = new Image()
+    img.onload = () => { latarRef.current = img; setGambarLatar(img) }
+    img.onerror = () => { latarRef.current = null; setGambarLatar(null) }
+    img.src = latarImageUrl(token)
+  }, [scene.meta?.latarGambar])
+
+  // autosave: localStorage (cepat) + file server (tahan restart browser)
+  // PENTING (perbaikan 2026-10-29): autosave baru jalan SETELAH boot selesai,
+  // dan tiap simpan diberi cap waktu `meta.updatedAt`. Sebelum ini, tab lama
+  // yang baru dibuka langsung menimpa file dengan scene usang dari localStorage
+  // — akibatnya objek yang sudah dihapus (mis. 27 JENDELA lama) muncul kembali
+  // dan menghapus pekerjaan terbaru.
+  useEffect(() => {
+    if (!dimuat) return
+    const stamped: Scene = {
+      ...scene,
+      meta: {
+        ...(scene.meta ?? { locked: false, savedAt: null }),
+        updatedAt: new Date().toISOString(),
+      },
+    }
+    saveDraftGuarded(stamped)
+    setSimpan(storageWorks() ? 'browser' : 'file')
+    const t = setTimeout(() => { void saveSceneFile(stamped) }, 600)
+    return () => clearTimeout(t)
+  }, [scene, dimuat])
 
   // SAAT DIBUKA: kalau draf browser kosong/tidak ada, ambil dari file server.
   // Ini yang membuat objek tidak lagi hilang setelah browser ditutup.
@@ -151,8 +192,15 @@ export default function App() {
       const dariFile = await loadSceneFile()
       if (batal) return
       const lokal = sceneRef.current
-      // pakai file hanya bila isinya lebih lengkap (jangan menimpa kerja lokal)
-      if (dariFile && dariFile.objects.length > lokal.objects.length) {
+      // Pilih yang LEBIH BARU (cap waktu), bukan sekadar yang lebih banyak
+      // objeknya: menghapus objek adalah perubahan yang sah dan harus menang.
+      // Bila salah satu belum punya cap waktu (file lama), pakai jumlah objek.
+      const capLokal = Date.parse(String(lokal.meta?.updatedAt ?? '')) || 0
+      const capFile = Date.parse(String(dariFile?.meta?.updatedAt ?? '')) || 0
+      const fileLebihBaru = (capFile > 0 || capLokal > 0)
+        ? capFile > capLokal
+        : (dariFile?.objects.length ?? 0) > lokal.objects.length
+      if (dariFile && dariFile.objects.length > 0 && fileLebihBaru) {
         setUndo({ scene: lokal, label: 'scene sebelum dimuat dari file' })
         setLocked(false)
         const sc = gabungLatar(dariFile, lokal)
@@ -217,6 +265,8 @@ export default function App() {
         grid: false,
         edit: modeRef.current === 'edit' && !lockedRef.current,
         objects: sceneRef.current.objects,
+        latarGambar: latarRef.current,
+        latarMode: sceneRef.current.meta?.latarMode ?? 'isi',
         selectedId: selRef.current,
         highlightIds: (() => {
           const sel = sceneRef.current.objects.find(o => o.id === selRef.current)
@@ -355,6 +405,49 @@ export default function App() {
   const geser = (id: string, arah: 1 | -1) => {
     setScene(s => geserTumpukan(s, id, arah))
     setPanelDirty(true)
+  }
+
+  // ---- GAMBAR LATAR: pasang / ganti mode / hapus -------------------------
+  const pasangGambarLatar = async (ev: React.ChangeEvent<HTMLInputElement>) => {
+    const berkas = ev.target.files?.[0]
+    ev.target.value = '' // supaya berkas yang sama bisa dipilih lagi
+    if (!berkas) return
+    if (!berkas.type.startsWith('image/')) { setPesanLatar('berkas ini bukan gambar'); return }
+    if (berkas.size > 8 * 1024 * 1024) { setPesanLatar('gambar maksimal 8 MB'); return }
+    const dataUrl = await new Promise<string>(res => {
+      const r = new FileReader()
+      r.onload = () => res(String(r.result ?? ''))
+      r.onerror = () => res('')
+      r.readAsDataURL(berkas)
+    })
+    if (!dataUrl) { setPesanLatar('gagal membaca gambar'); return }
+    setPesanLatar('memasang gambar latar…')
+    const token = await saveLatarImage(dataUrl)
+    if (!token) { setPesanLatar('gagal menyimpan gambar latar'); return }
+    setScene(s => ({
+      ...s,
+      meta: { ...(s.meta ?? { locked: false, savedAt: null }), latarGambar: token },
+    }))
+    setPesanLatar('gambar latar dipasang')
+  }
+
+  const gantiModeLatar = () => {
+    setScene(s => ({
+      ...s,
+      meta: {
+        ...(s.meta ?? { locked: false, savedAt: null }),
+        latarMode: (s.meta?.latarMode ?? 'isi') === 'isi' ? 'muat' : 'isi',
+      },
+    }))
+  }
+
+  const hapusGambarLatar = async () => {
+    await hapusLatarImage()
+    setScene(s => ({
+      ...s,
+      meta: { ...(s.meta ?? { locked: false, savedAt: null }), latarGambar: null },
+    }))
+    setPesanLatar('gambar latar dihapus')
   }
 
   const addObject = () => {
@@ -765,6 +858,13 @@ export default function App() {
           style={{ width: frameW, height: frameH, transform: rotated ? 'rotate(90deg)' : undefined }}
         >
           <div className="cam" />
+          <input
+            ref={fileLatarRef}
+            type="file"
+            accept="image/*"
+            style={{ display: 'none' }}
+            onChange={ev => void pasangGambarLatar(ev)}
+          />
           <div className="screen" style={{ inset: BEZEL }}>
             <canvas
               ref={canvasRef}
@@ -777,6 +877,12 @@ export default function App() {
               onPointerLeave={ev => { setHover(null); onUp(ev) }}
             />
             <div className="glare" />
+            {pesanLatar && (
+              <div className="dipulihkan" style={{ top: 52 }}>
+                <span>{pesanLatar}</span>
+                <button className="sbtn" onClick={() => setPesanLatar(null)}>OK</button>
+              </div>
+            )}
             {dipulihkan !== null && (
               <div className="orestore">
                 <span>scene dipulihkan dari file ({dipulihkan} objek)</span>
@@ -840,6 +946,29 @@ export default function App() {
             {mode === 'edit' && (
               <button className="tbtn" onClick={() => setShowPreset(true)} title="tambah objek: pilih dari katalog atau balok kosong">
                 + TAMBAH
+              </button>
+            )}
+            {mode === 'edit' && (
+              <button
+                className="tbtn"
+                onClick={() => fileLatarRef.current?.click()}
+                title="pasang gambar ruangan (hasil Paint) sebagai latar/background kanvas"
+              >
+                {gambarLatar ? '🖼 GANTI LATAR' : '🖼 LATAR'}
+              </button>
+            )}
+            {mode === 'edit' && gambarLatar && (
+              <button
+                className="tbtn"
+                onClick={gantiModeLatar}
+                title="ISI = gambar memenuhi kanvas (terpotong) · MUAT = gambar utuh"
+              >
+                LATAR: {(scene.meta?.latarMode ?? 'isi').toUpperCase()}
+              </button>
+            )}
+            {mode === 'edit' && gambarLatar && (
+              <button className="tbtn" onClick={() => void hapusGambarLatar()} title="hapus gambar latar">
+                ✕ LATAR
               </button>
             )}
             <button

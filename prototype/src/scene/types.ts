@@ -50,6 +50,11 @@ export interface SceneObject {
   refleksi?: boolean
   // PANTULAN = bayangan cermin objek ini di permukaan lantai. Default ON.
   pantulan?: boolean
+  // SUDUT (derajat) untuk bentuk 'daun': 90 = tegak, 0 = mendatar ke +e.
+  miring?: number
+  // GARIS TEPI 1px berwarna lebih gelap (ciri gambar referensi). Bawaan ON;
+  // set false untuk bagian yang terlalu kecil sehingga garisnya mengganggu.
+  tepi?: boolean
   // ARAH PAPAN LANTAI: 0 = papan membentang sepanjang sumbu e (bawaan),
   // 1 = diputar 90 derajat sehingga membentang sepanjang sumbu w.
   // Hanya berpengaruh untuk lantai ber-pola 'papan' (kayu).
@@ -76,8 +81,11 @@ export interface SceneObject {
   //   bola     = bulatan (daun, bola lampu); jari-jari = min(e,w,z)/2
   //   cakram   = bulatan DATAR menghadap ruangan (matahari/langit di kaca
   //              jendela, jam dinding, hiasan bulat); sumbu = bidang e-z
+  //   daun     = bentuk daun lonjong berujung runcing di bidang e-z.
+  //              size.e = panjang daun, size.z = lebar daun, `miring` = sudut
+  //              sumbu daun (derajat, 90 = tegak ke atas, 0 = ke arah +e).
   // Footprint (size.e × size.w) tetap dipakai sebagai kotak pembatas.
-  bentuk?: 'balok' | 'silinder' | 'kerucut' | 'bola' | 'cakram'
+  bentuk?: 'balok' | 'silinder' | 'kerucut' | 'bola' | 'cakram' | 'daun'
   // khusus bentuk 'kerucut': perbandingan jari-jari PUNCAK terhadap alas
   //   tidak diisi / 0 = kerucut runcing
   //   0.45        = kap lampu (frustum menyempit ke atas)
@@ -113,6 +121,19 @@ export interface SceneMeta {
   // penanda migrasi LATAR sekali jalan: bila terisi, objek lama TIDAK lagi
   // otomatis dipindahkan ke latar (supaya "BUKA LATAR" tidak terulang).
   latarMigrasi?: string
+  // CAP WAKTU SIMPAN TERAKHIR (ISO). Dipakai saat aplikasi dibuka untuk
+  // memilih mana yang lebih baru: draf browser atau file .isola-scene.json.
+  // Tanpa ini, tab lama yang baru dibuka bisa menimpa file dengan scene usang.
+  updatedAt?: string | null
+  // GAMBAR LATAR (background kanvas) — permintaan user 2026-10-29:
+  // user membuat gambar ruangan sendiri (Paint / aplikasi lain) lalu memasangnya
+  // sebagai lapisan latar. Scene hanya menyimpan TOKEN versi gambar; berkasnya
+  // disimpan terpisah (/api/latar di preview, assets/latar.png di APK).
+  latarGambar?: string | null
+  // cara gambar dipetakan ke kanvas internal 640x400:
+  //   'isi' = memenuhi kanvas (sisi lebih = terpotong)  -> bawaan
+  //   'muat' = utuh di tengah (bisa ada tepi kosong)
+  latarMode?: 'isi' | 'muat'
 }
 
 export interface Scene {

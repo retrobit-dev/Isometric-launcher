@@ -125,6 +125,13 @@ export interface DrawOpts {
   selectedId: string | null
   /** id tambahan yang ikut tersorot (anggota grup dari objek terpilih) */
   highlightIds?: string[]
+  /**
+   * GAMBAR LATAR (background kanvas) — permintaan user 2026-10-29.
+   * Digambar paling bawah (di atas warna void), sebelum semua objek.
+   */
+  latarGambar?: CanvasImageSource | null
+  /** 'isi' = memenuhi kanvas (crop, bawaan) · 'muat' = utuh di tengah */
+  latarMode?: 'isi' | 'muat'
 }
 
 // Refleksi lantai: bayangan cermin objek di bawah bidang lantai,
@@ -307,9 +314,35 @@ export function drawWallObjects(ctx: CanvasRenderingContext2D, objects: SceneObj
   }
 }
 
+/**
+ * Gambar latar dipetakan ke kanvas internal 640x400.
+ * - 'isi'  : skala terbesar -> menutupi seluruh kanvas, sisi lebih terpotong
+ * - 'muat' : skala terkecil -> gambar utuh, sisa kanvas tetap warna void
+ * Interpolasi dimatikan supaya gambar Paint (pixel-art) tetap tajam.
+ */
+function drawLatarGambar(ctx: CanvasRenderingContext2D, img: CanvasImageSource, mode: 'isi' | 'muat') {
+  const iw = Number((img as HTMLImageElement).naturalWidth ?? (img as HTMLCanvasElement).width)
+  const ih = Number((img as HTMLImageElement).naturalHeight ?? (img as HTMLCanvasElement).height)
+  if (!iw || !ih) return
+  ctx.imageSmoothingEnabled = false
+  const skala = mode === 'muat'
+    ? Math.min(IW / iw, IH / ih)
+    : Math.max(IW / iw, IH / ih)
+  const w = iw * skala
+  const h = ih * skala
+  ctx.drawImage(img, (IW - w) / 2, (IH - h) / 2, w, h)
+}
+
 export function drawScene(ctx: CanvasRenderingContext2D, o: DrawOpts) {
   ctx.fillStyle = PAL.void
   ctx.fillRect(0, 0, IW, IH)
+
+  // LATAR GAMBAR: paling bawah, menutupi seluruh kanvas
+  if (o.latarGambar) drawLatarGambar(ctx, o.latarGambar, o.latarMode ?? 'isi')
+  // Bila gambar latar dipasang, objek ber-latar (dinding & lantai bawaan) tidak
+  // digambar karena gambarnya sudah memuat ruangan. DATANYA TETAP UTUH dan
+  // kembali muncul begitu gambar latar dihapus.
+  const objek = o.latarGambar ? o.objects.filter(x => x.latar !== true) : o.objects
 
   // ruangan dihapus sementara -> kanvas kosong, menunggu referensi baru user
   if (ROOM_VISIBLE) {
@@ -318,25 +351,25 @@ export function drawScene(ctx: CanvasRenderingContext2D, o: DrawOpts) {
   }
   // dinding dari objek (role 'dinding') digambar lebih dulu (paling belakang);
   // dinding LATAR didahulukan supaya tetap di belakang dinding lain
-  drawWallObjects(ctx, [...o.objects].sort((a, b) => Number(b.latar === true) - Number(a.latar === true)))
+  drawWallObjects(ctx, [...objek].sort((a, b) => Number(b.latar === true) - Number(a.latar === true)))
 
   overlays(ctx, o.grid, o.edit)
 
   // lantai dari objek (role 'lantai') digambar paling bawah
   // (lantai latar didahulukan, lalu lantai biasa)
-  drawFloorObjects(ctx, [...o.objects].sort((a, b) => Number(b.latar === true) - Number(a.latar === true)))
+  drawFloorObjects(ctx, [...objek].sort((a, b) => Number(b.latar === true) - Number(a.latar === true)))
 
   // tiga lapis: underlay (bawah) -> main -> overlay (atas),
   // masing-masing tetap diurutkan kedalaman agar isometrik benar
   const layerOf = (x: SceneObject) => x.layer ?? 'main'
-  const solid = o.objects.filter(x => x.role !== 'lantai' && x.role !== 'dinding')
+  const solid = objek.filter(x => x.role !== 'lantai' && x.role !== 'dinding')
   // LATAR lebih dulu: apa pun objek latar, selalu di belakang perabot
   for (const obj of sortedObjects(solid.filter(x => x.latar === true))) drawObject(ctx, obj)
   for (const obj of sortedObjects(solid.filter(x => x.latar !== true && layerOf(x) === 'underlay'))) drawObject(ctx, obj)
   for (const obj of sortedObjects(solid.filter(x => x.latar !== true && layerOf(x) === 'main'))) drawObject(ctx, obj)
   for (const obj of sortedObjects(solid.filter(x => x.latar !== true && layerOf(x) === 'overlay'))) drawObject(ctx, obj)
 
-  const marks = o.objects.filter(x =>
+  const marks = objek.filter(x =>
     x.id === o.selectedId || (o.highlightIds ?? []).includes(x.id))
   for (const sel of marks) {
     // sorot: garis dasar tile tempat objek berdiri
@@ -352,6 +385,6 @@ export function drawScene(ctx: CanvasRenderingContext2D, o: DrawOpts) {
 
   // refleksi digambar SETELAH crispify agar alpha samar tidak ikut ter-threshold
   // (butuh lantai sebagai bidang pantul; tanpa lantai refleksi dilewati)
-  const hasFloorObj = o.objects.some(x => x.role === 'lantai')
-  if (ROOM_VISIBLE || hasFloorObj) drawReflections(ctx, o.objects)
+  const hasFloorObj = objek.some(x => x.role === 'lantai')
+  if (ROOM_VISIBLE || hasFloorObj) drawReflections(ctx, objek)
 }

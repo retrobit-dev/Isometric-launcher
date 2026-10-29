@@ -2,3 +2,7 @@ node_modules
 dist
 *.local
 .DS_Store
+
+# berkas GAMBAR LATAR (dibuat lewat /api/latar, bukan bagian repo)
+.isola-latar.*
+.isola-scene.json

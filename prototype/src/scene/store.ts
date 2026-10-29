@@ -7,8 +7,8 @@ import { ROOM_FROM_FILE, ROOM_FIXED, type Scene, type SceneObject } from './type
 // v7 (2026-10-29): draf v6 yang berisi objek JENDELA lama (versi balok)
 // sengaja DITINGGALKAN — user meminta jendela lama dihapus dari kanvas dan
 // diganti bentuk baru (silinder/kerucut). Draf lama tidak dimigrasikan.
-const DRAFT_KEY = 'isola-draft-v7'
-const LOCKED_KEY = 'isola-locked-v7'
+const DRAFT_KEY = 'isola-draft-v8'
+const LOCKED_KEY = 'isola-locked-v8'
 const PREV_DRAFT_KEYS = ['isola-draft-v5', 'isola-draft-v4'] as const
 
 // ---------------------------------------------------------------------------
@@ -177,6 +177,15 @@ export function normalisasiScene(scene: Scene): Scene {
       locked: Boolean(scene.meta?.locked),
       savedAt: scene.meta?.savedAt ?? null,
       ...(scene.meta?.latarMigrasi ? { latarMigrasi: scene.meta.latarMigrasi } : {}),
+      // cap waktu simpan WAJIB ikut saat scene dibaca dari file, kalau tidak
+      // perbandingan "mana yang lebih baru" saat boot selalu kalah ke draf.
+      ...(typeof scene.meta?.updatedAt === 'string' ? { updatedAt: scene.meta.updatedAt } : {}),
+    ...(typeof scene.meta?.latarGambar === 'string' ? { latarGambar: scene.meta.latarGambar } : {}),
+    ...(scene.meta?.latarMode === 'muat' || scene.meta?.latarMode === 'isi'
+      ? { latarMode: scene.meta.latarMode } : {}),
+      ...(typeof scene.meta?.latarGambar === 'string' ? { latarGambar: scene.meta.latarGambar } : {}),
+      ...(scene.meta?.latarMode === 'muat' || scene.meta?.latarMode === 'isi'
+        ? { latarMode: scene.meta.latarMode } : {}),
     },
   }
 }
@@ -214,6 +223,53 @@ export async function saveSceneFile(scene: Scene, izinkanKosong = false): Promis
       body: JSON.stringify({ savedAt: new Date().toISOString(), scene: normalisasiScene(scene) }),
     })
     return r.ok
+  } catch {
+    return false
+  }
+}
+
+// ---------------------------------------------------------------------------
+// GAMBAR LATAR (background kanvas) — permintaan user 2026-10-29
+// Berkas gambar disimpan terpisah dari scene.json (lihat vite.config.ts).
+// ---------------------------------------------------------------------------
+const API_LATAR = '/api/latar'
+
+/** URL gambar latar untuk token tertentu (token = pembeda cache) */
+export function latarImageUrl(token: string): string {
+  return `${API_LATAR}?v=${encodeURIComponent(token)}`
+}
+
+/** unggah gambar latar (dataURL) -> token versi, atau null bila gagal */
+export async function saveLatarImage(dataUrl: string): Promise<string | null> {
+  try {
+    const r = await fetch(API_LATAR, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ dataUrl }),
+    })
+    if (!r.ok) return null
+    const j = await r.json()
+    return typeof j?.token === 'string' && j.token ? j.token : null
+  } catch {
+    return null
+  }
+}
+
+/** hapus gambar latar dari penyimpanan */
+export async function hapusLatarImage(): Promise<boolean> {
+  try {
+    const r = await fetch(API_LATAR, { method: 'DELETE' })
+    return r.ok
+  } catch {
+    return false
+  }
+}
+
+/** apakah server masih menyimpan gambar latar */
+export async function adaLatarImage(): Promise<boolean> {
+  try {
+    const r = await fetch(API_LATAR, { method: 'GET', cache: 'no-store' })
+    return r.ok && r.status !== 204
   } catch {
     return false
   }
@@ -389,9 +445,12 @@ export function validateScene(data: unknown): Scene | null {
       ...(typeof ob.grupInduk === 'string' && ob.grupInduk ? { grupInduk: ob.grupInduk } : {}),
       ...(ob.kunci === 'warna' || ob.kunci === 'semua' ? { kunci: ob.kunci } : {}),
       ...(ob.bentuk === 'silinder' || ob.bentuk === 'kerucut' || ob.bentuk === 'bola'
-        || ob.bentuk === 'cakram' ? { bentuk: ob.bentuk } : {}),
+        || ob.bentuk === 'cakram' || ob.bentuk === 'daun' ? { bentuk: ob.bentuk } : {}),
       ...(typeof ob.puncak === 'number' && Number.isFinite(ob.puncak) && ob.puncak >= 0
         ? { puncak: Math.round(ob.puncak * 100) / 100 } : {}),
+      ...(typeof ob.miring === 'number' && Number.isFinite(ob.miring)
+        ? { miring: Math.round(ob.miring) } : {}),
+      ...(ob.tepi === false ? { tepi: false } : {}),
       ...(ob.latar === true ? { latar: true } : {}),
       ...(typeof ob.urutan === 'number' && Number.isFinite(ob.urutan) ? { urutan: Math.round(ob.urutan) } : {}),
     })
@@ -424,6 +483,9 @@ export function validateScene(data: unknown): Scene | null {
       locked: Boolean(m?.locked),
       savedAt: typeof m?.savedAt === 'string' ? m.savedAt : null,
       ...(latarMigrasi ? { latarMigrasi } : {}),
+      ...(typeof m?.updatedAt === 'string' ? { updatedAt: m.updatedAt } : {}),
+      ...(typeof m?.latarGambar === 'string' ? { latarGambar: m.latarGambar } : {}),
+      ...(m?.latarMode === 'muat' || m?.latarMode === 'isi' ? { latarMode: m.latarMode } : {}),
     },
   }
 }
@@ -436,7 +498,14 @@ export function validateScene(data: unknown): Scene | null {
  * tidak terulang dan "BUKA LATAR" tetap dihormati.
  */
 export function migrasiLatar(scene: Scene): Scene {
-  const meta = { locked: Boolean(scene.meta?.locked), savedAt: scene.meta?.savedAt ?? null }
+  const meta = {
+    locked: Boolean(scene.meta?.locked),
+    savedAt: scene.meta?.savedAt ?? null,
+    ...(typeof scene.meta?.updatedAt === 'string' ? { updatedAt: scene.meta.updatedAt } : {}),
+    ...(typeof scene.meta?.latarGambar === 'string' ? { latarGambar: scene.meta.latarGambar } : {}),
+    ...(scene.meta?.latarMode === 'muat' || scene.meta?.latarMode === 'isi'
+      ? { latarMode: scene.meta.latarMode } : {}),
+  }
   if (scene.meta?.latarMigrasi) return scene
   if (scene.objects.length === 0) return scene
   if (scene.objects.some(o => o.latar === true)) {

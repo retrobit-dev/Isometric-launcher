@@ -4,7 +4,28 @@ import type { SceneObject } from '../scene/types'
 
 export interface Box { x0: number; y0: number; x1: number; y1: number }
 
-function poly(ctx: CanvasRenderingContext2D, pts: P[], color: string) {
+// ---------------------------------------------------------------------------
+// GARIS TEPI (outline) — permintaan user 2026-10-29 "identik dengan referensi".
+// Gambar referensi memberi garis tipis lebih gelap di tepi setiap bidang.
+// Warnanya diturunkan otomatis dari warna isi (dicampur ke arah tinta gelap),
+// jadi tidak perlu menambah warna baru ke palet.
+// ---------------------------------------------------------------------------
+const INK = { r: 0x33, g: 0x2b, b: 0x3d }
+const CAMPUR = 0.34        // 0 = tanpa garis, 1 = tinta penuh
+const TEBAL_TEPI = 1       // piksel internal (×4 = 4 px di tablet)
+
+function gelapkan(warna: string, f = CAMPUR): string {
+  const m = /^#([0-9a-f]{6})$/i.exec(warna)
+  if (!m) return warna
+  const n = parseInt(m[1], 16)
+  const r = (n >> 16) & 255
+  const g = (n >> 8) & 255
+  const b = n & 255
+  const mix = (a: number, b2: number) => Math.round(a + (b2 - a) * f)
+  return `rgb(${mix(r, INK.r)},${mix(g, INK.g)},${mix(b, INK.b)})`
+}
+
+function poly(ctx: CanvasRenderingContext2D, pts: P[], color: string, garis = true) {
   ctx.fillStyle = color
   ctx.beginPath()
   pts.forEach((p, i) => {
@@ -15,6 +36,16 @@ function poly(ctx: CanvasRenderingContext2D, pts: P[], color: string) {
   })
   ctx.closePath()
   ctx.fill()
+  if (!garis) return
+  ctx.strokeStyle = gelapkan(color)
+  ctx.lineWidth = TEBAL_TEPI
+  ctx.lineJoin = 'round'
+  ctx.stroke()
+}
+
+/** garis tepi untuk objek ini (bawaan ON, `tepi: false` mematikannya) */
+function tepiOf(o: SceneObject): boolean {
+  return o.tepi !== false
 }
 
 function colorsOf(o: SceneObject) {
@@ -47,9 +78,10 @@ export function drawBox(ctx: CanvasRenderingContext2D, o: SceneObject) {
   const b10 = px(e + se, w, z)
   const b11 = px(e + se, w + sw, z)
   const b01 = px(e, w + sw, z)
-  poly(ctx, [t01, t11, b11, b01], c.left)
-  poly(ctx, [t10, t11, b11, b10], c.right)
-  poly(ctx, [t00, t10, t11, t01], c.top)
+  const g = tepiOf(o)
+  poly(ctx, [t01, t11, b11, b01], c.left, g)
+  poly(ctx, [t10, t11, b11, b10], c.right, g)
+  poly(ctx, [t00, t10, t11, t01], c.top, g)
 }
 
 // ---------------------------------------------------------------------------
@@ -100,11 +132,20 @@ export function drawSilinder(ctx: CanvasRenderingContext2D, o: SceneObject) {
     const kanan = (Math.cos(t) + Math.cos(sudut[j])) - (Math.sin(t) + Math.sin(sudut[j]))
     return { i, j, tengahY, warna: kanan >= 0 ? c.right : c.left }
   }).sort((a, b) => a.tengahY - b.tengahY)
+  const g = tepiOf(o)
   for (const s of seg) {
-    poly(ctx, [bawah[s.i], bawah[s.j], atas[s.j], atas[s.i]], s.warna)
+    poly(ctx, [bawah[s.i], bawah[s.j], atas[s.j], atas[s.i]], s.warna, false)
   }
   // tutup atas: elips penuh
-  poly(ctx, atas, c.top)
+  poly(ctx, atas, c.top, g)
+  // sisi luar saja yang diberi garis: rusuk tegak tiap 6 segmen
+  for (let i = 0; i < SEGMEN; i += 6) {
+    ctx.strokeStyle = gelapkan(bawah[i] ? c.left : c.left)
+    ctx.beginPath()
+    ctx.moveTo(Math.round(atas[i].x), Math.round(atas[i].y))
+    ctx.lineTo(Math.round(bawah[i].x), Math.round(bawah[i].y))
+    ctx.stroke()
+  }
 }
 
 export function drawKerucut(ctx: CanvasRenderingContext2D, o: SceneObject) {
@@ -128,10 +169,18 @@ export function drawKerucut(ctx: CanvasRenderingContext2D, o: SceneObject) {
     const kanan = (Math.cos(t) + Math.cos(sudut[j])) - (Math.sin(t) + Math.sin(sudut[j]))
     return { i, j, tengahY, warna: kanan >= 0 ? c.right : c.left }
   }).sort((a, b) => a.tengahY - b.tengahY)
+  const g = tepiOf(o)
   for (const s of seg) {
-    poly(ctx, [bawah[s.i], bawah[s.j], atas[s.j], atas[s.i]], s.warna)
+    poly(ctx, [bawah[s.i], bawah[s.j], atas[s.j], atas[s.i]], s.warna, false)
   }
-  if (rasio > 0) poly(ctx, atas, c.top)
+  if (rasio > 0) poly(ctx, atas, c.top, g)
+  ctx.strokeStyle = gelapkan(c.left)
+  ctx.beginPath()
+  for (let i = 0; i < SEGMEN; i += 6) {
+    ctx.moveTo(Math.round(atas[i].x), Math.round(atas[i].y))
+    ctx.lineTo(Math.round(bawah[i].x), Math.round(bawah[i].y))
+  }
+  ctx.stroke()
 }
 
 /**
@@ -156,6 +205,13 @@ export function drawBola(ctx: CanvasRenderingContext2D, o: SceneObject) {
     ctx.fill()
   }
   bulat(pusat.x, pusat.y, R, c.right)                       // bayangan
+  if (tepiOf(o)) {
+    ctx.strokeStyle = gelapkan(c.right)
+    ctx.lineWidth = TEBAL_TEPI
+    ctx.beginPath()
+    ctx.arc(Math.round(pusat.x), Math.round(pusat.y), Math.round(R), 0, Math.PI * 2)
+    ctx.stroke()
+  }
   bulat(pusat.x - R * 0.1, pusat.y - R * 0.1, R * 0.86, c.left)  // badan
   bulat(pusat.x - R * 0.3, pusat.y - R * 0.3, R * 0.5, c.top)    // sorot
 }
@@ -182,9 +238,49 @@ export function drawCakram(ctx: CanvasRenderingContext2D, o: SceneObject) {
     }
     return out
   }
-  poly(ctx, titik(re, rz), c.left)
-  poly(ctx, titik(re * 0.82, rz * 0.82, -re * 0.08, rz * 0.1), c.top)
-  poly(ctx, titik(re * 0.34, rz * 0.34, -re * 0.3, rz * 0.3), c.right)
+  const g = tepiOf(o)
+  poly(ctx, titik(re, rz), c.left, g)
+  poly(ctx, titik(re * 0.82, rz * 0.82, -re * 0.08, rz * 0.1), c.top, false)
+  poly(ctx, titik(re * 0.34, rz * 0.34, -re * 0.3, rz * 0.3), c.right, false)
+}
+
+/**
+ * DAUN (permintaan user 2026-10-29): lonjong berujung runcing di bidang e-z.
+ * size.e = panjang, size.z = lebar, `miring` = sudut sumbu (derajat, 90 tegak).
+ * Rumus lebar: setengah-lebar = (size.z/2) · sin(πs)^0.75 · (1 − 0.35s),
+ * jadi pangkal & ujung runcing, bagian tengah paling lebar.
+ */
+export function drawDaun(ctx: CanvasRenderingContext2D, o: SceneObject) {
+  // ANCHOR = pangkal daun di pos (e, w, z); daun tumbuh sepanjang `miring`.
+  const P0 = o.pos
+  const L = o.size.e            // panjang daun
+  const Wd = o.size.z           // lebar daun
+  if (L <= 0 || Wd <= 0) return
+  const t = ((o.miring ?? 90) * Math.PI) / 180
+  const ct = Math.cos(t)
+  const st = Math.sin(t)
+  const N = 16
+  const c = toneOf(o)
+  const g = tepiOf(o)
+  // titik(s, skala): s = 0..1 sepanjang daun, skala = pengali lebar
+  const titik = (s: number, skala: number): P => {
+    const along = s * L
+    const lebar = (Wd / 2) * Math.pow(Math.sin(Math.PI * s), 0.75) * (1 - 0.35 * s) * skala
+    return px(P0.e + along * ct - lebar * st, P0.w + lebar * ct, P0.z + along * st)
+  }
+  const badan = (skala: number): P[] => {
+    const kiri: P[] = []
+    const kanan: P[] = []
+    for (let i = 0; i <= N; i++) {
+      const s = i / N
+      kiri.push(titik(s, +1 * skala))
+      kanan.push(titik(s, -1 * skala))
+    }
+    return [...kiri, ...kanan.reverse()]
+  }
+  poly(ctx, badan(1), c.left, g)
+  // sorotan: bagian tengah daun lebih terang, digeser sedikit ke arah cahaya
+  poly(ctx, badan(0.5).map(q => ({ x: q.x - 1, y: q.y - 1 })), c.top, false)
 }
 
 /** penggambar objek: pilih bentuk sesuai field `bentuk` */
@@ -193,6 +289,7 @@ export function drawObject(ctx: CanvasRenderingContext2D, o: SceneObject) {
   if (o.bentuk === 'kerucut') return drawKerucut(ctx, o)
   if (o.bentuk === 'bola') return drawBola(ctx, o)
   if (o.bentuk === 'cakram') return drawCakram(ctx, o)
+  if (o.bentuk === 'daun') return drawDaun(ctx, o)
   return drawBox(ctx, o)
 }
 

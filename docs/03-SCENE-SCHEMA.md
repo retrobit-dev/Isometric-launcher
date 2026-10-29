@@ -61,8 +61,40 @@ Tombol **SIMPAN & KUNCI** mengunci **objek saja**: layout beku untuk diterapkan 
 | `urutan` | number | **posisi tumpukan** di dalam lapisan yang sama (semakin besar = semakin ke depan). Objek baru & duplikat otomatis mendapat nilai teratas. Bila tidak diisi, urutan mengikuti kedalaman isometrik otomatis (perilaku lama). Diatur lewat tombol ▲ NAIKKAN / ▼ TURUNKAN; LATAR tidak ikut tumpukan |
 | `latar` | boolean | **true = objek ini bagian LATAR (background kanvas)**: digambar paling belakang, tidak muncul di DAFTAR OBJEK, tidak bisa dipilih/diubah/dihapus, dan tidak tersentuh UNDO/REDO/IMPORT/PULIHKAN. Tetap tersimpan & ter-export di `scene.json` |
 | `meta.locked` | boolean | **true = OBJEK terkunci (sementara)** dan sah diterapkan ke aplikasi; false = draf objek. Ruangan tidak terpengaruh field ini (selalu terkunci) |
+| `meta.updatedAt` | string ISO / null | **cap waktu simpan terakhir.** Dipakai saat aplikasi dibuka untuk memilih mana yang lebih baru: draf browser atau file `scene.json`. Tanpa ini, tab lama yang baru dibuka bisa menimpa file dengan scene usang |
+| `meta.latarGambar` | string / null | **token gambar latar** (background kanvas). Berkas gambarnya TIDAK disimpan di `scene.json` — lihat §0d |
+| `meta.latarMode` | `"isi"` \| `"muat"` | cara gambar latar dipetakan ke kanvas 640×400. `isi` (bawaan) = memenuhi kanvas, sisi lebih terpotong · `muat` = gambar utuh di tengah |
 | `meta.savedAt` | string \| null | timestamp ISO saat SIMPAN & KUNCI terakhir |
 | `meta.latarMigrasi` | string \| null | penanda migrasi LATAR (`latar-v1`). Bila terisi, editor tidak lagi memindahkan objek lama ke latar secara otomatis — sehingga "BUKA LATAR" tidak dibalik saat halaman dibuka ulang |
+
+## 0d. Gambar latar (background kanvas) — 2026-10-29
+
+User membuat gambar ruangan sendiri (Paint / aplikasi lain) lalu memasangnya
+sebagai **lapisan latar kanvas**. Objek perabot tidak berubah dan tetap di
+atasnya.
+
+**Pemisahan data (penting):**
+
+| Apa | Di mana | Kenapa |
+|---|---|---|
+| `meta.latarGambar` (token) + `meta.latarMode` | di dalam `scene.json` | scene tetap kecil & bisa dibaca mesin |
+| berkas gambarnya | `.isola-latar.png` di samping scene (preview) · `assets/latar.png` (APK) | PNG 2560×1600 bisa 4–6 MB; menaruhnya sebagai base64 di scene akan membengkakkan file, localStorage, dan payload APK |
+
+**Aturan render:** gambar digambar **paling bawah** (tepat di atas warna `void`),
+sebelum semua objek. Selama gambar latar terpasang, objek ber-`latar: true`
+(dinding & lantai bawaan) **tidak digambar** karena gambarnya sudah memuat
+ruangan — datanya tetap utuh dan muncul lagi begitu gambar latar dihapus.
+
+**Endpoint preview (dev-server, bukan bagian APK):**
+
+| Metode | Arti |
+|---|---|
+| `GET /api/latar` | byte gambar · `204` bila belum ada |
+| `POST /api/latar` | `{ "dataUrl": "data:image/png;base64,..." }` → `{ ok, token }` |
+| `DELETE /api/latar` | hapus gambar latar |
+
+Batas ukuran unggah 16 MB base64 (≈12 MB gambar); UI preview menolak berkas
+> 8 MB lebih dulu.
 
 ## 1. Kondisi awal scene (seed DIHAPUS)
 

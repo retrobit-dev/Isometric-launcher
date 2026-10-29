@@ -64,6 +64,21 @@ export const MATERIALS: Record<string, { top: string; left: string; right: strin
   'pastel-rose':  { top: '#f2c7cf', left: '#e2afb9', right: '#ce99a4' },
   'pastel-sage':  { top: '#cfe0c4', left: '#b9cfac', right: '#a3be96' },
   'pastel-clay':  { top: '#e7cdbb', left: '#d6b7a1', right: '#c2a08a' },
+  // --- REFERENSI RUANG GURU 2026-10-29 (Screenshot_20261029_072237) ---
+  'kayu-terakota': { top: '#c98d6b', left: '#b07a5c', right: '#9a6a50' }, // meja & rak
+  'kayu-tua':      { top: '#a97355', left: '#8f5f47', right: '#7a5039' },
+  'tirai-putih':   { top: '#e8e5e6', left: '#d3d0d4', right: '#bcb9c0' },
+  'kaca-langit':   { top: '#4a7fc4', left: '#3f6fb0', right: '#35619c' }, // langit
+  'kaca-terang':   { top: '#bcd6ea', left: '#a8c6de', right: '#94b5d1' }, // kaca sorot
+  'daun-sage':     { top: '#8fa396', left: '#77897e', right: '#657568' },
+  'daun-gelap':    { top: '#71887c', left: '#5d7268', right: '#4d6056' },
+  'buku-biru':     { top: '#7c8bab', left: '#6a779a', right: '#5a6685' },
+  'buku-lav':      { top: '#8f87a8', left: '#7b7493', right: '#68617e' },
+  'buku-salmon':   { top: '#c08a6e', left: '#a8765c', right: '#91644d' },
+  'buku-krem':     { top: '#d9cdb4', left: '#c1b69e', right: '#a89e88' },
+  'papan-krem':    { top: '#f2ecc8', left: '#d8d2b2', right: '#c0ba9d' }, // papan tulis
+  'kertas-putih':  { top: '#eeeae0', left: '#d6d2c8', right: '#bdbaB1' },
+  'gabus-tanah':   { top: '#c39a72', left: '#a9835f', right: '#94714f' },
 }
 // ---------------------------------------------------------------------------
 // PALET LANTAI (dipakai objek ber-role 'lantai' lewat field `style`)

@@ -84,19 +84,20 @@ Wajib dieksekusi persis dalam urutan ini. Nomor tidak boleh ditukar.
 | # | Lapisan | Isi |
 |---|---|---|
 | 1 | Latar kanvas | isi seluruh kanvas `PAL.void` = `#12131f` |
-| 2 | Ruangan bawaan | hanya bila `ROOM_VISIBLE` (kini **false**) |
-| 3 | Dinding objek | `role === 'dinding'`, diurutkan: **latar dulu**, lalu sisanya |
-| 4 | Overlay editor | grid/zona bantu — **tidak pernah** ikut ke APK |
-| 5 | Lantai objek | `role === 'lantai'`, **latar dulu**, lalu sisanya |
-| 6 | Balok LATAR | `latar === true` & bukan lantai/dinding |
-| 7 | Balok `underlay` | `latar !== true && layer === 'underlay'` |
-| 8 | Balok `main` | `latar !== true && layer === 'main'` |
-| 9 | Balok `overlay` | `latar !== true && layer === 'overlay'` |
-| 10 | Sorotan seleksi | hanya editor — **tidak** ikut ke APK |
-| 11 | Pantulan | `pantulan !== false`, tanpa latar/underlay/lantai/dinding |
-| 12 | HUD/chip | hanya editor — **tidak** ikut ke APK |
+| 2 | **Gambar latar** | `meta.latarGambar` ada → gambar dipetakan `isi` (cover) / `muat` (contain), `imageSmoothingEnabled = false`. **Bila terpasang, objek `latar: true` tidak digambar** (data tetap ada) |
+| 3 | Ruangan bawaan | hanya bila `ROOM_VISIBLE` (kini **false**) |
+| 4 | Dinding objek | `role === 'dinding'`, diurutkan: **latar dulu**, lalu sisanya |
+| 5 | Overlay editor | grid/zona bantu — **tidak pernah** ikut ke APK |
+| 6 | Lantai objek | `role === 'lantai'`, **latar dulu**, lalu sisanya |
+| 7 | Balok LATAR | `latar === true` & bukan lantai/dinding |
+| 8 | Balok `underlay` | `latar !== true && layer === 'underlay'` |
+| 9 | Balok `main` | `latar !== true && layer === 'main'` |
+| 10 | Balok `overlay` | `latar !== true && layer === 'overlay'` |
+| 11 | Sorotan seleksi | hanya editor — **tidak** ikut ke APK |
+| 12 | Pantulan | `pantulan !== false`, tanpa latar/underlay/lantai/dinding |
+| 13 | HUD/chip | hanya editor — **tidak** ikut ke APK |
 
-**Urutan di dalam setiap kelompok (6–9)** — `sortedObjects()`:
+**Urutan di dalam setiap kelompok (8–11)** — `sortedObjects()`:
 
 ```
 bila kedua objek punya `urutan`:  naik  = urutan lebih besar digambar lebih akhir (lebih depan)
