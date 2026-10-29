@@ -432,10 +432,15 @@ def draw_daun(o):
     ct, st = math.cos(t), math.sin(t)
     N = 16
     c = tone(o)
+    # KEBULATAN daun (0..1): 0 = meruncing, 1 = elips membulat.
+    bulat = min(1.0, max(0.0, float(o.get('bulat', 0) or 0)))
 
     def titik(s, skala):
         along = s * L
-        lebar = (Wd / 2) * (math.sin(math.pi * s) ** 0.75) * (1 - 0.35 * s) * skala
+        # campuran dua siluet: meruncing (0) .. elips membulat (1)
+        runcing = (math.sin(math.pi * s) ** 0.75) * (1 - 0.35 * s)
+        elips = math.sqrt(max(0.0, 1 - (2 * s - 1) ** 2))
+        lebar = (Wd / 2) * ((1 - bulat) * runcing + bulat * elips) * skala
         return px(P0['e'] + along * ct - lebar * st, P0['w'] + lebar * ct, P0['z'] + along * st)
 
     def badan(skala):

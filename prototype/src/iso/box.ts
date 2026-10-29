@@ -403,10 +403,18 @@ export function drawDaun(ctx: CanvasRenderingContext2D, o: SceneObject) {
   const N = 16
   const c = toneOf(o)
   const g = tepiOf(o)
-  // titik(s, skala): s = 0..1 sepanjang daun, skala = pengali lebar
+  // KEBULATAN (`bulat` 0..1): 0 = meruncing di kedua ujung (bawaan), 1 = elips
+  // membulat. Hanya mengubah bentuk siluet, bukan ukuran/posisi di data scene.
+  const bulat = Math.min(1, Math.max(0, o.bulat ?? 0))
+  // titik(s, skala): s = 0..1 sepanjang daun, skala = pengali lebar.
+  // Dua siluet dicampur menurut `bulat`:
+  //   meruncing : sin(pi·s)^0.75 · (1 − 0.35·s)  -> ujung tirus seperti rumput
+  //   membulat  : akar(1 − (2s−1)²)              -> ELIPS, ujung tumpul
   const titik = (s: number, skala: number): P => {
     const along = s * L
-    const lebar = (Wd / 2) * Math.pow(Math.sin(Math.PI * s), 0.75) * (1 - 0.35 * s) * skala
+    const runcing = Math.pow(Math.sin(Math.PI * s), 0.75) * (1 - 0.35 * s)
+    const elips = Math.sqrt(Math.max(0, 1 - (2 * s - 1) * (2 * s - 1)))
+    const lebar = (Wd / 2) * ((1 - bulat) * runcing + bulat * elips) * skala
     return px(P0.e + along * ct - lebar * st, P0.w + lebar * ct, P0.z + along * st)
   }
   const badan = (skala: number): P[] => {

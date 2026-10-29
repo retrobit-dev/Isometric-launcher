@@ -164,6 +164,11 @@ export interface SceneObject {
   pantulan?: boolean
   // SUDUT (derajat) untuk bentuk 'daun': 90 = tegak, 0 = mendatar ke +e.
   miring?: number
+  // KEBULATAN DAUN 0..1 untuk bentuk 'daun' (permintaan user 2026-10-29:
+  // "buat daun membulat saja"). 0 = daun meruncing di kedua ujung (bawaan,
+  // tampilan lama), 1 = daun ELIPS membulat — lebar daun mengikuti
+  // sin(pi·s)^1 dan tidak menirus di ujung. Tidak berpengaruh pada bentuk lain.
+  bulat?: number
   // GARIS TEPI 1px berwarna lebih gelap (ciri gambar referensi). Bawaan ON;
   // set false untuk bagian yang terlalu kecil sehingga garisnya mengganggu.
   tepi?: boolean

@@ -153,7 +153,7 @@ Aturan wajib:
 
 ## 4a. Bentuk tambahan: silinder & kerucut
 
-Field `bentuk` pada objek: `balok` (default) · `silinder` · `kerucut` · `bola` · `cakram` · `daun`.
+Field `bentuk` pada objek: `balok` (default) · `silinder` · `kerucut` · `bola` · `cakram` · `daun` · `profil`.
 
 **Transparansi (`opasitas`).** Objek dengan `opasitas` < 1 digambar dengan alpha
 `opasitas` (kanvas: `globalAlpha` dikalikan, lalu dipulihkan; renderer offline
@@ -184,7 +184,7 @@ kotak pembatas, jadi hit-test, bbox, grup, tumpukan, dan kunci tidak berubah.
 | `kerucut` | alas elips, atas elips berskala `puncak` (default `0` = runcing) | 24 segmen trapesium, tutup atas hanya bila `puncak > 0` |
 | `bola` | bulatan; jari-jari dunia $r = \min(size.e, size.w, size.z)/2$ | 3 lingkaran bertone: gelap (R), badan (0.86R, geser −0.1R), sorot (0.5R, geser −0.3R); R = 1.31·HW·r |
 | `cakram` | bulatan **datar** menghadap ruangan (bidang e-z) — matahari, jam, hiasan | 24 titik dunia (re = size.e/2, rz = size.z/2) → poligon; 3 lapis tone (left → top 0.82 + geser, right 0.34 + geser) |
-| `daun` | daun lonjong berujung runcing di bidang e-z | pangkal di `pos`; panjang = `size.e`, lebar = `size.z`, sumbu diputar `miring` derajat (90 = tegak, 0 = ke +e). Setengah-lebar = `(size.z/2)·sin(πs)^0.75·(1−0.35s)`, 17 titik per sisi; badan tone `left`, sorotan `top` pada 0.5 lebar digeser (−1,−1) px |
+| `daun` | daun lonjong di bidang e-z | pangkal di `pos`; panjang = `size.e`, lebar = `size.z`, sumbu diputar `miring` derajat (90 = tegak, 0 = ke +e). Bentuk siluet dipilih `bulat` 0..1 (bawaan **0**): **0 = meruncing** `(size.z/2)·sin(πs)^0.75·(1−0.35s)`, **1 = elips membulat** `(size.z/2)·√(1−(2s−1)²)`; nilai antaranya campuran linear kedua rumus. 17 titik per sisi; badan tone `left`, sorotan `top` pada 0.5 lebar digeser (−1,−1) px. `bulat` hanya mengubah siluet — posisi/ukuran di JSON tidak berubah, dan nilai 0 tidak ditulis ke file |
 
 Aturan wajib (harus identik di APK):
 
@@ -378,7 +378,7 @@ laptop bagian dalam) diletakkan di **sisi w besar**, bukan w kecil. Salah sisi
 | `rak-buku` | 4,2 × 1,0 | papan 0,18 / 1,62 / 3,22 |
 | `jendela` | 6,4 × 0,7 | lihat §4f |
 | `lampu-meja` | 1,2 × 1,2 | kap kerucut `puncak 0,42` di 1,56–2,08 |
-| `tanaman-pot` | 1,9 × 1,9 | pot 0–1,30, 9 daun |
+| `tanaman-pot` | 1,8 × 1,8 | pot 0–1,34 (`bata`), batang z 1,16–4,56, 9 daun **membulat** (`bulat: 1`) z 4,22–4,46, ujung ±6,4 |
 | `tempat-sampah` | 2,2 × 1,4 | tong 1,24 + 2 kertas remuk |
 | `laptop` | 2,0 × 1,7 | 4×10 tombol + layar berisi 3 jendela |
 | `tumpukan-buku` | 1,4 × 1,0 | 3 buku (teal / krem / bata) |

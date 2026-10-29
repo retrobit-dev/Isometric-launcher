@@ -121,6 +121,9 @@ try {
       && bagian.every(o => o.puncak === undefined
         || (o.bentuk === 'kerucut' && o.puncak >= 0
           && Math.abs(o.puncak * 100 - Math.round(o.puncak * 100)) < 1e-6))
+      // bulat (kebulatan daun, 2026-10-29): hanya untuk bentuk 'daun', 0..1
+      && bagian.every(o => o.bulat === undefined
+        || (o.bentuk === 'daun' && o.bulat > 0 && o.bulat <= 1))
     if (!sah) { katalogSah = false; katalogDetail += ` ${p.id}` }
   }
   cek('semua preset sah (ukuran, koordinat, id, grup, bentuk)', katalogSah, katalogDetail || `${bagianTotal} bagian`)
