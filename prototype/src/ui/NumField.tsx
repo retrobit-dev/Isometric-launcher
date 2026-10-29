@@ -25,6 +25,10 @@ export function HoldBtn(p: {
   dir: 1 | -1
   onStep: (dir: 1 | -1) => void
   disabled?: boolean
+  /** label tombol; bawaan '+' / '−'. Dipakai pemilih warna (◀ / ▶). */
+  label?: string
+  /** keterangan saat jari ditahan / kursor berhenti */
+  title?: string
 }) {
   const tunda = useRef<number | null>(null)
   const ulang = useRef<number | null>(null)
@@ -37,7 +41,8 @@ export function HoldBtn(p: {
     <button
       className="sbtn hold"
       disabled={p.disabled}
-      aria-label={p.dir > 0 ? 'tambah 0.1 (tahan untuk berulang)' : 'kurangi 0.1 (tahan untuk berulang)'}
+      aria-label={p.title ?? (p.dir > 0 ? 'tambah 0.1 (tahan untuk berulang)' : 'kurangi 0.1 (tahan untuk berulang)')}
+      title={p.title}
       onPointerDown={ev => {
         ev.preventDefault()
         try { (ev.currentTarget as HTMLElement).setPointerCapture(ev.pointerId) } catch { /* abaikan */ }
@@ -52,7 +57,7 @@ export function HoldBtn(p: {
       onBlur={stop}
       onContextMenu={ev => ev.preventDefault()}
     >
-      {p.dir > 0 ? '+' : '−'}
+      {p.label ?? (p.dir > 0 ? '+' : '−')}
     </button>
   )
 }

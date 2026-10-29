@@ -215,6 +215,33 @@ html, body, #root {
 .rl { width: 66px; flex: none; color: #b08a6a; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 .rv { width: 40px; text-align: center; color: #f7e6c8; }
 
+/* nama warna di antara tombol ◀ / ▶ pada editor objek */
+.rval {
+  flex: 1 1 auto;
+  min-width: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 4px;
+  font: 10px/1 ui-monospace, 'Courier New', monospace;
+  letter-spacing: 0.04em;
+  color: #f7e6c8;
+}
+.rval-txt {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+/* kotak contoh warna material (petunjuk visual saat memilih dengan ◀ ▶) */
+.chip {
+  flex: none;
+  width: 10px;
+  height: 10px;
+  border: 1px solid #5a4038;
+  background: #000;
+  image-rendering: pixelated;
+}
+
 /* input angka yang bisa diketik langsung di panel editor objek */
 .rinput {
   width: 56px;

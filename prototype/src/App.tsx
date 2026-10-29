@@ -5,12 +5,13 @@ import {
 } from './iso/space'
 import { drawScene } from './iso/room'
 import { bboxOf, sortedObjects } from './iso/box'
-import { FLOOR_DEFAULT, FLOOR_KEYS, MATERIAL_KEYS, WALL_STYLE_KEYS } from './iso/palette'
+import { FLOOR_DEFAULT } from './iso/palette'
 import PresetPicker from './ui/PresetPicker'
 import { buatPreset, type Preset } from './scene/presets'
 import { ROTASI_LANGKAH, UKURAN_MIN, normalRotasi, ukuranSah } from './scene/types'
 import { LATAR_TAG, gabungLatar, geserTumpukan, hapusLatarImage, latarImageUrl, loadCandidates, loadDraft, loadLocked, loadSceneFile, normalisasiScene, objekBiasa, objekLatar, saveDraftGuarded, saveLatarImage, saveLocked, saveSceneFile, storageWorks, validateScene } from './scene/store'
 import { type JenisAnim, type Scene, type SceneObject } from './scene/types'
+import { gayaBerikut } from './scene/gaya'
 import { SEMUA_CUACA, faseDariJam, getLangit, langitFase, efekCuaca, setLangit, type Cuaca } from './iso/langit'
 import { ambilCuacaNyata, gantiKota, jamPerangkat, muatPengaturanCuaca, simpanPengaturanCuaca, type PengaturanCuaca } from './scene/cuaca'
 import KartuCuaca from './ui/KartuCuaca'
@@ -1194,18 +1195,10 @@ export default function App() {
               z: ukuranSah(selected.size.z + dz),
             },
           })}
-          onCycleStyle={() => {
-            // lantai  -> palet lantai (kayu selang-seling / ubin)
-            // dinding -> palet dinding + semua material balok
-            // balok   -> material balok
-            const keys = selected.role === 'lantai'
-              ? FLOOR_KEYS
-              : selected.role === 'dinding'
-                ? WALL_STYLE_KEYS
-                : MATERIAL_KEYS
-            const cur = typeof selected.style === 'string' ? selected.style : ''
-            const i = keys.indexOf(cur)
-            patchObject(selected.id, { style: keys[(i + 1) % keys.length] })
+          onCycleStyle={(arah: 1 | -1) => {
+            // PEMILIH WARNA tombol KIRI / KANAN (permintaan user 2026-10-29);
+            // daftar & langkah ditaruh di scene/gaya.ts supaya bisa diuji.
+            patchObject(selected.id, { style: gayaBerikut(selected.role, selected.style, arah) })
           }}
           onRotate={(arah: 1 | -1) => {
             // ROTASI OBJEK kelipatan 30° (permintaan user 2026-10-29)

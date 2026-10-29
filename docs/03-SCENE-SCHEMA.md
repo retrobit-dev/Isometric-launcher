@@ -193,7 +193,7 @@ penanda bug — jangan dipakai untuk warna sah.
 |---|---|
 | Ubah layout | Mode EDIT → **seret objek** (snap 0.1 tile) atau stepper ±0.1 di panel |
 | Tambah objek | Tombol **TAMBAH** (balok baru 2×1×1 di tengah zona interaktif) |
-| Edit objek | Ketuk objek → panel: posisi, ukuran, material (cycle), label, **layer (cycle UNDER/MAIN/OVER)** |
+| Edit objek | Ketuk objek → panel: posisi, ukuran, **material (tombol ◀ ▶ — ketuk satu warna, tahan untuk berulang; ada kotak contoh warna + posisi mis. `12/74`)**, label, **layer (cycle UNDER/MAIN/OVER)** |
 | Hapus / duplikat | Tombol di panel objek |
 | **GRUP** | Field `grup: string` (mis. `grup-1a2b`) + `grupNama: string` (nama folder). Objek bergrup sama: mengetuk salah satu menyorot seluruh anggota, menyeretnya menggeser SEMUA anggota dengan jarak relatif tetap. Ukuran/warna/rotasi tetap per objek. Dibuat dari DAFTAR OBJEK: centang ≥2 objek → **GABUNG n**; **LEPAS** mengeluarkan objek bercetang dari grup. Duplikat objek bergrup otomatis lepas dari grup |
 | **DUPLIKAT** | Salinan berdiri sendiri (lepas dari grup & kunci asal) dan SELALU masuk layer **overlay** supaya langsung terlihat di atas objek lain (permintaan user 2026-10-28); turunkan ke main lewat baris LAYER bila perlu |

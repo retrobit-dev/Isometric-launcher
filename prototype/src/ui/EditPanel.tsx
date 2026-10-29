@@ -1,15 +1,17 @@
 import { useEffect, useRef, useState } from 'react'
 import { OPASITAS_MIN, UKURAN_MIN, normalOpasitas } from '../scene/types'
-import { FLOOR_DEFAULT, FLOOR_KEYS, MATERIAL_KEYS, WALL_STYLE_KEYS, floorMat } from '../iso/palette'
+import { FLOOR_MATERIALS, MATERIALS, WALL_MATERIALS, floorMat } from '../iso/palette'
+import { kunciGaya, labelPosisiGaya } from '../scene/gaya'
 import type { SceneObject } from '../scene/types'
-import NumField from './NumField'
+import NumField, { HoldBtn } from './NumField'
 
 interface Props {
   obj: SceneObject
   onChange: (patch: Partial<SceneObject>) => void
   onMove: (de: number, dw: number) => void
   onResize: (de: number, dw: number, dz: number) => void
-  onCycleStyle: () => void
+  /** ganti warna/material: −1 = sebelumnya, +1 = berikutnya (tombol ◀ ▶) */
+  onCycleStyle: (arah: 1 | -1) => void
   /** ganti jenis animasi: MATI -> naik-turun -> ayun -> denyut -> kedip -> putar */
   onCycleAnim: () => void
   /** ganti laju animasi (0.25 / 0.5 / 1 / 1.5 / 2) */
@@ -28,6 +30,22 @@ interface Props {
   dirty: boolean
 }
 
+/**
+ * Warna CONTOH untuk satu nama style — dipakai kotak kecil di samping nama
+ * material, supaya pemilihan warna lewat tombol ◀ ▶ ada petunjuk visualnya.
+ * Urutan pencarian: lantai -> dinding -> material balok.
+ */
+function warnaContoh(nama: string, lantai: boolean): string | null {
+  if (lantai) {
+    const f = FLOOR_MATERIALS[nama]
+    if (f) return f.tones[0]
+  }
+  const d = WALL_MATERIALS[nama]
+  if (d) return d.kanan
+  const m = MATERIALS[nama]
+  return m ? m.top : null
+}
+
 // ATURAN 32 PIKsel DIHAPUS (2026-10-29): nilai objek bebas sampai 3 desimal
 const snap = (v: number) => Math.round(v * 1000) / 1000
 
@@ -43,8 +61,8 @@ export default function EditPanel(p: Props) {
   const o = p.obj
   const isFloor = o.role === 'lantai'
   const styleName = typeof o.style === 'string' ? o.style : 'custom'
-  const keys = isFloor ? FLOOR_KEYS : o.role === 'dinding' ? WALL_STYLE_KEYS : MATERIAL_KEYS
-  const matIdx = keys.indexOf(styleName)
+  const keys = kunciGaya(o.role)
+  const posisiGaya = labelPosisiGaya(o.role, styleName)
   const sudut = o.rotasi ?? 0
   const cermin = o.refleksi === true          // objek dicerminkan (mirror)
   const pantul = o.pantulan !== false         // bayangan objek di lantai
@@ -261,11 +279,34 @@ export default function EditPanel(p: Props) {
           </button>
         </div>
       )}
+      {/* PEMILIH WARNA: tombol KIRI & KANAN (permintaan user 2026-10-29).
+          Ketuk = satu warna, TAHAN = berulang cepat (74 material, tidak perlu
+          ketuk satu-satu). Nama + kotak contoh warna di tengah. */}
       <div className="row">
         <span className="rl">{isFloor ? 'pola' : 'material'}</span>
-        <button className="sbtn wide" disabled={noColor} onClick={p.onCycleStyle}>
-          {styleName}{matIdx >= 0 ? ` (${matIdx + 1}/${keys.length})` : ''} ⟳
-        </button>
+        <HoldBtn
+          dir={-1}
+          label="◀"
+          disabled={noColor}
+          title="warna sebelumnya (tahan untuk berulang)"
+          onStep={() => p.onCycleStyle(-1)}
+        />
+        <span className="rval" title={styleName}>
+          {(() => {
+            const c = warnaContoh(styleName, isFloor)
+            return c ? <i className="chip" style={{ background: c }} aria-hidden /> : null
+          })()}
+          <span className="rval-txt">
+            {styleName}{posisiGaya ? ` ${posisiGaya}` : ''}
+          </span>
+        </span>
+        <HoldBtn
+          dir={1}
+          label="▶"
+          disabled={noColor}
+          title="warna berikutnya (tahan untuk berulang)"
+          onStep={() => p.onCycleStyle(1)}
+        />
       </div>
       {isFloor && floorMat(styleName).pattern === 'papan' && (
         <div className="row">
