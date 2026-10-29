@@ -58,7 +58,7 @@ export const UKURAN_MIN = 0.001
  *
  * `rotasi` = derajat mengelilingi poros vertikal objek, selalu kelipatan 30
  * (0..330) -> 12 posisi. Ini BUKAN rotasi kamera (itu `yaw`, kelipatan 15°),
- * dan bukan pula rotasi sprite PIXEL (sprite hanya digambar di 0/90/180/270
+ * dan bukan pula rotasi 90° (footprint hanya bertukar di 90/270
  * supaya tetap tajam, lihat iso/box.ts).
  *
  * Data lama memakai `rot` 0..3 (= 90° per langkah) dan tetap dibaca: saat
@@ -139,17 +139,7 @@ export interface SceneObject {
   // SUB-FOLDER: id grup induk. Grup boleh bersarang (folder di dalam folder);
   // semua anggota satu grup memakai grupNama & grupInduk yang sama.
   grupInduk?: string
-  /**
-   * VERSI PIXEL (permintaan user 2026-10-29, opsi C "campuran"):
-   * id aset gambar di /aset/<id>.png — sprite hasil potongan langsung dari
-   * gambar referensi, jadi tampilannya PERSIS referensi.
-   * Objek tetap satu objek scene: bisa dipindah, diubah ukuran, diputar,
-   * diurutkan, dikunci, dan dianimasikan. Yang hilang hanya kemampuan
-   * mengedit BAGIAN DALAMnya; untuk itu pakai VERSI EDIT (parametrik,
-   * satu klik untuk berganti bolak-balik).
-   */
-  sprite?: string
-  /** id preset asal (untuk berganti VERSI PIXEL <-> VERSI EDIT) */
+  /** id preset asal objek ini (null/undefined = dibuat manual) */
   preset?: string
 
   // BENTUK dasar objek (permintaan user 2026-10-29: silinder & kerucut supaya

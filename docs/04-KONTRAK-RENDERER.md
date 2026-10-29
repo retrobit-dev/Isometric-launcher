@@ -215,6 +215,11 @@ Berbeda dari **orbit kamera** (docs/06, kelipatan 15°, memutar seluruh dunia),
 Paritas offline: `draw_box()` di `tools/render_scene.py` memakai rumus yang
 sama; diuji oleh `prototype/tests/run-rotasi.mjs`.
 
+> **ARSIP (ronde 17, 2026-10-29):** objek `jendela` dan seluruh preset di §4f–§4g
+> sudah DIHAPUS dari katalog atas permintaan user ("kita buat sendiri saja").
+> Bagian ini disimpan hanya sebagai catatan sejarah cara menulis objek; geometri
+> dan aturan renderer di §4a–§4e tetap berlaku.
+
 ## 4f. Objek JENDELA (2026-10-29)
 
 Permintaan user: *"buatkan objek jendela seperti pada gambar"*

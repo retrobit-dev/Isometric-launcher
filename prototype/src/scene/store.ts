@@ -1,5 +1,6 @@
 import { FLOOR_DEFAULT, FLOOR_MATERIALS } from '../iso/palette'
 import { ROOM_FROM_FILE, ROOM_FIXED, normalRotasi, ukuranSah, type Scene, type SceneObject } from './types'
+import { presetOf } from './presets'
 
 // v4: ruangan saja (fase penyamaan ruangan dengan referensi; objek menyusul)
 // v5: objek bisa berperan sebagai LANTAI ruangan (role 'lantai')
@@ -173,10 +174,22 @@ const rafel = (x: unknown) => {
 export function normalisasiScene(scene: Scene): Scene {
   const snap = (v: number) => Math.round((Number.isFinite(v) ? v : 0) * 1000) / 1000
   const dipakai = new Set<string>()
-  const objects = scene.objects.map((o, i) => {
-    let id = (o.id ?? '').trim() || `objek-${i + 1}`
+  // BERSIH-BERSIH RONDE 17 (2026-10-29): seluruh preset hasil jiplak gambar
+  // referensi sudah dihapus dari katalog. Objek yang masih menunjuk ke preset
+  // yang tidak ada lagi (sisa scene/draf lama) ikut DIBUANG saat dimuat, kecuali
+  // LATAR (lantai & dinding) yang sengaja dipertahankan.
+  const sisaPreset = (o: SceneObject) =>
+    !!o.preset && !presetOf(o.preset) && o.latar !== true
+    && o.role !== 'lantai' && o.role !== 'dinding'
+  const objects = scene.objects.filter(o => !sisaPreset(o)).map((o0, i) => {
+    let id = (o0.id ?? '').trim() || `objek-${i + 1}`
     while (dipakai.has(id)) id = `${id}-${i + 1}`
     dipakai.add(id)
+    // 2026-10-29 (ronde 17): field `sprite` (versi pixel hasil potongan gambar
+    // referensi) sudah DIHAPUS. Scene lama yang masih menyimpannya dibersihkan
+    // di sini supaya data tidak menggelembung dengan kunci mati.
+    const { sprite: _buangSprite, ...o } = o0 as SceneObject & { sprite?: string }
+    void _buangSprite
     return {
       ...o,
       id,
@@ -494,8 +507,6 @@ export function validateScene(data: unknown): Scene | null {
         ? { puncak: Math.round(ob.puncak * 100) / 100 } : {}),
       ...(typeof ob.miring === 'number' && Number.isFinite(ob.miring)
         ? { miring: Math.round(ob.miring) } : {}),
-      ...(typeof ob.sprite === 'string' && /^[a-z0-9-]{1,40}$/.test(ob.sprite)
-        ? { sprite: ob.sprite } : {}),
       ...(typeof ob.preset === 'string' && /^[a-z0-9-]{1,40}$/.test(ob.preset)
         ? { preset: ob.preset } : {}),
       ...(ob.tepi === false ? { tepi: false } : {}),

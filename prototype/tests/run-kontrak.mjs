@@ -74,7 +74,8 @@ try {
   // ------------------------------------------------------------- 2. katalog
   console.log('2. katalog preset')
   const daftar = presets.PRESETS
-  cek('ada preset', daftar.length > 0, `${daftar.length} preset`)
+  cek('katalog terbaca', Array.isArray(daftar),
+    `${daftar.length} preset (katalog SENGAJA kosong sejak ronde 17: objek referensi dihapus)`)
   let bagianTotal = 0
   let katalogSah = true
   let katalogDetail = ''
@@ -113,12 +114,15 @@ try {
       && o.profil.every(t => Array.isArray(t) && t.length === 2
         && t.every(v => typeof v === 'number' && Number.isFinite(v)))))
   cek('bentuk profil punya siluet sah', profilSah)
-  cek('katalog memakai bentuk baru', bentukPakai.has('silinder') && bentukPakai.has('kerucut'),
-    [...bentukPakai].join(','))
+  cek('katalog memakai bentuk baru (bila katalog terisi)',
+    daftar.length === 0 || (bentukPakai.has('silinder') && bentukPakai.has('kerucut')),
+    daftar.length === 0 ? 'katalog kosong' : [...bentukPakai].join(','))
   cek('id preset unik', new Set(daftar.map(p => p.id)).size === daftar.length)
   const beranim = daftar.flatMap(pr => pr.bagian).filter(x => x.anim)
   const jenisAnim = [...new Set(beranim.map(x => x.anim.jenis))]
-  cek('preset memakai animasi', beranim.length > 0, `${beranim.length} bagian: ${jenisAnim.join(',')}`)
+  cek('preset memakai animasi (bila katalog terisi)',
+    daftar.length === 0 || beranim.length > 0,
+    daftar.length === 0 ? 'katalog kosong' : `${beranim.length} bagian: ${jenisAnim.join(',')}`)
 
   // --------------------------------------------------------- 3. urutan gambar
   console.log('3. urutan gambar')

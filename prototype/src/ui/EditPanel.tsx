@@ -13,8 +13,6 @@ interface Props {
   onCycleAnim: () => void
   /** ganti laju animasi (0.25 / 0.5 / 1 / 1.5 / 2) */
   onCycleAnimLaju: () => void
-  /** tukar objek ini antara VERSI PIXEL (sprite referensi) dan VERSI EDIT */
-  onGantiVersi: () => void
   onCycleKunci: () => void
   /** naikkan ke atas objek sebelumnya (overlay) / turunkan ke bawah objek berikutnya */
   onRaise: () => void
@@ -157,7 +155,6 @@ export default function EditPanel(p: Props) {
   const keys = isFloor ? FLOOR_KEYS : o.role === 'dinding' ? WALL_STYLE_KEYS : MATERIAL_KEYS
   const matIdx = keys.indexOf(styleName)
   const sudut = o.rotasi ?? 0
-  const spriteKaku = !!o.sprite && sudut % 90 !== 0
   const cermin = o.refleksi === true          // objek dicerminkan (mirror)
   const pantul = o.pantulan !== false         // bayangan objek di lantai
   // KUNCI per objek (permintaan user): 'warna' = semua mati kecuali material,
@@ -302,14 +299,6 @@ export default function EditPanel(p: Props) {
           30° ⟳
         </button>
       </div>
-      {spriteKaku && (
-        <div className="row">
-          <span className="rl" />
-          <span className="hint" title="sprite piksel tidak diputar 30° supaya tetap tajam">
-            versi PIXEL tampil utuh di 0/90/180/270°
-          </span>
-        </div>
-      )}
       <div className="row">
         <span className="rl">refleksi</span>
         <button
@@ -342,21 +331,6 @@ export default function EditPanel(p: Props) {
             title="kiri = dinding DB (bidang e), kanan = dinding DT (bidang w)"
           >
             {(o.side ?? 'kiri').toUpperCase()} ⟳
-          </button>
-        </div>
-      )}
-      {o.preset && (
-        <div className="row">
-          <span className="rl">versi</span>
-          <button
-            className={o.sprite ? 'sbtn wide on' : 'sbtn wide'}
-            disabled={frozen}
-            onClick={p.onGantiVersi}
-            title={o.sprite
-              ? 'versi pixel = gambar potongan referensi. Klik untuk membuka susunan bagian yang bisa diubah.'
-              : 'versi edit = susunan bagian parametrik. Klik untuk meringkas jadi gambar referensi (paling mirip).'}
-          >
-            {o.sprite ? 'PIXEL (PERSIS) ⇄' : 'EDIT (BAGIAN) ⇄'}
           </button>
         </div>
       )}

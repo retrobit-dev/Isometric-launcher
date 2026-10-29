@@ -171,7 +171,8 @@ export const MATERIALS: Record<string, Mat> = {
   tembaga: M(Q('#b87a3c')),
   'kain-merah': M(Q('#b8412c')),
   'kaca-jendela': M(Q('#ffd9a0')),
-  // --- JENDELA (permintaan user 2026-10-29: "buatkan objek jendela seperti
+  // --- bahan kaca / langit / kain (bebas dipakai objek buatan sendiri; dulu
+  //     dipakai objek jendela referensi yang sekarang sudah dihapus 2026-10-29: "buatkan objek jendela seperti
   // pada gambar"): kusen/ambang/batang gorden/tirai PUTIH, langit biru,
   // matahari kuning pucat. Tetap dari palet referensi: #eeeeee = kolom abu-abu
   // baris 1, #fde7b5 = kolom kuning baris 3.
@@ -180,7 +181,7 @@ export const MATERIALS: Record<string, Mat> = {
   'perak': M('#dddddd'),        // bingkai papan tulis & bodi laptop
   'perak-tua': M('#cdcdcd'),    // bayangan perak / layar
   'abu-tua': M('#3c3c3c'),      // kursi, lampu, tempat sampah (referensi gelap)
-  'abu': M('#666666'),          // tombol kalkulator, kabel
+  'abu': M('#666666'),          // logam abu / tombol
   'kayu-meja': M('#dfae86'),    // kayu terang meja & rak
   'kayu-tepi': M('#dc9f6e'),    // rusuk/tepi kayu
   'kayu-gelap': M('#aa5a1d'),   // rangka & bayangan kayu
