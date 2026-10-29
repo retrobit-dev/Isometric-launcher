@@ -16,7 +16,7 @@
 
 import type { Animasi, SceneObject } from './types'
 
-type Bentuk = 'balok' | 'silinder' | 'kerucut' | 'bola' | 'cakram' | 'daun'
+type Bentuk = 'balok' | 'silinder' | 'kerucut' | 'bola' | 'cakram' | 'daun' | 'profil'
 
 interface Bahan {
   e: number
@@ -29,6 +29,8 @@ interface Bahan {
   bentuk?: Bentuk
   puncak?: number
   miring?: number
+  /** siluet bebas untuk bentuk 'profil' — [u, z] 0..1 */
+  profil?: [number, number][]
   anim?: Animasi
 }
 
@@ -178,9 +180,14 @@ export const PRESETS: Preset[] = [
       b(0.44, 0.4, 0.84, 1.12, 1.12, 0.14, 'chair-dark'),        // bantalan
       // --- sandaran tinggi di sisi belakang ---
       b(0.86, 0.5, 0.8, 0.28, 0.14, 0.26, 'chair-dark'),         // penopang
-      b(0.5, 0.3, 0.92, 1.0, 0.18, 1.12, 'chair-dark'),          // sandaran
-      b(0.55, 0.3, 1.94, 0.9, 0.18, 0.12, 'chair-dark'),         // puncak membulat
-      b(0.56, 0.28, 1.0, 0.88, 0.05, 0.9, 'chair-dark'),         // muka sandaran
+      // sandaran: SILUET PROFIL dengan sudut atas membulat (bukan balok)
+      {
+        ...b(0.5, 0.3, 0.92, 1.0, 0.18, 1.12, 'chair-dark', 'profil'),
+        profil: [
+          [0.04, 0.0], [0.96, 0.0], [0.96, 0.84], [0.88, 0.95],
+          [0.12, 0.95], [0.04, 0.84],
+        ],
+      },
     ],
   },
 
@@ -467,6 +474,7 @@ export function buatPreset(opts: {
     ...(bag.bentuk ? { bentuk: bag.bentuk } : {}),
     ...(bag.puncak !== undefined ? { puncak: bag.puncak } : {}),
     ...(bag.miring !== undefined ? { miring: bag.miring } : {}),
+    ...(bag.profil ? { profil: bag.profil } : {}),
     ...(bag.anim ? { anim: bag.anim } : {}),
     app: null,
     layer: 'main' as const,

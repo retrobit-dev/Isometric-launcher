@@ -165,6 +165,11 @@ function normalAnim(a: SceneObject['anim']): SceneObject['anim'] | null {
   }
 }
 
+const rafel = (x: unknown) => {
+  const n = typeof x === 'number' && Number.isFinite(x) ? x : 0
+  return Math.round(Math.max(-0.5, Math.min(1.5, n)) * 1000) / 1000
+}
+
 export function normalisasiScene(scene: Scene): Scene {
   const snap = (v: number) => Math.round((Number.isFinite(v) ? v : 0) * 1000) / 1000
   const dipakai = new Set<string>()
@@ -466,7 +471,11 @@ export function validateScene(data: unknown): Scene | null {
       ...(typeof ob.grupInduk === 'string' && ob.grupInduk ? { grupInduk: ob.grupInduk } : {}),
       ...(ob.kunci === 'warna' || ob.kunci === 'semua' ? { kunci: ob.kunci } : {}),
       ...(ob.bentuk === 'silinder' || ob.bentuk === 'kerucut' || ob.bentuk === 'bola'
-        || ob.bentuk === 'cakram' || ob.bentuk === 'daun' ? { bentuk: ob.bentuk } : {}),
+        || ob.bentuk === 'cakram' || ob.bentuk === 'daun' || ob.bentuk === 'profil'
+        ? { bentuk: ob.bentuk } : {}),
+      ...(Array.isArray(ob.profil)
+        ? { profil: ob.profil.slice(0, 48).map(v => [rafel(v?.[0]), rafel(v?.[1])] as [number, number]) }
+        : {}),
       ...(typeof ob.puncak === 'number' && Number.isFinite(ob.puncak) && ob.puncak >= 0
         ? { puncak: Math.round(ob.puncak * 100) / 100 } : {}),
       ...(typeof ob.miring === 'number' && Number.isFinite(ob.miring)

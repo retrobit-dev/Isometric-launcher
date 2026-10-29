@@ -105,7 +105,18 @@ export interface SceneObject {
   //              size.e = panjang daun, size.z = lebar daun, `miring` = sudut
   //              sumbu daun (derajat, 90 = tegak ke atas, 0 = ke arah +e).
   // Footprint (size.e × size.w) tetap dipakai sebagai kotak pembatas.
-  bentuk?: 'balok' | 'silinder' | 'kerucut' | 'bola' | 'cakram' | 'daun'
+  bentuk?: 'balok' | 'silinder' | 'kerucut' | 'bola' | 'cakram' | 'daun' | 'profil'
+  /**
+   * PROFIL (permintaan user 2026-10-29: "kenapa masih terlihat kotak-kotak"):
+   * bentuk BEBAS yang digambar sebagai siluet 2D lalu dijembatani (extrude)
+   * selebar `size.w`. Daftar titik `[u, z]`:
+   *   u = 0..1 selebar size.e (boleh lebih untuk tonjolan)
+   *   z = 0..1 setinggi size.z (0 = bawah)
+   * Dipakai untuk bentuk yang tidak bisa dibuat dari balok/silinder:
+   * sandaran kursi yang membulat, kap lampu, daun meja, gagang, dll.
+   * Titik harus urut mengelilingi siluet (searah/berlawanan jarum jam).
+   */
+  profil?: [number, number][]
   // khusus bentuk 'kerucut': perbandingan jari-jari PUNCAK terhadap alas
   //   tidak diisi / 0 = kerucut runcing
   //   0.45        = kap lampu (frustum menyempit ke atas)

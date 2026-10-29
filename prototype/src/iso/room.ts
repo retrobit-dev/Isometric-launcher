@@ -371,6 +371,18 @@ export function drawWallObjects(ctx: CanvasRenderingContext2D, objects: SceneObj
     kotak(0, 1, plint, 0, trim)
     kotak(0, 1, plint, plint - Math.min(0.05, plint * 0.3), PAL.beamDark)
 
+    // 2b) LIS DINDING (dado) — memecah bidang dinding yang kosong dan
+    //     meniru dinding berpanel pada referensi. Tinggi 1,15 z.
+    if (Z > 1.8) {
+      const zd = Math.min(1.15, Z * 0.4)
+      // bidang bawah sedikit lebih teduh (panel)
+      kotak(0, 1, zd, plint, gelapkanWarna(face, 0.90))
+      // lis kayu
+      kotak(0, 1, zd + 0.09, zd, PAL.beam)
+      kotak(0, 1, zd + 0.09, zd + 0.07, PAL.beamTop)
+      kotak(0, 1, zd, zd - 0.04, PAL.beamDark)
+    }
+
     // 3) CORNICE — balok kayu gelap di puncak dinding (ciri khas referensi)
     const hb = Math.min(0.5, Z * 0.4)
     if (Z > 1) {

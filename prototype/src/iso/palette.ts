@@ -112,7 +112,7 @@ export const MATERIALS: Record<string, Mat> = {
   curtain: M('#e8d8b8'),
   plant: M('#7d9440'),
   terracotta: M('#c96a2e'),
-  'chair-dark': M('#7d4318'), // kursi = kayu tua hangat (dulu slate dingin)
+  'chair-dark': M('#4d3a35'), // kursi: arang hangat (kontras gelap di ruangan hangat)
   'lamp-amber': M('#f2b45c'),
   'book-red': M('#c0503a'),
   'book-green': M('#7f8f44'),

@@ -93,6 +93,17 @@ export function drawBox(ctx: CanvasRenderingContext2D, o: SceneObject) {
   poly(ctx, [t01, t11, b11, b01], c.left, g)
   poly(ctx, [t10, t11, b11, b10], c.right, g)
   poly(ctx, [t00, t10, t11, t01], c.top, g)
+  // PITA NADA di kaki sisi tegak: bagian bawah tiap sisi digelapkan sedikit
+  // (referensi selalu menggelapkan kaki objek — ini yang menghilangkan kesan
+  // "kotak dicat rata"). Tinggi pita 26% dari tinggi objek.
+  if (g && sz > 0.02) {
+    const kb = 0.74
+    const l0 = { x: t01.x + (b01.x - t01.x) * kb, y: t01.y + (b01.y - t01.y) * kb }
+    const l1 = { x: t11.x + (b11.x - t11.x) * kb, y: t11.y + (b11.y - t11.y) * kb }
+    const r1 = { x: t10.x + (b10.x - t10.x) * kb, y: t10.y + (b10.y - t10.y) * kb }
+    poly(ctx, [l0, l1, b11, b01], gelapkan(c.left, 0.28), false)
+    poly(ctx, [r1, l1, b11, b10], gelapkan(c.right, 0.28), false)
+  }
   if (g) {
     // RIM TERANG: dua sisi belakang bidang atas diberi garis lebih terang.
     // Ini yang membuat balok terasa "kena cahaya" seperti di referensi
@@ -351,6 +362,62 @@ function terapkanAnim(ctx: CanvasRenderingContext2D, o: SceneObject): StatusAnim
 }
 
 /** penggambar objek: pilih bentuk sesuai field `bentuk` */
+
+// ---------------------------------------------------------------------------
+// BENTUK "PROFIL" — siluet bebas yang dijembatani (extrude) selebar size.w.
+// Permintaan user 2026-10-29: "kenapa masih terlihat kotak-kotak". Balok hanya
+// bisa kotak; dengan profil, sandaran kursi bisa membulat, kap lampu bisa
+// melengkung, dan tepi meja bisa tumpul — tanpa kehilangan sifat parametrik
+// (semua tetap satu objek dengan pos/size/warna yang bisa diedit).
+// ---------------------------------------------------------------------------
+function drawProfil(ctx: CanvasRenderingContext2D, o: SceneObject) {
+  const titik = o.profil
+  if (!titik || titik.length < 3) {
+    drawBox(ctx, o)
+    return
+  }
+  const { se, sw } = footprintOf(o)
+  const { e, w, z } = o.pos
+  const c0 = colorsOf(o)
+  const c = o.refleksi ? { top: c0.top, left: c0.right, right: c0.left } : c0
+  const g = tepiOf(o)
+  const wDpn = w + sw        // sisi dekat kamera
+  const wBlk = w             // sisi jauh
+  const P = (u: number, zz: number, ww: number) => px(e + u * se, ww, z + zz * o.size.z)
+  const dpn = titik.map(([u, zz]) => P(u, zz, wDpn))
+  const blk = titik.map(([u, zz]) => P(u, zz, wBlk))
+
+  // 1) sisi jauh (gelap) supaya tidak ada lubang di tepi
+  poly(ctx, blk, gelapkan(c.left, 0.35), false)
+
+  // 2) sisi jembatan: tiap sisi siluet yang menghadap kamera (+e / +z)
+  const n = titik.length
+  let luas = 0
+  for (let i = 0; i < n; i++) {
+    const [ua, za] = titik[i]
+    const [ub, zb] = titik[(i + 1) % n]
+    luas += ua * zb - ub * za
+  }
+  const arah = luas > 0 ? 1 : -1      // pastikan normal menghadap keluar
+  for (let i = 0; i < n; i++) {
+    const [ua, za] = titik[i]
+    const [ub, zb] = titik[(i + 1) % n]
+    const du = ub - ua
+    const dz = zb - za
+    if (Math.abs(du) < 1e-6 && Math.abs(dz) < 1e-6) continue
+    // normal luar bidang e-z
+    const ne = dz * arah
+    const nz = -du * arah
+    const dilihat = ne * 0.707 + nz * 0.707      // kamera dari +e dan +z
+    if (dilihat <= 0.02) continue
+    const warna = Math.abs(nz) >= Math.abs(ne) ? c.top : c.right
+    poly(ctx, [dpn[i], dpn[(i + 1) % n], blk[(i + 1) % n], blk[i]], warna, g)
+  }
+
+  // 3) muka depan
+  poly(ctx, dpn, c.left, g)
+}
+
 export function drawObject(ctx: CanvasRenderingContext2D, o: SceneObject) {
   const status = terapkanAnim(ctx, o)
   if (status === 'lewat') return
@@ -359,6 +426,7 @@ export function drawObject(ctx: CanvasRenderingContext2D, o: SceneObject) {
   else if (o.bentuk === 'bola') drawBola(ctx, o)
   else if (o.bentuk === 'cakram') drawCakram(ctx, o)
   else if (o.bentuk === 'daun') drawDaun(ctx, o)
+  else if (o.bentuk === 'profil') drawProfil(ctx, o)
   else drawBox(ctx, o)
   if (status === 'geser') ctx.restore()
 }

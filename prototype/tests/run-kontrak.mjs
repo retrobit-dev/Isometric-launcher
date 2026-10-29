@@ -89,9 +89,10 @@ try {
         && kelipatan01(o.size.e) && kelipatan01(o.size.w) && kelipatan01(o.size.z))
       && new Set(bagian.map(o => o.id)).size === bagian.length
       && bagian.every(o => o.grup === 'grup-uji')
-      // bentuk hanya boleh balok (tidak diisi) / silinder / kerucut
+      // bentuk hanya boleh balok (tidak diisi) / silinder / kerucut / bola /
+      // cakram / daun / profil
       && bagian.every(o => o.bentuk === undefined
-        || ['silinder', 'kerucut', 'bola', 'cakram', 'daun'].includes(o.bentuk))
+        || ['silinder', 'kerucut', 'bola', 'cakram', 'daun', 'profil'].includes(o.bentuk))
       // puncak hanya untuk kerucut, nilainya >= 0 dan 2 desimal
       // animasi: jenis dikenal, angka dalam batas
       && bagian.every(o => o.anim === undefined
@@ -105,6 +106,11 @@ try {
   }
   cek('semua preset sah (ukuran, koordinat, id, grup, bentuk)', katalogSah, katalogDetail || `${bagianTotal} bagian`)
   const bentukPakai = new Set(daftar.flatMap(pr => pr.bagian.map(x => x.bentuk ?? 'balok')))
+  const profilSah = daftar.flatMap(pr => pr.bagian).every(o =>
+    o.bentuk !== 'profil' || (Array.isArray(o.profil) && o.profil.length >= 3
+      && o.profil.every(t => Array.isArray(t) && t.length === 2
+        && t.every(v => typeof v === 'number' && Number.isFinite(v)))))
+  cek('bentuk profil punya siluet sah', profilSah)
   cek('katalog memakai bentuk baru', bentukPakai.has('silinder') && bentukPakai.has('kerucut'),
     [...bentukPakai].join(','))
   cek('id preset unik', new Set(daftar.map(p => p.id)).size === daftar.length)
