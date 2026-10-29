@@ -180,8 +180,11 @@ export const PRESETS: Preset[] = [
 
   // ============================================================ TANAMAN POT ==
   // Permintaan user 2026-10-29: "bisa buatkan tanaman yang ada di pot".
-  // Jawaban user: pot KERAMIK KREM, dipasang di sebelah kanan meja, masuk
-  // katalog + langsung dipasang. Jenis tanaman dipilih oleh saya atas
+  // Jawaban user: pot keramik (awalnya KREM), dipasang di sebelah kanan meja,
+  // masuk katalog + langsung dipasang. Ronde lanjutan (masih 2026-10-29):
+  // user minta "buat tanaman lebih tinggi, warna pot buat lebih gelap" ->
+  // pot diganti `bata` (#b0501f, keramik tanah liat gelap) dan batang
+  // ditinggikan 1,20 -> 2,60 dengan daun ikut dipanjangkan ±40 %. Jenis tanaman dipilih oleh saya atas
   // permintaan user ("sarankan yang paling mudah dan bagus untuk dibuat
   // animasi") -> PALANG / DRACAENA: daun panjang tumbuh dari batang pendek.
   //
@@ -195,18 +198,20 @@ export const PRESETS: Preset[] = [
   //   2) tanah: balok `walnut` yang menonjol 0,10 di atas bibir pot
   //   3) batang: balok `kayu-tua` 0,12 x 0,12, dari dalam tanah
   //   4-12) sembilan daun `daun-sage` / `daun-gelap`, semua beranim `ayun`
-  // Tinggi total ±4,1 tile (pot 1,2 + batang 1,2 + daun terpanjang 1,7), jadi
-  // sepadan dengan tinggi meja kerja dan bisa ditaruh di sebelahnya.
+  // Tinggi total ±5,7 tile (pot 1,34 + batang 2,60 + daun terpanjang 2,40),
+  // jadi lebih tinggi daripada meja kerja (1,60) dan terlihat sebagai pohon
+  // hias sudut ruangan. Bila user minta lebih tinggi lagi, cukup besarkan
+  // tinggi batang + panjang daun; bentuknya tidak perlu diubah.
   //
   // Arah `miring` (derajat): 90 = tegak lurus ke atas, <90 = condong ke +e
   // (depan-kanan), >90 = condong ke -e (belakang-kiri). Lebar daun tumbuh ke w.
   {
     id: 'tanaman-pot', nama: 'TANAMAN POT',
-    ket: 'Tanaman palang dalam pot keramik krem; 9 daun bergoyang bergantian.',
+    ket: 'Tanaman palang tinggi dalam pot keramik gelap; 9 daun bergoyang bergantian.',
     pasang: 'lantai', lebar: 1.8, dalam: 1.8,
     bagian: [
       // --- 1. badan pot (siluet: alas sempit, melebar ke atas) ---
-      bp(0.05, 0.05, 0.00, 1.30, 1.30, 1.10, 'krem-hangat', [
+      bp(0.05, 0.05, 0.00, 1.30, 1.30, 1.10, 'bata', [
         [0.30, 0.00], [0.70, 0.00],   // alas pot (sempit)
         [0.88, 0.36], [0.94, 0.80],   // naik & melebar
         [1.00, 0.96], [1.00, 1.00],   // tepat di bawah bibir
@@ -214,30 +219,30 @@ export const PRESETS: Preset[] = [
         [0.06, 0.80], [0.12, 0.36],
       ]),
       // --- 2. bibir pot (sedikit lebih lebar, supaya bentuk pot terbaca) ---
-      b(0.00, 0.00, 1.06, 1.40, 1.40, 0.18, 'krem-hangat'),
+      b(0.00, 0.00, 1.06, 1.40, 1.40, 0.18, 'bata'),
       // --- 3. tanah di dalam bibir pot ---
       b(0.12, 0.12, 1.04, 1.16, 1.16, 0.12, 'walnut'),
-      // --- 4. batang pendek ---
-      b(0.64, 0.64, 1.16, 0.12, 0.12, 1.20, 'kayu-tua'),
+      // --- 4. batang tinggi (pucuk di z 3,76) ---
+      b(0.64, 0.64, 1.16, 0.14, 0.14, 2.60, 'kayu-tua'),
       // --- 5-13. daun: BELAKANG dulu (condong -e), lalu TENGAH, lalu DEPAN ---
-      beranim(b(0.76, 0.70, 2.28, 1.45, 0.16, 0.60, 'daun-gelap', 'daun', undefined, 130),
+      beranim(b(0.76, 0.70, 3.20, 2.05, 0.18, 0.80, 'daun-gelap', 'daun', undefined, 130),
         { jenis: 'ayun', laju: 0.18, besar: 0.8, fase: 0.55 }),
-      beranim(b(0.70, 0.82, 2.22, 1.30, 0.16, 0.55, 'daun-sage', 'daun', undefined, 145),
+      beranim(b(0.70, 0.82, 3.14, 1.85, 0.18, 0.74, 'daun-sage', 'daun', undefined, 145),
         { jenis: 'ayun', laju: 0.18, besar: 0.8, fase: 0.70 }),
-      beranim(b(0.66, 0.64, 2.34, 1.60, 0.16, 0.66, 'daun-gelap', 'daun', undefined, 108),
+      beranim(b(0.66, 0.64, 3.26, 2.25, 0.18, 0.88, 'daun-gelap', 'daun', undefined, 108),
         { jenis: 'ayun', laju: 0.18, besar: 0.8, fase: 0.85 }),
-      // daun tegak paling tinggi (ujung ±4,0)
-      beranim(b(0.64, 0.76, 2.36, 1.70, 0.16, 0.70, 'daun-sage', 'daun', undefined, 92),
+      // daun tegak paling tinggi (ujung ±5,7)
+      beranim(b(0.64, 0.76, 3.30, 2.40, 0.18, 0.94, 'daun-sage', 'daun', undefined, 92),
         { jenis: 'ayun', laju: 0.18, besar: 0.8, fase: 0.00 }),
-      beranim(b(0.72, 0.86, 2.24, 1.35, 0.16, 0.58, 'daun-gelap', 'daun', undefined, 118),
+      beranim(b(0.72, 0.86, 3.16, 1.90, 0.18, 0.78, 'daun-gelap', 'daun', undefined, 118),
         { jenis: 'ayun', laju: 0.18, besar: 0.8, fase: 0.30 }),
-      beranim(b(0.60, 0.80, 2.30, 1.40, 0.16, 0.62, 'daun-sage', 'daun', undefined, 72),
+      beranim(b(0.60, 0.80, 3.22, 2.00, 0.18, 0.82, 'daun-sage', 'daun', undefined, 72),
         { jenis: 'ayun', laju: 0.18, besar: 0.8, fase: 0.15 }),
-      beranim(b(0.56, 0.72, 2.24, 1.20, 0.16, 0.54, 'daun-gelap', 'daun', undefined, 48),
+      beranim(b(0.56, 0.72, 3.16, 1.70, 0.18, 0.72, 'daun-gelap', 'daun', undefined, 48),
         { jenis: 'ayun', laju: 0.18, besar: 0.8, fase: 0.42 }),
-      beranim(b(0.66, 0.84, 2.18, 1.05, 0.16, 0.50, 'daun-sage', 'daun', undefined, 30),
+      beranim(b(0.66, 0.84, 3.10, 1.50, 0.18, 0.66, 'daun-sage', 'daun', undefined, 30),
         { jenis: 'ayun', laju: 0.18, besar: 0.8, fase: 0.62 }),
-      beranim(b(0.80, 0.80, 2.14, 0.95, 0.16, 0.48, 'daun-gelap', 'daun', undefined, 60),
+      beranim(b(0.80, 0.80, 3.06, 1.35, 0.18, 0.62, 'daun-gelap', 'daun', undefined, 60),
         { jenis: 'ayun', laju: 0.18, besar: 0.8, fase: 0.78 }),
     ],
   },
