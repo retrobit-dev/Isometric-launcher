@@ -1,10 +1,22 @@
 # 05 — TEMA "DIORAMA HANGAT" (pixel-art, 32-bit)
 
-> **PEMBARUAN 2026-10-29 — dokumen ini sebagian sudah tidak berlaku.**
-> Seluruh warna sekarang WAJIB berasal dari palet referensi 342 warna dan
-> latar belakang memakai hitam OLED `#000000`. Hex "diorama hangat" di bawah
-> tetap disimpan sebagai catatan niat desain, tetapi hasil akhirnya dipetakan
-> ke palet. Lihat **docs/07-PALET-REFERENSI.md**.
+> **PEMBARUAN RONDE 38 — 2026-10-29 (berlaku sekarang).**
+> Permintaan user: *"untuk semuanya bisakah style nya dan palette warna nya
+> dibuat lebih ke arah retro pixel art?"* Jawaban user saat ditanya:
+> **ciri = DITHERING · palet = ENDESGA 32 · cakupan = SEMUA bagian**.
+>
+> Akibatnya:
+> 1. Aturan ronde 13 ("palet referensi 342 warna saja") **DIBATALKAN user**.
+>    Sekarang hanya **32 warna Endesga** yang boleh muncul di kanvas
+>    (`docs/08-PALET-RETRO-DITHER.md`, `docs/04-palet-retro.json`).
+> 2. Gradasi halus (campuran warna) **dihapus** dari jalur gambar, karena
+>    campuran menghasilkan warna di luar palet. Penggantinya **dithering
+>    Bayer 4×4** antara dua warna palet (`prototype/src/iso/dither.ts`).
+> 3. Latar luar tetap **hitam OLED `#000000`** (aturan ronde 13 tidak dicabut).
+> 4. Tanpa outline objek (aturan ronde 19) **masih berlaku**.
+>
+> Hex "diorama hangat" di bawah tinggal catatan niat desain; warna yang
+> dipakai sekarang ada di `prototype/src/iso/palette.ts`.
 
 Ditulis 2026-10-29 atas permintaan user: *"saya ingin style dan gaya dan tema
 pixelnya seperti pada gambar referensi"* (`6d39f1fadb95515d53d2f48449d4c809.jpg`
@@ -23,17 +35,25 @@ disusun menjadi SATU keluarga oranye–cokelat. Tidak ada biru/ungu dingin di
 bangunan; warna dingin hanya boleh muncul sebagai aksen kecil (kaca jendela,
 daun, satu-dua punggung buku).
 
-| Peran | Warna | Catatan |
+| Peran | Warna (Endesga 32) | Catatan |
 |---|---|---|
-| latar (void) | `#48100f` | marun-tua hangat, 27–37% luas gambar referensi |
-| dinding teduh (DB) | `#dd8b3f` | muka kiri |
-| dinding cahaya (DT) | `#f2c17b` | muka kanan |
-| plint / kaki dinding | `#8d4a1d` · `#a85f26` | |
-| ubin lantai | `#e08a3a` `#d47c2c` `#da8434` | nat `#a8541c` |
-| tepi slab (deck) | `#c07933` · `#9a5622` | sambungan `#8f4a1b`, bibir `#d98f4a` |
-| balok atas & tiang | `#7d4318` · `#a85f26` · `#8d4a1d` | pasak `#d9944a` |
-| tinta / outline | `#4a1e0a` | dicampur 42% ke warna isi |
-| sorot | `#f7dfae` · `#faddab` | kertas, kain, bibir bidang |
+| latar (void) | `#000000` | hitam OLED murni (tetap) |
+| dinding teduh (DB) | `#b86f50` | muka kiri |
+| dinding cahaya (DT) | `#e4a672` | muka kanan |
+| sorot dinding | `#ead4aa` | krem |
+| plint / kaki dinding | `#733e39` · `#b86f50` | |
+| ubin lantai | `#d77643` `#b86f50` `#c28569` | nat `#733e39` |
+| tepi slab (deck) | `#733e39` · `#3e2731` | bibir `#e4a672` |
+| balok atas & tiang | `#733e39` · `#b86f50` · `#3e2731` | pasak `#e8b796` |
+| tinta gelap (tidak dipakai: outline mati) | `#3e2731` | dahulu `#4a1e0a` |
+| sorot / kertas | `#ead4aa` · `#e8b796` | |
+
+Warna objek memakai **tangga nada** yang sama supaya bayangan tetap satu
+keluarga: cokelat `#3e2731 → #733e39 → #b86f50 → #c28569 → #e4a672 → #e8b796
+→ #ead4aa`, oranye `#be4a2f → #d77643 → #f77622 → #feae34 → #fee761`, hijau
+`#193c3e → #265c42 → #3e8948 → #63c74d`, biru `#181425 → #262b44 → #3a4466 →
+#5a6988 → #8b9bb4 → #c0cbdc → #ffffff`, sian `#124e89 → #0099db → #2ce8f5`,
+merah `#a22633 → #e43b44 → #f6757a`, ungu `#68386c → #b55088`.
 
 Sumber kebenaran warna: `prototype/src/iso/palette.ts`. Salinan untuk renderer
 offline & APK: `docs/04-palet.json` — dibuat dengan `node gen_palet.mjs` dan
@@ -41,8 +61,12 @@ offline & APK: `docs/04-palet.json` — dibuat dengan `node gen_palet.mjs` dan
 
 ## 2. Aturan gambar (yang membuat terasa "diorama")
 
-1. **Garis tepi gelap** di setiap bidang (outline). Warna = isi dicampur 42%
-   ke tinta `#4a1e0a`, tebal 2 px internal. Matikan per objek dengan `tepi:false`.
+1. **DITHERING** — peralihan antar nada digambar sebagai **pola kotak Bayer
+   4×4** (mis. 25% lalu 75%), bukan gradasi warna. Dipasang di: kaki dinding,
+   bayangan lantai di kaki dinding, batas pita nada dinding & objek, batas
+   terang/gelap silinder, badan bola, pita langit, halo matahari/bulan, tepi
+   awan. Modul: `prototype/src/iso/dither.ts` (+ cermin di `render_scene.py`).
+   **Tidak ada outline objek** (aturan ronde 19 tetap).
 2. **Bibir terang** di dua sisi belakang bidang atas setiap balok — membuat
    objek terasa kena cahaya, bukan datar.
 3. **Tiga nada per material**: `top` terang, `right` sedang, `left` teduh.
@@ -50,8 +74,9 @@ offline & APK: `docs/04-palet.json` — dibuat dengan `node gen_palet.mjs` dan
 4. **Dinding**: pita nada (bukan gradien halus) — terang di atas, teduh di
    bawah; plint kayu di kaki; **cornice** balok kayu di puncak; **tiang** kayu
    di kedua ujung + pasak bundar. Ini ciri paling khas referensi.
-5. **Lantai**: ubin persakota besar, nat tipis, bayangan ambient 3 pita di kaki
-   dinding, dan **tepi slab = papan kayu** (sambungan vertikal + bibir terang).
+5. **Lantai**: ubin persakota besar, nat tipis, **bayangan ambient 3 pita
+   ber-dither** di kaki dinding, dan **tepi slab = papan kayu** (sambungan
+   vertikal + bibir terang).
 6. **Komposisi**: diorama digambar UTUH dalam bingkai (tepi papan & balok atas
    kelihatan), tidak dipotong tepi layar. Lihat §3.
 7. Semua tepi dibulatkan ke piksel dan alpha di-threshold (`crispify`) supaya

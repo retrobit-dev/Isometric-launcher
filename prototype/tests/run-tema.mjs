@@ -50,8 +50,16 @@ try {
   cek('urutan nada top > right >= left (tema utama)', terbalikTema.length === 0,
     terbalikTema.map(([k]) => k).join(','))
 
+  // Ronde 38: palet Endesga 32 memang punya nada biru/abu. Yang diuji: material
+  // TEMA UTAMA (kayu, kertas, kain, cahaya) tetap hangat; biru/abu hanya boleh
+  // muncul di aksen yang memang dingin (kaca, besi, kursi gelap, zaitun).
+  const DINGIN_SAH = [
+    'teal', 'kaca-langit', 'buku-biru', 'book-blue', 'chair-dark', 'abu', 'abu-tua',
+    'perak', 'perak-tua', 'buku-gelap', 'zaitun-tua', 'buku-zaitun-tepi', 'kusen-putih',
+    'papan-putih', 'kertas-putih',
+  ]
   const dingin = Object.entries(P.MATERIALS).filter(([k, m]) => {
-    if (k.startsWith('pastel-') || ['teal', 'kaca-langit', 'buku-biru', 'book-blue'].includes(k)) return false
+    if (k.startsWith('pastel-') || DINGIN_SAH.includes(k)) return false
     const n = parseInt(m.top.slice(1), 16)
     return (n & 255) > ((n >> 16 & 255) + 10)   // biru > merah = dingin
   })

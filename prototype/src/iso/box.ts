@@ -4,6 +4,7 @@ import { drawLangit, setDetik, type Bidang } from './langit'
 import type { SceneObject } from '../scene/types'
 
 import { gelap as gelapPalet, kePalet, terang as terangPalet, warna } from './palet-referensi'
+import { polaDither } from './dither'
 
 export interface Box { x0: number; y0: number; x1: number; y1: number }
 
@@ -47,7 +48,9 @@ function terangkan(warna: string, f = 0.30): string {
   return terangPalet(kePalet(warna), Math.max(1, Math.round(f * 4)))
 }
 
-function poly(ctx: CanvasRenderingContext2D, pts: P[], color: string, garis = true) {
+function poly(
+  ctx: CanvasRenderingContext2D, pts: P[], color: string | CanvasPattern, garis = true,
+) {
   ctx.fillStyle = color
   ctx.beginPath()
   pts.forEach((p, i) => {
@@ -59,7 +62,7 @@ function poly(ctx: CanvasRenderingContext2D, pts: P[], color: string, garis = tr
   ctx.closePath()
   ctx.fill()
   if (!garis || !GARIS_TEPI) return
-  ctx.strokeStyle = gelapkan(color)
+  ctx.strokeStyle = typeof color === 'string' ? gelapkan(color) : TINTA
   ctx.lineWidth = TEBAL_TEPI
   ctx.lineJoin = 'round'
   ctx.stroke()
@@ -184,7 +187,17 @@ export function drawBox(ctx: CanvasRenderingContext2D, o: SceneObject) {
   if (sz > 0.02) {
     for (const f of tampak) {
       if (f.nz !== 0) continue
-      poly(ctx, f.idx.map(i => V(i, 0.26)), gelapkan(warnaWajah(c, f.ne, f.nw, f.nz), 0.28), false)
+      const atas = warnaWajah(c, f.ne, f.nw, f.nz)
+      const bawah = gelapkan(atas, 0.28)
+      poly(ctx, f.idx.map(i => V(i, 0.26)), bawah, false)
+      // RONDE 38: batas pita nada ber-DITHER (pola Bayer 4x4) supaya peralihan
+      // terang -> teduh di kaki objek tidak berupa garis lurus.
+      const tipis = Math.min(0.16, 0.42 / Math.max(0.25, sz))
+      const pita = [
+        V(f.idx[0], 0.26), V(f.idx[1], 0.26),
+        V(f.idx[1], 0.26 + tipis), V(f.idx[0], 0.26 + tipis),
+      ]
+      poly(ctx, pita, polaDither(ctx, atas, bawah, 0.5), false)
     }
 
     // RIM TERANG di rusuk bidang atas yang menjauhi kamera (garis -> hanya
@@ -269,7 +282,13 @@ export function drawSilinder(ctx: CanvasRenderingContext2D, o: SceneObject) {
     const ne = (Math.cos(t) + Math.cos(sudut[j])) / 2
     const nw = (Math.sin(t) + Math.sin(sudut[j])) / 2
     const hadap = ne * kam.e + nw * kam.w
-    return { i, j, tengahY, warna: hadap >= 0 ? c.right : c.left }
+    // GARIS BATAS TERANG/GELAP (terminator) dibuat BER-DITHER, bukan patah:
+    // silinder jadi terlihat membulat seperti pixel-art 16-bit, tetap 32 warna.
+    const warna = hadap > 0.3 ? c.right
+      : hadap > 0 ? polaDither(ctx, c.right, c.left, 0.3)
+        : hadap > -0.3 ? polaDither(ctx, c.right, c.left, 0.7)
+          : c.left
+    return { i, j, tengahY, warna }
   }).sort((a, b) => a.tengahY - b.tengahY)
   const g = tepiOf(o)
   for (const s of seg) {
@@ -339,7 +358,7 @@ export function drawBola(ctx: CanvasRenderingContext2D, o: SceneObject) {
   const HWpiksel = px(e + 1, w, z).x - px(e, w, z).x
   const R = r * HWpiksel * 1.31
   const c = toneOf(o)
-  const bulat = (cx: number, cy: number, rad: number, warna: string) => {
+  const bulat = (cx: number, cy: number, rad: number, warna: string | CanvasPattern) => {
     ctx.fillStyle = warna
     ctx.beginPath()
     ctx.arc(cx, cy, rad, 0, Math.PI * 2)
@@ -353,8 +372,15 @@ export function drawBola(ctx: CanvasRenderingContext2D, o: SceneObject) {
     ctx.arc(Math.round(pusat.x), Math.round(pusat.y), Math.round(R), 0, Math.PI * 2)
     ctx.stroke()
   }
-  bulat(pusat.x - R * 0.1, pusat.y - R * 0.1, R * 0.86, c.left)  // badan
-  bulat(pusat.x - R * 0.3, pusat.y - R * 0.3, R * 0.5, c.top)    // sorot
+  // BADAN: lapisan ber-DITHER supaya bulatan terbaca membulat (peralihan
+  // nada pakai pola kotak 4x4, bukan gradasi warna di luar palet).
+  bulat(pusat.x - R * 0.1, pusat.y - R * 0.1, R * 0.86,
+    polaDither(ctx, c.left, c.top, 0.22))                        // badan <- sorot
+  bulat(pusat.x - R * 0.18, pusat.y - R * 0.18, R * 0.72,
+    polaDither(ctx, c.left, c.top, 0.52))
+  bulat(pusat.x - R * 0.22, pusat.y - R * 0.22, R * 0.56,
+    polaDither(ctx, c.left, c.top, 0.78))
+  bulat(pusat.x - R * 0.3, pusat.y - R * 0.3, R * 0.40, c.top)   // sorot
 }
 
 /**

@@ -1,19 +1,18 @@
-// UJI PARITAS LANGIT (web <-> Python)
+// UJI PARITAS LANGIT & PALET — TS (prototype) vs Python (renderer offline)
 //   cd prototype && node tests/run-paritas.mjs
 //
-// Latar belakang: langit dinamis punya DUA renderer —
-//   • prototype/src/iso/langit.ts      (canvas, dipakai preview web & APK nanti)
-//   • tools/render_scene.py            (PNG uji, cermin untuk renderer Kotlin)
-// Sejak langit dibuat lebih realistis (2026-10-29) warnanya TIDAK lagi hanya
-// 6 warna palet, tetapi 14 pita hasil CAMPURAN. Campuran itu dihitung di dua
-// tempat, jadi bisa melenceng tanpa terlihat. Uji ini membandingkan angka
-// keluaran keduanya: kalau berbeda walau 1 bit, PNG uji tidak lagi mewakili
-// tampilan aplikasi.
+// Latar belakang: langit dinamis & palet punya DUA renderer —
+//   • prototype/src/iso/langit.ts, palet-referensi.ts, palet-retro.ts (canvas)
+//   • tools/render_scene.py                                        (PNG uji)
+// Keduanya harus menghasilkan angka yang SAMA PERSIS, kalau tidak PNG uji
+// tidak lagi mewakili layar.
 //
-// Yang dibandingkan:
-//   1. campur(a, b, t)             <-> _campur(a, b, t)
-//   2. pitaHalus(kendali, 14)      <-> _pita_halus(kendali, 14)
-//   3. 14 pita tiap fase x cuaca   (5 fase x 5 cuaca = 25 kombinasi)
+// Ronde 38 (2026-10-29): gradasi campuran warna DIGANTI dithering. Yang diuji:
+//   1. langitFase()        <-> fase_warna()        (6 pita + awan, 5 fase)
+//   2. efekCuaca().mendung <-> efek_cuaca()[4]     (mendung 5 cuaca)
+//   3. rencanaLangit()     <-> _rencana_langit()   (pita + 2 jalur dither)
+//   4. gelap()/terang()    <-> gelap()/terang()    (tangga nada 32 warna)
+//   5. kePalet()           <-> ke_palet()          (warna terdekat redmean)
 import { execFileSync } from 'node:child_process'
 import { mkdtempSync, rmSync, writeFileSync } from 'node:fs'
 import { tmpdir } from 'node:os'
@@ -29,6 +28,7 @@ const cek = (nama, lulus, detail = '') => {
 
 const FASE = ['fajar', 'pagi', 'siang', 'senja', 'malam']
 const CUACA = ['cerah', 'berawan', 'gerimis', 'hujan', 'badai']
+const LUAR_PALET = ['#dd8b3f', '#f2c17b', '#a8541c', '#4d3a35', '#f7e6c4', '#8a9a4a', '#4c8f8a', '#123457']
 
 try {
   // --- 1. bungkus modul TypeScript ---
@@ -36,6 +36,10 @@ try {
   execFileSync('npx', ['esbuild', 'src/iso/langit.ts', '--bundle', '--format=esm',
     '--platform=node', `--outfile=${outTs}`], { stdio: 'pipe' })
   const L = await import(pathToFileURL(outTs).href)
+  const outPal = join(tmp, 'palet.mjs')
+  execFileSync('npx', ['esbuild', 'src/iso/palet-referensi.ts', '--bundle', '--format=esm',
+    '--platform=node', `--outfile=${outPal}`], { stdio: 'pipe' })
+  const R = await import(pathToFileURL(outPal).href)
 
   // --- 2. ambil fungsi Python (tanpa menjalankan bagian gambar) ---
   const skrip = join(tmp, 'py.py')
@@ -45,77 +49,92 @@ src = pathlib.Path('/home/user/Isometric-launcher/tools/render_scene.py').read_t
 kepala = src.split("obj = scene['objects']")[0]
 ns = {'__file__': '/home/user/Isometric-launcher/tools/render_scene.py', '__name__': 'rs'}
 exec(compile(kepala, 'rs', 'exec'), ns)
-hasil = {'campur': [], 'pita': {}, 'warna': {}}
-for a, b, t in [('#000000','#ffffff',0), ('#000000','#ffffff',0.5),
-                ('#4d89ff','#7eaafe',0.37), ('#fde8e7','#1a0000',0.82)]:
-    hasil['campur'].append(ns['_campur'](a, b, t))
+hasil = {'fase': {}, 'mendung': {}, 'rencana': {}, 'gelap': {}, 'terang': {}, 'palet': []}
 for f in ${JSON.stringify(FASE)}:
-    pita, _, _, _ = ns['fase_warna'](f)
-    hasil['pita'][f] = ns['_pita_halus'](pita, 14)
+    pita, benda, bintang, awan = ns['fase_warna'](f)
+    hasil['fase'][f] = {'pita': pita, 'benda': benda, 'bintang': bintang, 'awan': awan,
+                        'rencana': ns['_rencana_langit'](pita)}
 for c in ${JSON.stringify(CUACA)}:
     m = ns['efek_cuaca'](c)[4]
-    hasil['warna'][c] = ns['_pita_halus'](m, 14) if m else None
+    hasil['mendung'][c] = m
+    hasil['rencana'][c] = ns['_rencana_langit'](m) if m else None
+for c in ${JSON.stringify(R.SEMUA)}:
+    hasil['gelap'][c] = [ns['gelap'](c, n) for n in (1, 2, 3)]
+    hasil['terang'][c] = [ns['terang'](c, n) for n in (1, 2, 3)]
+hasil['palet'] = [ns['ke_palet'](h) for h in ${JSON.stringify(LUAR_PALET)}]
 print(json.dumps(hasil))
 `, 'utf8')
   const PY = JSON.parse(execFileSync('python3', [skrip], { encoding: 'utf8' }))
 
-  console.log('1. campur() — TS vs Python')
-  const kasus = [
-    ['#000000', '#ffffff', 0],
-    ['#000000', '#ffffff', 0.5],
-    ['#4d89ff', '#7eaafe', 0.37],
-    ['#fde8e7', '#1a0000', 0.82],
-  ]
-  let campurSama = true
-  const bedaCampur = []
-  kasus.forEach(([a, b, t], i) => {
-    const ts = L.campur(a, b, t)
-    const py = PY.campur[i]
-    if (ts !== py) { campurSama = false; bedaCampur.push(`${t}: ${ts} != ${py}`) }
-  })
-  cek('campur sama persis di 4 kasus', campurSama, bedaCampur.join(' | ') || 'termasuk 0 / 0,5 / 1')
-
-  console.log('2. pitaHalus(14) tiap fase')
-  let pitaSama = true
-  const bedaPita = []
+  console.log('1. langitFase() — 5 fase x (6 pita + awan + benda)')
+  let faseSama = true
+  const bedaFase = []
   for (const f of FASE) {
-    const ts = L.pitaHalus(L.langitFase(f).pita, 14)
-    const py = PY.pita[f]
-    if (JSON.stringify(ts) !== JSON.stringify(py)) {
-      pitaSama = false
-      const i = ts.findIndex((h, k) => h !== py[k])
-      bedaPita.push(`${f}@${i}: ${ts[i]} != ${py[i]}`)
+    const ts = L.langitFase(f)
+    const py = PY.fase[f]
+    if (JSON.stringify(ts.pita) !== JSON.stringify(py.pita)
+      || ts.benda !== py.benda || ts.bintang !== py.bintang || ts.awan !== py.awan) {
+      faseSama = false
+      bedaFase.push(f)
     }
   }
-  cek('14 pita x 5 fase identik', pitaSama, bedaPita.join(' | ') || '70 warna')
+  cek('pita, benda, bintang, awan identik', faseSama, bedaFase.join(',') || '5 fase')
 
-  console.log('3. langit mendung (gerimis / hujan / badai)')
+  console.log('2. efekCuaca().mendung — 3 cuaca berawan')
   let mendungSama = true
   const bedaMendung = []
   for (const c of CUACA) {
+    const ts = L.efekCuaca(c).mendung
+    const py = PY.mendung[c]
+    if (JSON.stringify(ts) !== JSON.stringify(py)) { mendungSama = false; bedaMendung.push(c) }
+  }
+  cek('6 pita mendung identik (null untuk cerah/berawan)', mendungSama,
+    bedaMendung.join(',') || '5 cuaca')
+
+  console.log('3. rencanaLangit() — pita keras + jalur dither')
+  let rencanaSama = true
+  const bedaRencana = []
+  const bentuk = (r) => JSON.stringify({ p: r.pita, d: r.dither.map(d => [d.v0, d.v1, d.a, d.b, d.level]) })
+  for (const f of FASE) {
+    const ts = L.rencanaLangit(L.langitFase(f).pita)
+    const py = PY.fase[f].rencana
+    const pyBentuk = { pita: py[0].map(([v0, v1, w]) => ({ v0, v1, warna: w })),
+      dither: py[1].map(([v0, v1, a, b, level]) => ({ v0, v1, a, b, level })) }
+    if (bentuk(ts) !== bentuk(pyBentuk)) { rencanaSama = false; bedaRencana.push(f) }
+  }
+  for (const c of CUACA) {
     const m = L.efekCuaca(c).mendung
-    const ts = m ? L.pitaHalus(m, 14) : null
-    const py = PY.warna[c]
-    if (JSON.stringify(ts) !== JSON.stringify(py)) {
-      mendungSama = false
-      bedaMendung.push(c)
+    if (!m) continue
+    const ts = L.rencanaLangit(m)
+    const py = PY.rencana[c]
+    const pyBentuk = { pita: py[0].map(([v0, v1, w]) => ({ v0, v1, warna: w })),
+      dither: py[1].map(([v0, v1, a, b, level]) => ({ v0, v1, a, b, level })) }
+    if (bentuk(ts) !== bentuk(pyBentuk)) { rencanaSama = false; bedaRencana.push('cuaca:' + c) }
+  }
+  cek('pita + 10 jalur dither identik (5 fase + 3 mendung)', rencanaSama,
+    bedaRencana.join(',') || '8 rencana')
+
+  console.log('4. tangga nada gelap()/terang()')
+  let tanggaSama = true
+  const bedaTangga = []
+  for (const c of R.SEMUA) {
+    const tsG = [1, 2, 3].map(n => R.gelap(c, n))
+    const tsT = [1, 2, 3].map(n => R.terang(c, n))
+    if (JSON.stringify(tsG) !== JSON.stringify(PY.gelap[c])) {
+      tanggaSama = false; bedaTangga.push(`gelap ${c}`)
+    }
+    if (JSON.stringify(tsT) !== JSON.stringify(PY.terang[c])) {
+      tanggaSama = false; bedaTangga.push(`terang ${c}`)
     }
   }
-  cek('pita mendung identik (null untuk cerah/berawan)', mendungSama, bedaMendung.join(',') || '3 x 14 warna')
+  cek('32 warna x 3 langkah x 2 arah identik', tanggaSama,
+    bedaTangga.slice(0, 4).join(',') || '192 hasil')
 
-  console.log('4. kendali tetap dari palet referensi')
-  const R = await import(pathToFileURL(execFileSync('npx', ['esbuild', 'src/iso/palet-referensi.ts',
-    '--bundle', '--format=esm', '--platform=node',
-    `--outfile=${join(tmp, 'palet.mjs')}`], { stdio: 'pipe' }) && join(tmp, 'palet.mjs')).href)
-  const palet = new Set(R.SEMUA)
-  const kendaliSah = FASE.every(f => L.langitFase(f).pita.every(h => palet.has(h)))
-  cek('6 warna kendali tiap fase ada di 342 warna palet', kendaliSah)
-  const ujungSah = FASE.every(f => {
-    const k = L.langitFase(f).pita
-    const h = L.pitaHalus(k, 14)
-    return h[0] === k[0] && h[13] === k[5]
-  })
-  cek('ujung gradasi = warna kendali (tidak ada warna asing)', ujungSah)
+  console.log('5. pemetaan warna terdekat (redmean)')
+  const tsPalet = LUAR_PALET.map(h => R.kePalet(h))
+  cek('kePalet() = ke_palet()', JSON.stringify(tsPalet) === JSON.stringify(PY.palet),
+    tsPalet.join(' '))
+  cek('semua hasil pemetaan anggota palet', tsPalet.every(h => R.diPalet(h)))
 } catch (e) {
   gagal++
   console.log('  GAGAL uji error —', e.message)

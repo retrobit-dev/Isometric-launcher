@@ -1,5 +1,18 @@
 # 07 · Palet Referensi 342 Warna + Latar Hitam OLED
 
+> ## ⚠ DIBATALKAN SEBAGIAN — RONDE 38 (2026-10-29)
+>
+> Dokumen ini mencatat **sejarah** palet 342 warna (ronde 13). Permintaan user
+> *"untuk palette warna gunakan referensi ini saja"* **dicabut sendiri oleh
+> user** di ronde 38, ketika ia memilih **ENDESGA 32** untuk gaya retro
+> pixel-art. Palet yang berlaku sekarang: **`docs/08-PALET-RETRO-DITHER.md`**.
+>
+> Yang MASIH berlaku dari dokumen ini:
+> * latar belakang = **hitam OLED `#000000`**;
+> * grid 18 × 19 di bawah tetap dipakai sebagai **"niat desain"** (kolom hue,
+>   baris kecerahan), tetapi setiap selnya kini dibulatkan ke palet Endesga
+>   (`palet-referensi.ts` → `docs/04-palet-referensi.json`).
+
 Permintaan user 2026-10-29:
 
 > "untuk pallete warna gunakan referensi ini saja."

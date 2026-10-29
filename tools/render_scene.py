@@ -14,16 +14,23 @@ import math
 import os
 import sys
 
-from PIL import Image, ImageDraw
+from PIL import Image, ImageChops, ImageDraw
 
 AKAR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 PALET = json.load(open(os.path.join(AKAR, 'docs', '04-palet.json')))
-# Palet referensi 16x12 (192 warna) — cermin iso/palet-referensi.ts
+# Grid DESAIN 18x19 (warna referensi ronde 13) yang sudah dibulatkan ke palet
+# Endesga — cermin PALET_REF di iso/palet-referensi.ts. Hanya dipakai untuk
+# posisi desain (kolom/tingkat), BUKAN sebagai daftar warna sah.
 REF = json.load(open(os.path.join(AKAR, 'docs', '04-palet-referensi.json')))
 _BARIS = REF['baris']
 _TINGKAT = REF['tingkat']
-SEMUA = [c for baris in _BARIS for c in baris]
+# PALET RETRO ENDESGA 32 (ronde 38) — cermin iso/palet-retro.ts
+RETRO = json.load(open(os.path.join(AKAR, 'docs', '04-palet-retro.json')))
+SEMUA = RETRO['palet']
 SEMUA_SET = set(SEMUA)
+TANGGA = RETRO['tangga']
+GELAP_MAKS = RETRO['gelapMaks']
+SATU_SET = set(SEMUA)
 MAT = PALET['materi']
 FLOOR = PALET['lantai']
 WALL = PALET['dinding']
@@ -110,39 +117,54 @@ def _hex(c):
     return int(c[0:2], 16), int(c[2:4], 16), int(c[4:6], 16)
 
 
-# --- palet referensi: warna terdekat + tangga gelap/terang (paritas TS) ----- #
-def _lab(hexs):
-    r, g, b = (v / 255 for v in _hex(hexs))
-    lin = lambda v: v / 12.92 if v <= 0.04045 else ((v + 0.055) / 1.055) ** 2.4
-    r, g, b = lin(r), lin(g), lin(b)
-    x = (r * 0.4124 + g * 0.3576 + b * 0.1805) / 0.95047
-    y = r * 0.2126 + g * 0.7152 + b * 0.0722
-    z = (r * 0.0193 + g * 0.1192 + b * 0.9505) / 1.08883
-    f = lambda t: t ** (1 / 3) if t > 0.008856 else 7.787 * t + 16 / 116
-    fx, fy, fz = f(x), f(y), f(z)
-    return (116 * fy - 16, 500 * (fx - fy), 200 * (fy - fz))
+def _hexstr(c):
+    """terima hex atau tuple RGB -> selalu hex 6 digit"""
+    if isinstance(c, tuple):
+        return '#%02x%02x%02x' % tuple(int(v) for v in c[:3])
+    return c
 
 
-_LAB = [_lab(c) for c in SEMUA]
+# --- palet ENDESGA 32: warna terdekat + tangga nada (paritas iso/palet-retro.ts) --
+def _rgb(c):
+    return _hex(c)
+
+
+def jarak_warna(a, b):
+    """jarak 'redmean' — sama persis dengan jarakWarna() di palet-retro.ts"""
+    r1, g1, b1 = _rgb(a)
+    r2, g2, b2 = _rgb(b)
+    rmean = (r1 + r2) / 2
+    dr, dg, db = r1 - r2, g1 - g2, b1 - b2
+    return (2 + rmean / 256) * dr * dr + 4 * dg * dg + (2 + (255 - rmean) / 256) * db * db
+
+
 _CACHE = {}
 
 
 def ke_palet(warna):
+    """warna Endesga terdekat (warna yang sudah anggota palet tidak diubah)"""
     if not (isinstance(warna, str) and len(warna) == 7 and warna.startswith('#')):
         return warna
     w = warna.lower()
-    if w in SEMUA_SET:
+    if w in SATU_SET:
         return w
     if w in _CACHE:
         return _CACHE[w]
-    la, lb, lc = _lab(w)
     jarak, terbaik = 1e18, SEMUA[0]
-    for i, (a, b, c) in enumerate(_LAB):
-        dd = (a - la) ** 2 + (b - lb) ** 2 + (c - lc) ** 2
+    for c in SEMUA:
+        dd = jarak_warna(w, c)
         if dd < jarak:
-            jarak, terbaik = dd, SEMUA[i]
+            jarak, terbaik = dd, c
     _CACHE[w] = terbaik
     return terbaik
+
+
+def _tangga_dari(warna):
+    c = ke_palet(warna)
+    for i, ramp in enumerate(TANGGA):
+        if c in ramp:
+            return i, ramp.index(c)
+    return 0, 0
 
 
 def _posisi(warna):
@@ -168,21 +190,96 @@ def _luma(hexs):
 
 
 def gelap(warna, n=1):
-    k, t = _posisi(warna)
-    dasar = _luma(ke_palet(warna))
-    t += max(0, int(round(n)))
-    while t < _TINGKAT and _luma(_warna(k, t)) >= dasar:
-        t += 1
-    return _warna(k, t)
+    i, k = _tangga_dari(warna)
+    k -= max(0, int(round(n)))
+    if k < 0:
+        return GELAP_MAKS
+    return TANGGA[i][k]
 
 
 def terang(warna, n=1):
-    k, t = _posisi(warna)
-    dasar = _luma(ke_palet(warna))
-    t -= max(0, int(round(n)))
-    while t > 1 and _luma(_warna(k, t)) <= dasar:
-        t -= 1
-    return _warna(k, t)
+    i, k = _tangga_dari(warna)
+    k = min(len(TANGGA[i]) - 1, k + max(0, int(round(n))))
+    return TANGGA[i][k]
+
+
+# ---------------------------------------------------------------------------
+# DITHERING (cermin iso/dither.ts) — pola Bayer 4x4
+# ---------------------------------------------------------------------------
+BAYER4 = [[0, 8, 2, 10], [12, 4, 14, 6], [3, 11, 1, 9], [15, 7, 13, 5]]
+
+
+def ambang_bayer(x, y):
+    return BAYER4[y % 4][x % 4] + 0.5
+
+
+def piksel_kedua(x, y, level):
+    return ambang_bayer(x, y) < level * 16
+
+
+def dither(a, b, level):
+    """spesifikasi isian berpola: warna `b` menimpa `a` sesuai level 0..1"""
+    return ('dither', a, b, max(0.0, min(1.0, level)))
+
+
+def bayang(warna, level):
+    """spesifikasi isian berpola: `warna` di atas bidang yang sudah ada"""
+    return ('bayang', warna, warna, max(0.0, min(1.0, level)))
+
+
+_POLA = {}
+
+
+def _lapis_pola(spec):
+    """(gambar RGB penuh, topeng alpha penuh) untuk satu spesifikasi dither"""
+    mode = spec[0]
+    # gelapkan()/terangkan() mengembalikan tuple RGB, sedangkan dither() bekerja
+    # dengan hex — normalkan dulu supaya keduanya bisa dipakai campur.
+    warna1 = _hexstr(spec[1])
+    warna2 = _hexstr(spec[2])
+    level = spec[3]
+    kunci = (mode, warna1, warna2, round(level * 16))
+    if kunci in _POLA:
+        return _POLA[kunci]
+    per = max(0, min(16, round(level * 16)))
+    dasar = (0, 0, 0, 0) if mode == 'bayang' else _hex(warna1) + (255,)
+    tint = _hex(warna2) + (255,)
+    ubin = Image.new('RGBA', (4, 4), dasar)
+    up = ubin.load()
+    for y in range(4):
+        for x in range(4):
+            if per and piksel_kedua(x, y, per / 16):
+                up[x, y] = tint
+    baris = Image.new('RGBA', (IW, 4), dasar)
+    for x0 in range(0, IW, 4):
+        baris.paste(ubin, (x0, 0))
+    penuh = Image.new('RGBA', (IW, IH), dasar)
+    for y0 in range(0, IH, 4):
+        penuh.paste(baris, (0, y0))
+    hasil = (penuh.convert('RGB'), penuh.split()[3])
+    _POLA[kunci] = hasil
+    return hasil
+
+
+def _isi_pola(pts, spec):
+    p = [(round(x), round(y)) for x, y in pts]
+    if len(p) < 3:
+        return
+    lapis, alpha = _lapis_pola(spec)
+    topeng = Image.new('L', (IW, IH), 0)
+    ImageDraw.Draw(topeng).polygon(p, fill=255)
+    if spec[0] == 'bayang':
+        topeng = ImageChops.multiply(topeng, alpha)
+    im.paste(lapis, (0, 0), topeng)
+
+
+def _elips_pola(box, spec):
+    lapis, alpha = _lapis_pola(spec)
+    topeng = Image.new('L', (IW, IH), 0)
+    ImageDraw.Draw(topeng).ellipse([round(v) for v in box], fill=255)
+    if spec[0] == 'bayang':
+        topeng = ImageChops.multiply(topeng, alpha)
+    im.paste(lapis, (0, 0), topeng)
 
 
 TINTA = BASE.get('tinta') or '#341b10'   # cokelat sangat tua dari palet
@@ -207,6 +304,11 @@ GARIS_TEPI = False
 
 
 def poly(pts, warna, garis=True):
+    # `warna` boleh berupa spesifikasi DITHER (tuple 'dither'/'bayang') — ciri
+    # pixel-art ronde 38 — atau warna hex biasa.
+    if isinstance(warna, tuple) and warna and isinstance(warna[0], str):
+        _isi_pola(pts, warna)
+        return
     p = [(round(x), round(y)) for x, y in pts]
     d.polygon(p, fill=warna)
     if garis and GARIS_TEPI:
@@ -321,8 +423,14 @@ def draw_box(o):
         for idx, ne, nw, nz in tampak:
             if nz != 0:
                 continue
-            poly([V(i, 0.26) for i in idx],
-                 gelapkan(warnai_wajah(c, ne, nw, nz), 0.28) or c['left'], False)
+            atas = warnai_wajah(c, ne, nw, nz)
+            bawah = gelapkan(atas, 0.28) or c['left']
+            poly([V(i, 0.26) for i in idx], bawah, False)
+            # batas pita nada BER-DITHER (cermin box.ts ronde 38)
+            tipis = min(0.16, 0.42 / max(0.25, sz))
+            pita = [V(idx[0], 0.26), V(idx[1], 0.26),
+                    V(idx[1], 0.26 + tipis), V(idx[0], 0.26 + tipis)]
+            poly(pita, dither(atas, bawah, 0.5), False)
 
     if sz > 0.02 and g:
         warna = terangkan(c['top'])
@@ -359,7 +467,16 @@ def _segi(bawah, atas, sudut, c, g, tutup=True):
         ne = (math.cos(sudut[i]) + math.cos(sudut[j])) / 2
         nw = (math.sin(sudut[i]) + math.sin(sudut[j])) / 2
         hadap = ne * kam[0] + nw * kam[1]
-        seg.append((ty, i, j, c['right'] if hadap >= 0 else c['left']))
+        # batas terang/gelap dibuat BER-DITHER (cermin drawSilinder di box.ts)
+        if hadap > 0.3:
+            warna = c['right']
+        elif hadap > 0:
+            warna = dither(c['right'], c['left'], 0.3)
+        elif hadap > -0.3:
+            warna = dither(c['right'], c['left'], 0.7)
+        else:
+            warna = c['left']
+        seg.append((ty, i, j, warna))
     for ty, i, j, warna in sorted(seg):
         poly([bawah[i], bawah[j], atas[j], atas[i]], warna, False)
     if tutup:
@@ -395,9 +512,19 @@ def draw_bola(o):
     cx, cy = px(e + se / 2, w + sw / 2, z + o['size']['z'] / 2)
     R = r * HW * 1.31
     c = tone(o)
-    for rad, warna, dx, dy in ((R, c['right'], 0, 0), (R * 0.86, c['left'], -0.1, -0.1), (R * 0.5, c['top'], -0.3, -0.3)):
+    for rad, warna, dx, dy in (
+        (R, c['right'], 0, 0),
+        (R * 0.86, dither(c['left'], c['top'], 0.22), -0.1, -0.1),
+        (R * 0.72, dither(c['left'], c['top'], 0.52), -0.18, -0.18),
+        (R * 0.56, dither(c['left'], c['top'], 0.78), -0.22, -0.22),
+        (R * 0.40, c['top'], -0.3, -0.3),
+    ):
         x0, y0 = cx + dx * R - rad, cy + dy * R - rad
-        d.ellipse([x0, y0, x0 + 2 * rad, y0 + 2 * rad], fill=warna)
+        kotak_elips = [x0, y0, x0 + 2 * rad, y0 + 2 * rad]
+        if isinstance(warna, tuple) and isinstance(warna[0], str):
+            _elips_pola(kotak_elips, warna)
+        else:
+            d.ellipse(kotak_elips, fill=warna)
     g = gelapkan(c['right'])
     if g and tepi(o):
         d.ellipse([cx - R, cy - R, cx + R, cy + R], outline=g, width=2)
@@ -513,21 +640,21 @@ def fase_dari_jam(j):
 
 
 def fase_warna(f):
-    """6 pita langit dari atas ke bawah (cermin langitFase di iso/langit.ts)."""
+    """6 pita langit (cermin langitFase di iso/langit.ts) — palet Endesga."""
     if f == 'fajar':
-        return ([_warna(12, 11), _warna(12, 9), _warna(13, 7), _warna(2, 4), _warna(3, 3), _warna(3, 2)],
-                'matahari', False, _warna(18, 3))
+        return (['#262b44', '#3a4466', '#5a6988', '#b55088', '#d77643', '#feae34'],
+                'matahari', False, '#e8b796')
     if f == 'pagi':
-        return ([_warna(11, 8), _warna(11, 6), _warna(10, 4), _warna(10, 3), _warna(9, 3), _warna(9, 2)],
-                'matahari', False, _warna(18, 1))
+        return (['#124e89', '#0099db', '#2ce8f5', '#c0cbdc', '#ead4aa', '#e8b796'],
+                'matahari', False, '#ffffff')
     if f == 'siang':
-        return ([_warna(11, 7), _warna(11, 5), _warna(10, 4), _warna(10, 3), _warna(9, 3), _warna(9, 2)],
-                'matahari', False, _warna(18, 1))
+        return (['#124e89', '#0099db', '#0099db', '#2ce8f5', '#c0cbdc', '#ead4aa'],
+                'matahari', False, '#ffffff')
     if f == 'senja':
-        return ([_warna(11, 10), _warna(12, 8), _warna(2, 3), _warna(2, 2), _warna(3, 2), _warna(3, 1)],
-                'matahari', False, _warna(18, 3))
-    return ([_warna(12, 13), _warna(12, 12), _warna(11, 12), _warna(11, 11), _warna(10, 11), _warna(10, 10)],
-            'bulan', True, _warna(18, 6))
+        return (['#3a4466', '#68386c', '#be4a2f', '#f77622', '#feae34', '#fee761'],
+                'matahari', False, '#f6757a')
+    return (['#181425', '#181425', '#262b44', '#262b44', '#3a4466', '#5a6988'],
+            'bulan', True, '#5a6988')
 
 
 def efek_cuaca(c):
@@ -536,13 +663,13 @@ def efek_cuaca(c):
         return (3, 0, False, False, None)
     if c == 'gerimis':
         return (4, 20, False, True,
-                [_warna(18, 4), _warna(18, 5), _warna(18, 6), _warna(18, 7), _warna(18, 8), _warna(18, 8)])
+                ['#8b9bb4', '#8b9bb4', '#5a6988', '#5a6988', '#3a4466', '#3a4466'])
     if c == 'hujan':
         return (5, 46, False, False,
-                [_warna(18, 5), _warna(18, 6), _warna(18, 7), _warna(18, 8), _warna(18, 9), _warna(18, 10)])
+                ['#5a6988', '#5a6988', '#3a4466', '#3a4466', '#262b44', '#262b44'])
     if c == 'badai':
         return (6, 70, True, False,
-                [_warna(18, 6), _warna(18, 8), _warna(18, 9), _warna(18, 10), _warna(18, 11), _warna(18, 12)])
+                ['#3a4466', '#3a4466', '#262b44', '#262b44', '#181425', '#181425'])
     return (1, 0, False, False, None)
 
 
@@ -560,6 +687,10 @@ def _titik(k, u, v):
 
 
 def _isi(pts, warn):
+    # boleh warna hex maupun spesifikasi dither (tuple 'dither'/'bayang')
+    if isinstance(warn, tuple) and warn and isinstance(warn[0], str):
+        _isi_pola(pts, warn)
+        return
     d.polygon([(round(x), round(y)) for x, y in pts], fill=warn)
 
 
@@ -574,33 +705,23 @@ def _kotak(k, u0, v0, du, dv, warn):
     _isi([_titik(k, u, v), _titik(k, u + du, v), _titik(k, u + du, v + dv), _titik(k, u, v + dv)], warn)
 
 
-def _campur(a, b, t):
-    """Campur dua warna hex (t=0 -> a, t=1 -> b). Cermin campur() di iso/langit.ts.
+TINGGI_DITHER = 0.028
 
-    Dipakai HANYA untuk gradasi langit: warna kendali tetap 6 warna palet,
-    warna antaranya kombinasi linear keduanya (permintaan user 2026-10-29
-    "bisakah buat langit lebih realistis?" -> gradasi boleh mulus).
+
+def _rencana_langit(kendali):
+    """(pita, dither) — cermin rencanaLangit() di iso/langit.ts.
+
+    pita  : [(v0, v1, warna)]  -> 6 pita keras
+    dither: [(v0, v1, a, b, level)] -> 2 jalur per batas pita
     """
-    t = max(0.0, min(1.0, t))
-    a = a.lstrip('#')
-    b = b.lstrip('#')
-    out = []
-    for i in (0, 2, 4):
-        ca = int(a[i:i + 2], 16)
-        cb = int(b[i:i + 2], 16)
-        out.append(max(0, min(255, round(ca + (cb - ca) * t))))
-    return '#%02x%02x%02x' % tuple(out)
-
-
-def _pita_halus(kendali, n=14):
-    """N warna langit dari 6 warna kendali (cermin pitaHalus di iso/langit.ts)."""
-    seg = len(kendali) - 1
-    out = []
-    for i in range(n):
-        t = (i / (n - 1)) * seg
-        i0 = min(seg - 1, int(math.floor(t)))
-        out.append(_campur(kendali[i0], kendali[i0 + 1], t - i0))
-    return out
+    n = len(kendali)
+    pita = [(i / n, (i + 1) / n, kendali[i]) for i in range(n)]
+    dither_ = []
+    for i in range(n - 1):
+        vc = (i + 1) / n
+        dither_.append((vc - TINGGI_DITHER, vc, kendali[i], kendali[i + 1], 0.25))
+        dither_.append((vc, vc + TINGGI_DITHER, kendali[i], kendali[i + 1], 0.75))
+    return pita, dither_
 
 
 def _cakram(k, u, v, ru, rv, warn, seg=12):
@@ -653,40 +774,29 @@ def draw_langit(o):
     jml_awan, jml_hujan, kilat, pelangi, mendung = efek_cuaca(CUACA)
     warna_pita = mendung if mendung else pita_warna
 
-    # 1) LANGIT: 14 pita halus (campuran 6 warna kendali) + KABUT horizon
-    N = 14
-    halus = _pita_halus(warna_pita, N)
-    if fase in ('fajar', 'senja'):
-        kabut = _campur(_warna(3, 2), _warna(18, 2), 0.45)
-    elif fase == 'malam':
-        kabut = _campur(_warna(18, 4), _warna(3, 2), 0.22)
-    else:
-        kabut = _campur(warna_pita[5], _warna(18, 1), 0.52)
-    kuat_kabut = 0.30 if fase == 'malam' else 0.55
-    warnaLangit = []
-    for i in range(N):
-        v0, v1 = i / N, (i + 1) / N
-        tengah = (v0 + v1) / 2
-        kuat = (max(0.0, (tengah - 0.55) / 0.45) ** 2) * kuat_kabut
-        w = _campur(halus[i], kabut, kuat)
-        warnaLangit.append(w)
-        _isi([_titik(k, 0, v0), _titik(k, 1, v0), _titik(k, 1, v1), _titik(k, 0, v1)], w)
+    # 1) LANGIT: 6 pita KERAS + peralihan BER-DITHER (cermin drawLangit TS)
+    pita_rencana, dither_rencana = _rencana_langit(warna_pita)
+    warnaLangit = list(warna_pita)
+    for v0, v1, warn in pita_rencana:
+        _isi([_titik(k, 0, v0), _titik(k, 1, v0), _titik(k, 1, v1), _titik(k, 0, v1)], warn)
+    for v0, v1, a, b, lvl in dither_rencana:
+        v0 = max(0.0, v0)
+        v1 = min(1.0, v1)
+        _isi([_titik(k, 0, v0), _titik(k, 1, v0), _titik(k, 1, v1), _titik(k, 0, v1)],
+             dither(a, b, lvl))
 
     def langit_di(v):
-        i = max(0, min(N - 1, int(round(v * (N - 1)))))
+        i = max(0, min(len(warnaLangit) - 1, int(round(v * (len(warnaLangit) - 1)))))
         return warnaLangit[i]
 
     # 2) bintang: 34 butir, tiga ukuran, salib untuk yang paling terang
     if bintang and not mendung:
-        redup = gelap(_warna(18, 1), 1)
+        redup = gelap('#ffffff', 1)
         for i in range(34):
             u = _acak(i, 7)
             v = _acak(i, 8) * 0.78
             besar = _acak(i, 13)
-            if besar > 0.55:
-                wb = _warna(18, 1)
-            else:
-                wb = redup
+            wb = '#ffffff' if besar > 0.55 else redup
             w = 0.008 + besar * 0.010
             h = 0.018 + besar * 0.026
             _kotak(k, u, v, w, h, wb)
@@ -697,7 +807,7 @@ def draw_langit(o):
     if pelangi and fase in ('pagi', 'siang'):
         # busur setengah lingkaran, tiga pita (sama dengan pelangi() di TS)
         SEG = 9
-        for pi, c in enumerate([_warna(15, 5), _warna(3, 4), _warna(9, 5)]):
+        for pi, c in enumerate(['#f6757a', '#fee761', '#2ce8f5']):
             rl = 0.62 - pi * 0.05
             rd = rl - 0.045
             pts = []
@@ -714,24 +824,24 @@ def draw_langit(o):
         t = (JAM - 18) / 11 if JAM >= 18 else (JAM + 6) / 11
         u, v = 0.14 + 0.72 * t, 0.62 - 0.42 * math.sin(math.pi * t)
         sekitar = langit_di(v)
-        _cakram(k, u, v, 0.125, 0.22, _campur(sekitar, _warna(18, 1), 0.30))
-        _cakram(k, u, v, 0.100, 0.175, _campur(sekitar, _warna(18, 1), 0.55))
-        _cakram(k, u, v, 0.082, 0.142, _warna(18, 2))
-        _cakram(k, u - 0.012, v - 0.018, 0.058, 0.100, _warna(18, 1))
+        _cakram(k, u, v, 0.128, 0.225, dither(sekitar, '#c0cbdc', 0.18), 20)
+        _cakram(k, u, v, 0.104, 0.182, dither(sekitar, '#c0cbdc', 0.48), 20)
+        _cakram(k, u, v, 0.082, 0.142, '#8b9bb4')
+        _cakram(k, u - 0.012, v - 0.018, 0.058, 0.100, '#c0cbdc')
         # kawah
-        _cakram(k, u + 0.021, v + 0.017, 0.014, 0.025, _warna(18, 3), 8)
-        _cakram(k, u - 0.016, v + 0.045, 0.010, 0.018, _warna(18, 3), 8)
-        _cakram(k, u + 0.004, v - 0.042, 0.008, 0.014, _warna(18, 3), 8)
+        _cakram(k, u + 0.021, v + 0.017, 0.014, 0.025, '#5a6988', 8)
+        _cakram(k, u - 0.016, v + 0.045, 0.010, 0.018, '#5a6988', 8)
+        _cakram(k, u + 0.004, v - 0.042, 0.008, 0.014, '#5a6988', 8)
     elif not mendung or jml_hujan == 0:
         t = min(1.0, max(0.0, (JAM - 5) / 13))
         u, v = 0.14 + 0.72 * t, 0.62 - 0.46 * math.sin(math.pi * t)
         hangat = fase in ('fajar', 'senja')
-        tepi = _warna(2, 4) if hangat else _warna(3, 2)
-        inti = _warna(3, 2) if hangat else _warna(3, 1)
+        tepi = '#f77622' if hangat else '#feae34'
+        inti = '#feae34' if hangat else '#fee761'
         sekitar = langit_di(v)
-        # halo SEMPIT berlapis (cermin iso/langit.ts)
-        _cakram(k, u, v, 0.135, 0.235, _campur(sekitar, inti, 0.30))
-        _cakram(k, u, v, 0.108, 0.188, _campur(sekitar, inti, 0.62))
+        # halo SEMPIT berlapis BER-DITHER (cermin iso/langit.ts)
+        _cakram(k, u, v, 0.138, 0.238, dither(sekitar, tepi, 0.14), 20)
+        _cakram(k, u, v, 0.110, 0.190, dither(sekitar, tepi, 0.42), 20)
         _cakram(k, u, v, 0.082, 0.144, tepi)
         _cakram(k, u - 0.010, v - 0.016, 0.058, 0.102, inti)
 
@@ -747,7 +857,7 @@ def draw_langit(o):
         uu = _acak(i, 5)
         atas = awan_dasar if i % 2 == 0 else gelap(awan_dasar, 1)
         bawah = gelap(awan_dasar, 2)
-        lingkar = _campur(atas, gelap(awan_dasar, 3), 0.45)
+        lingkar = dither(atas, bawah, 0.5)
         _awan_satu(k, uu, vv, lebar, skala, atas, bawah, lingkar)
 
     # hujan (kerangka diam supaya PNG dapat diulang)
@@ -755,7 +865,7 @@ def draw_langit(o):
         lebat = jml_hujan > 40
         tinggi = 0.07 if lebat else 0.045
         lebar_tetes = 0.010 if lebat else 0.008
-        warna_hujan = _warna(18, 2) if mendung else _warna(10, 2)
+        warna_hujan = '#8b9bb4' if mendung else '#c0cbdc'
         for i in range(jml_hujan):
             uu = _acak(i, 11)
             fasa = _acak(i, 12)
@@ -770,7 +880,7 @@ def draw_langit(o):
             [(0.52, 0.50), (0.58, 0.58), (0.62, 0.62), (0.57, 0.54), (0.51, 0.47)],
         ]
         for bentuk in petir:
-            _isi([_titik(k, u, v) for u, v in bentuk], _warna(3, 1))
+            _isi([_titik(k, u, v) for u, v in bentuk], '#fee761')
 
 
 def draw_obj(o):
@@ -843,14 +953,17 @@ def draw_floor(o):
         d.line([px(e0, ww, z), px(e1, ww, z)], fill=grout, width=1)
         ww += 1
 
+    # BAYANGAN di kaki dinding = DITHER Bayer 4x4 (ronde 38, cermin room.ts).
+    # Dulu rgba semi-transparan -> warna di luar palet.
     leb = min(1.8, (e1 - e0) * 0.22, (w1 - w0) * 0.22)
     if leb > 0.15:
-        for f, al in ((1.0, 20), (0.66, 26), (0.33, 41)):
-            warna = (74, 33, 12, al)
-            AO.polygon([tuple(map(round, px(e0, w0, z))), tuple(map(round, px(e0, w1, z))),
-                        tuple(map(round, px(e0 + leb * f, w1, z))), tuple(map(round, px(e0 + leb * f, w0, z)))], fill=warna)
-            AO.polygon([tuple(map(round, px(e0, w0, z))), tuple(map(round, px(e1, w0, z))),
-                        tuple(map(round, px(e1, w0 + leb * f, z))), tuple(map(round, px(e0, w0 + leb * f, z)))], fill=warna)
+        for f, kuat in ((1.0, 0.14), (0.66, 0.34), (0.33, 0.60)):
+            dalam = max(0.0, leb * f - leb * 0.33)
+            pola = bayang(grout, kuat)
+            poly([px(e0, w0, z), px(e0, w1, z),
+                  px(e0 + dalam, w1, z), px(e0 + dalam, w0, z)], pola, False)
+            poly([px(e0, w0, z), px(e1, w0, z),
+                  px(e1, w0 + dalam, z), px(e0, w0 + dalam, z)], pola, False)
 
     SK = 10
     bL, bR, tR = px(e0, w1, z), px(e1, w1, z), px(e1, w0, z)
@@ -914,16 +1027,31 @@ def draw_wall(o):
         poly([at(t0, zA), at(t1, zA), at(t1, zB), at(t0, zB)], warna, False)
 
     kotak(0, 1, sz, 0, face)
-    kotak(0, 1, sz * 0.11, 0, gelapkan(face, 0.94) or face)
-    kotak(0, 1, sz * 0.045, 0, gelapkan(face, 0.88) or face)
+    # batas pita nada BER-DITHER (ronde 38, cermin room.ts)
+    # PENTING: pakai gelap() (tangga nada palet), bukan gelapkan() — gelapkan()
+    # adalah pembuat garis tepi (f >= 0,4 selalu jadi tinta gelap).
+    nadaB = gelap(face, 1)
+    nadaC = gelap(face, 2)
+    tipis = max(0.05, sz * 0.035)
+    kotak(0, 1, sz * 0.11 + tipis, sz * 0.11 - tipis, dither(face, nadaB, 0.5))
+    kotak(0, 1, sz * 0.11, 0, nadaB)
+    kotak(0, 1, sz * 0.045 + tipis * 0.7, sz * 0.045 - tipis * 0.7,
+          dither(nadaB, nadaC, 0.5))
+    kotak(0, 1, sz * 0.045, 0, nadaC)
+    teduh = gelap(face, 1)
 
     plint = min(0.26, sz * 0.5)
     kotak(0, 1, plint, 0, trim)
+    # kaki dinding: tiga pita bayangan BER-DITHER (makin rapat ke bawah) —
+    # cermin kakiDinding() di iso/room.ts
+    for z0b, z1b, kuat in ((0.0, 0.22, 0.44), (0.22, 0.55, 0.26), (0.55, 1.05, 0.14)):
+        if plint + z1b < sz:
+            kotak(0, 1, plint + z1b, plint + z0b, bayang(teduh, kuat))
     kotak(0, 1, plint, plint - min(0.05, plint * 0.3), BASE['beamDark'])
 
     if sz > 1.8:
         zd = min(1.15, sz * 0.4)
-        kotak(0, 1, zd, plint, gelapkan(face, 0.90) or face)
+        kotak(0, 1, zd, plint, gelap(face, 1))
         kotak(0, 1, zd + 0.09, zd, BASE['beam'])
         kotak(0, 1, zd + 0.09, zd + 0.07, BASE['beamTop'])
         kotak(0, 1, zd, zd - 0.04, BASE['beamDark'])

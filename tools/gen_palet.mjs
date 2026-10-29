@@ -21,12 +21,14 @@ const bangun = (entri, nama) => {
 try {
   const P = await bangun('src/iso/palette.ts', 'palette.mjs')
   const R = await bangun('src/iso/palet-referensi.ts', 'ref.mjs')
+  const D = await bangun('src/iso/dither.ts', 'dither.mjs')
+  const BAYER4 = D.BAYER4
 
   const data = {
-    versi: 3,
+    versi: 4,
     dibuat: '2026-10-29',
-    tema: 'palet referensi 16x12 (rainbow + brown) · latar hitam OLED',
-    sumberReferensi: 'COLOR PALETTE "Rainbow colors with brown and gray" — 192 warna',
+    tema: 'ENDESGA 32 (retro 16-bit) · dithering Bayer 4x4 · latar hitam OLED',
+    sumberReferensi: 'Endesga 32 palette (EDG32) — 32 warna; aturan "342 warna" ronde 13 dibatalkan user di ronde 38',
     warnaDasar: P.PAL,
     materi: P.MATERIALS,
     lantai: P.FLOOR_MATERIALS,
@@ -35,18 +37,32 @@ try {
     dindingBawaan: P.WALL_DEFAULT,
   }
   const ref = {
-    versi: 1,
+    versi: 2,
     dibuat: '2026-10-29',
+    catatan: 'grid DESAIN 18x19 dari gambar referensi ronde 13, tiap sel SUDAH dibulatkan ke palet Endesga 32 (bukan daftar warna sah)',
     jumlah: R.SEMUA.length,
     kolom: R.KOLOM,
     tingkat: R.TINGKAT,
     baris: R.PALET_REF,
     oled: R.OLED,
   }
+  const retro = {
+    versi: 1,
+    dibuat: '2026-10-29',
+    nama: 'ENDESGA 32',
+    catatan: 'satu-satunya warna yang boleh muncul di kanvas (ronde 38)',
+    jumlah: R.PALET_RETRO.length,
+    palet: R.PALET_RETRO,
+    tangga: R.TANGGA,
+    gelapMaks: R.GELAP_MAKS ?? '#181425',
+    bayer4: BAYER4,
+  }
+  writeFileSync(join(AKAR, 'docs', '04-palet-retro.json'), JSON.stringify(retro, null, 1) + '\n')
   writeFileSync(join(AKAR, 'docs', '04-palet.json'), JSON.stringify(data, null, 1) + '\n')
   writeFileSync(join(AKAR, 'docs', '04-palet-referensi.json'), JSON.stringify(ref, null, 1) + '\n')
   console.log(`docs/04-palet.json: ${Object.keys(data.materi).length} material, ${Object.keys(data.lantai).length} lantai, ${Object.keys(data.dinding).length} dinding`)
-  console.log(`docs/04-palet-referensi.json: ${R.SEMUA.length} warna (${R.KOLOM.length} kolom x ${R.TINGKAT} tingkat)`)
+  console.log(`docs/04-palet-referensi.json: grid desain ${R.KOLOM.length} kolom x ${R.TINGKAT} tingkat -> palet Endesga`)
+  console.log(`docs/04-palet-retro.json: ${retro.palet.length} warna, ${retro.tangga.length} tangga nada`)
 } finally {
   rmSync(tmp, { recursive: true, force: true })
 }

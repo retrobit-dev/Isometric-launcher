@@ -1,37 +1,66 @@
 // ===========================================================================
-// PALET REFERENSI — 2026-10-29
-// Permintaan user: "untuk pallete warna gunakan referensi ini saja" + gambar
-// COLOR PALETTE "Rainbow colors with brown and gray".
+// PALET RETRO "ENDESGA 32" — 2026-10-29 (ronde 38)
+// ===========================================================================
+// Permintaan user: "untuk semuanya bisakah style nya dan palette warna nya
+// dibuat lebih ke arah retro pixel art?"  Pilihan user saat ditanya:
+//   • ciri khas : DITHERING (pola kotak-kotak untuk peralihan warna)
+//   • palet     : ENDESGA 32  -> 32 warna saja (gaya 16-bit)
+//   • cakupan   : SEMUA bagian (ruangan, 4 preset objek, langit & cuaca)
 //
-// Sumber: /tmp/arena-coding-uploads/5cd0814252f356b311635d5c6067e48d.jpg
-// Kotak swatch dideteksi otomatis (18 kolom x 19 baris), lalu warna tiap kotak
-// diambil dari MEDIAN piksel tengahnya (bukan rata-rata, supaya tepi JPEG yang
-// bergradasi tidak menggeser warna). Hasil: **342 warna unik** — tidak ada satu
-// pun yang dobel, jadi ini benar-benar palet referensi, bukan tafsiran.
+// ⚠ ATURAN RONDE 13 DIBATALKAN OLEH USER DI RONDE 38.
+//   Dulu: "untuk pallete warna gunakan referensi ini saja" = 342 warna dari
+//   gambar referensi. Sekarang keluaran warna dibatasi ke 32 warna Endesga.
 //
-// Tata letak grid:
-//   - KOLOM 1..18 = keluarga warna (hue), kiri -> kanan:
-//     oranye, jingga, kuning, limo, hijau, toska, sian, biru-langit, biru,
-//     biru-ungu, ungu, magenta, merah-muda, rose, merah, bata,
-//     COKELAT, ABU-ABU  (dua kolom terakhir = bagian "brown and gray" pada judul)
-//   - BARIS 1..19 = tingkat kecerahan, ATAS paling terang -> BAWAH paling gelap.
-//     Baris 1 hampir putih, baris 19 nyaris hitam. 19 tingkat ini memberi tangga
-//     shading yang cukup halus untuk dinding, kayu, dan bayangan.
+// PALET REFERENSI LAMA MASIH DIPAKAI, TAPI HANYA SEBAGAI "NIAT DESAIN":
+//   Grid 18 x 19 di bawah (kolom = keluarga warna, baris = kecerahan) tetap
+//   dipakai untuk memilih warna: `warna(kolom, tingkat)`. Bedanya, tiap sel
+//   grid sekarang DIPETAKAN ke warna Endesga terdekat (`keRetro`), jadi
+//   - nama material di palette.ts tidak perlu diubah,
+//   - file scene lama tetap terbaca,
+//   - dan tidak ada satu piksel pun di luar 32 warna.
 //
-// ATURAN PAKAI (yang membuat tema konsisten):
-//   1. Setiap warna yang keluar ke kanvas HARUS salah satu dari 342 warna ini.
-//      Palet lama (tema "diorama hangat") tidak dibuang, tetapi SETIAP warnanya
-//      dipetakan ke warna terdekat di palet ini lewat `kePalet()` (jarak CIE Lab,
-//      bukan RGB mentah — mendekati cara mata melihat kemiripan).
-//   2. Bayangan/sorotan TIDAK dicampur bebas. `gelap()` / `terang()` menaik-
-//      turunkan satu kolom hue yang sama, jadi shading tetap di tangga palet
-//      (19 tingkat) dan gaya jadinya cell-shading pixel-art.
-//   3. Latar belakang memakai HITAM OLED murni `#000000` (permintaan user:
-//      "latar belakang buat hitam oled saja") — piksel mati total di layar OLED.
+// API LAMA DIPERTAHANKAN (warna, gelap, terang, kePalet, posisi, diPalet,
+// SEMUA, OLED) supaya seluruh kode lain tidak perlu diubah.
+//
+// TANGGA NADA: `gelap()` / `terang()` TIDAK mencampur warna (campuran = warna
+// di luar palet), tetapi menggeser 1..3 langkah di TANGGA WARNA palet Endesga
+// (lihat palet-retro.ts). Peralihan antar dua nada digambar dengan DITHERING
+// (lihat iso/dither.ts), bukan gradasi halus.
 // ===========================================================================
 
-/** 19 baris x 18 kolom, diambil langsung dari gambar referensi. */
-export const PALET_REF: readonly (readonly string[])[] = [
+import {
+  GELAP_MAKS,
+  PALET_RETRO,
+  SEMUA_RETRO,
+  TANGGA,
+  diRetro,
+  jarakWarna,
+  keRetro,
+  lebihGelap,
+  lebihTerang,
+  tanggaDari,
+} from './palet-retro'
+
+export {
+  GELAP_MAKS,
+  PALET_RETRO,
+  SEMUA_RETRO,
+  TANGGA,
+  diRetro,
+  jarakWarna,
+  keRetro,
+  lebihGelap,
+  lebihTerang,
+  tanggaDari,
+}
+
+/**
+ * Grid desain 19 baris x 18 kolom dari gambar referensi ronde 13 (342 warna).
+ * Kolom = hue, baris = kecerahan (1 paling terang -> 19 paling gelap).
+ * Dipakai lewat `warna(kolom, tingkat)`; hasilnya sudah dibulatkan ke palet
+ * Endesga.
+ */
+const GRID_342: readonly (readonly string[])[] = [
   ['#fde8e7', '#ffede6', '#fef8e8', '#fefeec', '#f8feeb', '#ecffeb', '#e8ffef', '#e5fff7', '#e7ffff', '#e6f7ff', '#e6eeff', '#e6e6fe', '#eee8ff', '#f9e9fc', '#fde9f9', '#fde7ee', '#ded1c9', '#eeeeee'],
   ['#ffccc8', '#feddcd', '#fdeecd', '#fffdd6', '#ecfdd4', '#d1fed2', '#ccffdd', '#cefeef', '#cdffff', '#cbefff', '#cbdeff', '#cccdfd', '#dfceff', '#f6cffa', '#fecef1', '#fccddd', '#dec5af', '#dddddd'],
   ['#feb5b3', '#feccb4', '#fde7b5', '#fcffbd', '#e5fdc5', '#b6ffb7', '#b4fecd', '#b4fee5', '#b3feff', '#b4e6ff', '#b2cbfd', '#b4b4fe', '#cbb5ff', '#f1b8fc', '#fbb9e8', '#fdb5cd', '#deba9d', '#cdcdcd'],
@@ -53,142 +82,44 @@ export const PALET_REF: readonly (readonly string[])[] = [
   ['#1a0000', '#1a0901', '#1c1002', '#1b1a07', '#151b0d', '#0b1e0c', '#031a07', '#021911', '#011a19', '#001119', '#00081a', '#010118', '#0a041d', '#180a1b', '#1b0511', '#1a0209', '#1a0b03', '#090909'],
 ]
 
-/** Nama kolom (keluarga hue) untuk pesan galat & dokumentasi. */
+/** Grid yang sama, setiap sel SUDAH dibulatkan ke palet Endesga 32. */
+export const PALET_REF: readonly (readonly string[])[] = GRID_342.map(baris => baris.map(keRetro))
+
+/** nama kolom hue 1..18 (kiri -> kanan) */
 export const KOLOM: readonly string[] = [
-  'oranye',
-  'jingga',
-  'kuning',
-  'limo',
-  'hijau',
-  'toska',
-  'sian',
-  'biru-langit',
-  'biru',
-  'biru-ungu',
-  'ungu',
-  'magenta',
-  'merah-muda',
-  'rose',
-  'merah',
-  'bata',
-  'cokelat',
-  'abu-abu'
+  'oranye', 'jingga', 'kuning', 'limo', 'hijau', 'toska', 'sian', 'biru-langit',
+  'biru', 'biru-ungu', 'ungu', 'magenta', 'merah-muda', 'rose', 'merah', 'bata',
+  'cokelat', 'abu-abu',
 ]
 
-/** jumlah tingkat kecerahan per kolom */
 export const TINGKAT = 19
 
-/** latar belakang hitam OLED murni */
+/** latar di luar ruangan: HITAM OLED murni (permintaan user, tetap berlaku) */
 export const OLED = '#000000'
 
-/** warna(kolom 1..18, tingkat 1..19) */
+/** warna(kolom 1..18, tingkat 1..19) -> warna Endesga */
 export function warna(kolom: number, tingkat: number): string {
-  // CATATAN: jumlah kolom (18) BUKAN sama dengan jumlah tingkat (19) — dulu
-  // keduanya dibatasi dengan TINGKAT, sehingga kolom cokelat/abu (17-18)
-  // terlempar ke kolom 16 dan seluruh kayu jadi PINK. Batasi per dimensi.
+  // Jumlah kolom (18) BUKAN sama dengan jumlah tingkat (19) — batasi per dimensi.
   const k = Math.min(KOLOM.length, Math.max(1, Math.round(kolom))) - 1
   const t = Math.min(TINGKAT, Math.max(1, Math.round(tingkat))) - 1
   return PALET_REF[t][k]
 }
 
-/** semua 342 warna, urut baris lalu kolom */
-export const SEMUA: readonly string[] = PALET_REF.flatMap(r => r)
-
-const SEMUA_SET = new Set(SEMUA)
-
-// ---------------------------------------------------------------------------
-// PEMETAAN WARNA -> PALET
-//
-// Pendekatan "warna terdekat di ruang Lab" ternyata SALAH untuk palet ini:
-// palet referensi disusun sebagai HUE x KECERAHAN, dan baris paling atas hampir
-// putih. Akibatnya krem hangat (#f7e6c4) dipetakan ke putih-pink (kolom 1 baris
-// 1), lalu bayangannya jadi salmon/pink — diorama berubah jadi merah muda.
-//
-// Jadi pemetaan dilakukan pada sumbu yang sama dengan susunan paletnya:
-//   1. HUE  -> memilih KOLOM (keluarga warna)
-//   2. KECERAHAN -> memilih BARIS (tingkat)
-// Abu-abu (saturasi sangat rendah) masuk kolom 18 (abu-abu), krem/cokelat pudar
-// masuk kolom 17 (cokelat) supaya tetap hangat dan tidak jadi pink.
-// ---------------------------------------------------------------------------
-function hsl(hex: string): { h: number; l: number; s: number } {
-  const n = parseInt(hex.slice(1), 16)
-  const r = ((n >> 16) & 255) / 255
-  const g = ((n >> 8) & 255) / 255
-  const b = (n & 255) / 255
-  const max = Math.max(r, g, b), min = Math.min(r, g, b)
-  const l = (max + min) / 2
-  const d = max - min
-  if (d === 0) return { h: 0, l, s: 0 }
-  const s = d / (1 - Math.abs(2 * l - 1))
-  let h: number
-  if (max === r) h = ((g - b) / d) % 6
-  else if (max === g) h = (b - r) / d + 2
-  else h = (r - g) / d + 4
-  h *= 60
-  if (h < 0) h += 360
-  return { h, l, s }
-}
-
-/** hue wakil tiap kolom: diambil dari baris ke-9 (paling pekat) */
-const HUE_KOLOM = PALET_REF[8].map(c => hsl(c).h)
-const KOLOM_ABU = 17 // indeks 0-based kolom 18 (abu-abu)
-const KOLOM_COKELAT = 16 // indeks 0-based kolom 17 (cokelat)
-
-const jarakHue = (a: number, b: number) => {
-  const d = Math.abs(a - b) % 360
-  return d > 180 ? 360 - d : d
-}
-
-const cache = new Map<string, string>()
+/** 32 warna Endesga — SATU-SATUNYA warna yang boleh muncul di kanvas */
+export const SEMUA: readonly string[] = SEMUA_RETRO
 
 /**
- * Warna palet terdekat: hue memilih kolom, kecerahan memilih baris.
- * Warna yang SUDAH ada di palet dikembalikan apa adanya.
+ * Warna palet terdekat (jarak "redmean"). Warna yang sudah anggota palet
+ * dikembalikan apa adanya.
  */
-export function kePalet(hex: string): string {
-  const kunci = hex.toLowerCase()
-  if (SEMUA_SET.has(kunci)) return kunci
-  const tersimpan = cache.get(kunci)
-  if (tersimpan) return tersimpan
-  if (!/^#[0-9a-f]{6}$/i.test(hex)) return hex   // 'rgba(...)' dsb. dilewatkan
+export const kePalet = keRetro
 
-  const { h, l } = hsl(hex)
-  const n = parseInt(hex.slice(1), 16)
-  const maks = Math.max((n >> 16) & 255, (n >> 8) & 255, n & 255)
-  const mini = Math.min((n >> 16) & 255, (n >> 8) & 255, n & 255)
-  const kroma = (maks - mini) / 255        // 0 = netral, 1 = paling pekat
-
-  // 1. pilih kolom
-  let kolom: number
-  if (kroma < 0.10) {
-    kolom = KOLOM_ABU                       // netral: putih, abu, hitam
-  } else if (jarakHue(h, 30) < 38 && kroma < 0.52) {
-    kolom = KOLOM_COKELAT                   // krem / cokelat pudar tetap hangat
-  } else {
-    let terbaik = 0, jarak = Infinity
-    for (let k = 0; k < 16; k++) {          // hanya 16 kolom pelangi
-      const d = jarakHue(h, HUE_KOLOM[k])
-      if (d < jarak) { jarak = d; terbaik = k }
-    }
-    kolom = terbaik
-  }
-
-  // 2. pilih baris: baris dengan kecerahan terdekat di kolom itu
-  //    (kolom abu/cokelat kecerahnnya turun mulus dari baris 1 ke 19)
-  let baris = 0, beda = Infinity
-  for (let t = 0; t < TINGKAT; t++) {
-    const dl = Math.abs(hsl(PALET_REF[t][kolom]).l - l)
-    if (dl < beda) { beda = dl; baris = t }
-  }
-
-  const hasil = PALET_REF[baris][kolom]
-  cache.set(kunci, hasil)
-  return hasil
-}
-
-/** posisi sebuah warna di palet: kolom 1..18 dan tingkat 1..19 */
+/**
+ * Posisi warna di grid desain (kolom 1..18, tingkat 1..19). Dipakai untuk
+ * dokumentasi & uji; nilai ini hanya "posisi desain", bukan indeks palet.
+ */
 export function posisi(hex: string): { kolom: number; tingkat: number } {
-  const c = kePalet(hex)
+  const c = keRetro(hex)
   for (let t = 0; t < TINGKAT; t++) {
     const k = PALET_REF[t].indexOf(c)
     if (k >= 0) return { kolom: k + 1, tingkat: t + 1 }
@@ -196,38 +127,17 @@ export function posisi(hex: string): { kolom: number; tingkat: number } {
   return { kolom: 1, tingkat: 1 }
 }
 
-/** kecerahan kasar 0..255 untuk menjaga arah shading */
-function luma(hex: string): number {
-  const n = parseInt(hex.slice(1), 16)
-  return ((n >> 16) & 255) * 0.299 + ((n >> 8) & 255) * 0.587 + (n & 255) * 0.114
-}
-
-/**
- * Versi lebih GELAP dari warna yang sama: turun `n` tingkat di kolom yang sama.
- * Tidak pernah mencampur warna, jadi hasilnya selalu salah satu dari 342 warna.
- * Kolom cokelat/abu kadang TIDAK turun kecerahannya di baris berikutnya (warna
- * bergeser hue), jadi langkah ditambah sampai benar-benar lebih gelap — kalau
- * tidak, "sisi teduh" bisa lebih terang dari "sisi cahaya".
- */
+/** versi lebih GELAP: turun `n` langkah di tangga nada palet Endesga */
 export function gelap(hex: string, n = 1): string {
-  const p = posisi(hex)
-  const dasar = luma(kePalet(hex))
-  let t = p.tingkat + Math.max(0, Math.round(n))
-  while (t < TINGKAT && luma(warna(p.kolom, t)) >= dasar) t++
-  return warna(p.kolom, t)
+  return lebihGelap(hex, n)
 }
 
-/** Versi lebih TERANG: naik `n` tingkat di kolom yang sama (dijaga benar-benar lebih terang). */
+/** versi lebih TERANG: naik `n` langkah di tangga nada palet Endesga */
 export function terang(hex: string, n = 1): string {
-  const p = posisi(hex)
-  const dasar = luma(kePalet(hex))
-  let t = p.tingkat - Math.max(0, Math.round(n))
-  while (t > 1 && luma(warna(p.kolom, t)) <= dasar) t--
-  return warna(p.kolom, t)
+  return lebihTerang(hex, n)
 }
 
-/** true kalau warna ini bagian dari palet referensi */
+/** true kalau warna ini anggota palet Endesga 32 */
 export function diPalet(hex: string): boolean {
-  return SEMUA_SET.has(hex.toLowerCase())
+  return diRetro(hex)
 }
-

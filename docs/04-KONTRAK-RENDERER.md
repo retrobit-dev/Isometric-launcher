@@ -302,7 +302,8 @@ dan tidak boleh crash pada data lama.
 | Tipe & build | `npx tsc --noEmit`, `npx vite build` | tanpa error |
 | Skema + katalog + urutan | `node tests/run-kontrak.mjs` | semua baris `OK` |
 | Tabel warna | `node tests/export-palet.mjs` | `docs/04-palet.json` diperbarui |
-| Paritas langit | `node tests/run-paritas.mjs` | `campur()`, `pitaHalus()` (5 fase) dan pita mendung (3 cuaca) **identik** antara `iso/langit.ts` dan `render_scene.py` |
+| Paritas langit & palet | `node tests/run-paritas.mjs` | `langitFase()`, `efekCuaca()`, `rencanaLangit()` (5 fase + 3 mendung), `gelap()/terang()` dan `kePalet()` **identik** antara `iso/*.ts` dan `render_scene.py` |
+| Gaya retro (dither) | `node tests/run-retro.mjs` | dithering terpasang di dinding/lantai/objek/langit; **tidak ada `rgba()`/`campur()`** di jalur gambar |
 | Visual | `docs/04-contoh-scene.json` | APK memuat scene contoh (96 objek: ruangan + semua preset) dan tampak sama dengan pratinjau web (uji berdampingan manual) |
 
 ## 4b. Animasi
@@ -329,32 +330,41 @@ Bidang kaca ber-`langit: true` digambar oleh `iso/langit.ts` (web) dan
 langit lebih realistis?"** — jawaban user: **semua aspek**, dan gradasi
 **boleh mulus (blend)**.
 
+**RONDE 38 (berlaku sekarang):** campuran warna dihapus dari langit, diganti
+**dithering Bayer 4×4**. Alasan: palet dibatasi 32 warna Endesga, sementara
+hasil `campur()` bukan anggota palet. Kontrak lengkap: `docs/08`.
+
 | Elemen | Aturan (WAJIB sama di web & APK) |
 |---|---|
-| warna kendali | tetap **6 warna palet** per fase (§ langitFase); tidak ada warna baru sebagai kendali |
-| gradasi | **14 pita**: `pitaHalus(kendali, 14)` = campuran linear dua kendali bersebelahan (`campur()` 0..1). Pita ke-1 dan ke-14 persis warna kendali |
-| kabut horizon | warna pita bawah dicampur warna kabut, kekuatan `((v−0,55)/0,45)² × 0,55` (malam 0,30). Kabut: pagi/siang = campuran `pita[5]` + abu terang; fajar/senja = keemasan; malam = sisa cahaya kota |
-| matahari | 4 lapis: halo luar (`campur(langit, inti, 0,30)`, r 0,135×0,235), halo dalam (`0,62`, 0,108×0,188), tepi (r 0,082×0,144), inti (0,058×0,102). Siang: tepi `warna(3,2)` inti `warna(3,1)`; fajar/senja: tepi `warna(2,4)` inti `warna(3,2)` |
-| bulan | halo 2 lapis tipis + bola `warna(18,2)` + sorotan + **3 kawah** `warna(18,3)` |
-| bintang | **34 butir**, ukuran & fase kedip berbeda; `besar > 0,55` diberi salib tipis; warna `warna(18,1)` / satu tingkat lebih gelap saat redup |
-| awan | gumpalan kumulus: 3 elips lingkar (campuran awan→langit, tepi lembut) + alas rata gelap + 3 gumpalan terang + 1 puncak sorotan. Jumlah awan tetap dari `efekCuaca()` |
-| kilat | **bercabang**: batang utama (10 titik) + 2 cabang, warna `warna(3,1)` |
+| warna kendali | **6 warna palet Endesga** per fase (§ `langitFase`); tidak ada warna baru sebagai kendali |
+| pita langit | **6 pita KERAS** = warna kendali apa adanya (`rencanaLangit().pita`) |
+| peralihan pita | **2 jalur dither per batas pita**: `level` 0,25 di atas batas, 0,75 di bawahnya, tinggi `TINGGI_DITHER = 0,028` (bagian tinggi kaca). Rumus: `rencanaLangit(kendali)` / `_rencana_langit(kendali)` |
+| matahari | 4 lapis: halo luar (dither `sekitar→tepi` 14%, r 0,138×0,238, 20 segmen), halo dalam (42%, 0,110×0,190, 20 segmen), tepi pekat (0,082×0,144), inti (0,058×0,102). Siang `#feae34`/`#fee761`; fajar-senja `#f77622`/`#feae34` |
+| bulan | halo 2 lapis **dither** (`sekitar→#c0cbdc` 18% dan 48%) + bola `#8b9bb4` + sorotan `#c0cbdc` + **3 kawah** `#5a6988` |
+| bintang | **34 butir**, ukuran & fase kedip berbeda; `besar > 0,55` diberi salib tipis; warna `#ffffff` / satu tangga lebih gelap saat redup |
+| awan | gumpalan kumulus: 3 elips lingkar **dither** (nada terang → perut awan, 50%) + alas rata gelap + 3 gumpalan terang + 1 puncak sorotan. Jumlah awan tetap dari `efekCuaca()` |
+| hujan | butir `#c0cbdc` (cerah-berawan) / `#8b9bb4` (mendung) |
+| kilat | **bercabang**: batang utama (10 titik) + 2 cabang, warna `#fee761`; kilatan penuh `#ffffff` |
 
-Aturan anti-alias: **gradasi** langit boleh hasil blend warna (keputusan user),
-tetapi semua **bentuk** (matahari, awan, bintang, kilat, kusen) tetap poligon
-koordinat bulat tanpa anti-alias.
+Aturan anti-alias: **bentuk** (matahari, awan, bintang, kilat, kusen) tetap
+poligon koordinat bulat tanpa anti-alias; **peralihan warna** hanya boleh
+dither 4×4, tidak boleh blend.
 
 ## 4c. Tema & elemen gambar (2026-10-29)
 
-Palet dan aturan gaya: lihat `docs/05-TEMA-DIORAMA-HANGAT.md`. Yang WAJIB
+Palet (Endesga 32) + dithering: `docs/08-PALET-RETRO-DITHER.md`; gaya diorama: `docs/05-TEMA-DIORAMA-HANGAT.md`. Yang WAJIB
 ditiru renderer Kotlin (semua sudah ada di `render_scene.py`):
 
 | Elemen | Aturan |
 |---|---|
-| outline | isi dicampur 42% ke tinta `#4a1e0a`, tebal 2 px internal, `lineJoin=round`, dimatikan oleh `tepi:false` |
-| bibir terang | garis 2 px di dua sisi belakang bidang atas, warna isi dicampur 30% ke `#ffe8be` |
-| dinding | pita nada di 0,11·Z (teduh 0,94) dan 0,045·Z (teduh 0,88); plint 0,26 z; cornice balok 0,5 z dengan rim 0,07 z + bayangan 0,05 z; tiang 0,42 tile di kedua ujung + pasak r = 0,96·DENS |
-| lantai | bayangan ambient 3 pita (lebar 1,0/0,66/0,33 × min(1,8; 0,22·de; 0,22·dw), alpha 20/26/41 dari `rgba(74,33,12,·)`); deck = papan dengan sambungan tiap ~0,45 tile + bibir `#d98f4a` + dasar `#4a210c` |
+| outline objek | **MATI** sejak ronde 19 (`GARIS_TEPI = false`): semua bidang polos, nada yang membedakan wajah |
+| bibir terang | tidak dipakai selama outline mati |
+| material | 3 nada dari satu tangga Endesga: `top` > `right` (turun 1) >= `left` (turun 2) |
+| dinding | pita nada di 0,11·Z dan 0,045·Z, tiap batas diberi **jalur dither 50%** selebar `max(0,05; 0,035·Z)`; kaki dinding 3 pita `polaBayang` (tinggi 0,22/0,33/0,50 z, level 0,44/0,26/0,14); plint 0,26 z; cornice balok 0,5 z dengan rim 0,07 z + bayangan 0,05 z; tiang 0,42 tile di kedua ujung + pasak r = 0,96·DENS |
+| lantai | bayangan ambient **3 pita dither** (lebar 0,33/0,66/1,0 × min(1,8; 0,22·de; 0,22·dw), level 0,60/0,34/0,14 dari warna nat material); deck = papan dengan sambungan ~0,45 tile + bibir `#e4a672` + dasar `#3e2731` |
+| balok | pita nada 26% kaki + jalur dither selebar `min(0,16; 0,42/max(0,25; z))` di batasnya |
+| silinder | batas terang/gelap 3 zona: `hadap > 0,3` terang, `0..0,3` dither 30%, `-0,3..0` dither 70%, sisanya teduh |
+| bola | 4 lapis konsentris: 0,86R dither 22%, 0,72R dither 52%, 0,56R dither 78%, 0,40R sorot |
 | komposisi | `fitToScene()` (docs/05 §3), margin 0,95 |
 
 ## 4d. Orbit kamera (2026-10-29)

@@ -48,7 +48,7 @@ try {
   cek('jam di luar 0..24 tetap dinormalkan', L.faseDariJam(25.5) === L.faseDariJam(1.5),
     `${L.faseDariJam(25.5)}`)
 
-  console.log('2. semua warna langit dari palet referensi (342 warna)')
+  console.log('2. semua warna langit dari palet Endesga 32')
   const fase = ['fajar', 'pagi', 'siang', 'senja', 'malam']
   let semuaPalet = true
   const detailBuruk = []
@@ -64,22 +64,31 @@ try {
   cek('siang tidak menampilkan bintang', L.langitFase('siang').bintang === false)
   cek('tiap fase punya 6 pita', fase.every(f => L.langitFase(f).pita.length === 6))
 
-  console.log('2b. gradasi halus (permintaan user 2026-10-29: langit lebih realistis)')
-  const halus = L.pitaHalus(L.langitFase('siang').pita, 14)
-  cek('pitaHalus menghasilkan N pita', halus.length === 14, String(halus.length))
-  cek('ujung gradasi = warna kendali palet',
-    halus[0] === L.langitFase('siang').pita[0]
-    && halus[13] === L.langitFase('siang').pita[5],
-    `${halus[0]} .. ${halus[13]}`)
-  cek('semua pita halus berupa hex 6 digit',
-    halus.every(h => /^#[0-9a-f]{6}$/.test(h)), halus.slice(0, 3).join(','))
-  cek('antar pita berubah halus (tidak melompat)',
-    halus.every((h, i) => i === 0 || Math.abs(
-      parseInt(h.slice(1, 3), 16) - parseInt(halus[i - 1].slice(1, 3), 16)) <= 40))
-  cek('campur(a,b,0)=a dan campur(a,b,1)=b',
-    L.campur('#000000', '#ffffff', 0) === '#000000'
-    && L.campur('#000000', '#ffffff', 1) === '#ffffff'
-    && L.campur('#000000', '#ffffff', 0.5) === '#808080')
+  console.log('2b. peralihan BER-DITHER (ronde 38: retro pixel art, bukan gradasi warna)')
+  const kendali = L.langitFase('siang').pita
+  const rencana = L.rencanaLangit(kendali)
+  cek('6 pita keras', rencana.pita.length === 6, String(rencana.pita.length))
+  cek('pita menutupi seluruh kaca', rencana.pita[0].v0 === 0
+    && rencana.pita[5].v1 === 1
+    && rencana.pita.every((b, i) => i === 0 || b.v0 === rencana.pita[i - 1].v1))
+  cek('warna pita = warna kendali apa adanya (tanpa campuran)',
+    rencana.pita.every((b, i) => b.warna === kendali[i]))
+  cek('2 jalur dither per batas pita', rencana.dither.length === 10, String(rencana.dither.length))
+  cek('jalur dither memakai dua warna kendali bersebelahan',
+    rencana.dither.every((d, i) => {
+      const batas = Math.floor(i / 2)
+      return d.a === kendali[batas] && d.b === kendali[batas + 1]
+    }))
+  cek('level dither 0,25 lalu 0,75 (tangga dua langkah)',
+    rencana.dither.every((d, i) => d.level === (i % 2 === 0 ? 0.25 : 0.75)))
+  cek('semua jalur berada di dalam kaca (v 0..1)',
+    rencana.dither.every(d => d.v0 >= 0 && d.v1 <= 1 && d.v0 < d.v1))
+  cek('semua warna pita + dither ada di palet Endesga',
+    [...rencana.pita.map(b => b.warna), ...rencana.dither.flatMap(d => [d.a, d.b])]
+      .every(h => palet.has(h)))
+  const mint = L.rencanaLangit(['#000000', '#ffffff'])
+  cek('rencanaLangit berlaku untuk jumlah kendali berapa pun',
+    mint.pita.length === 2 && mint.dither.length === 2)
 
   console.log('3. cuaca')
   const cuaca = ['cerah', 'berawan', 'gerimis', 'hujan', 'badai']

@@ -17,52 +17,51 @@
 // Modul ini TIDAK menggambar seluruh layar — hanya MENGISI BIDANG KACA jendela
 // (objek ber-`langit: true`). Latar kanvas tetap hitam OLED.
 
-import { gelap, warna } from './palet-referensi'
+import { gelap } from './palet-referensi'
+import { polaBayang, polaDither } from './dither'
 
 export interface P { x: number; y: number }
 
 // ---------------------------------------------------------------------------
-// CAMPUR WARNA — khusus GRADASI LANGIT (permintaan user 2026-10-29: "bisakah
-// buat langit lebih realistis?" pilihan user: gradasi boleh mulus/di-blend).
+// RENCANA LANGIT (RONDE 38) — 6 pita keras + peralihan BER-DITHER
 //
-// ATURAN TETAP: warna KENDALI langit tetap 6 warna palet referensi (342 warna).
-// Yang berubah hanya cara mengisi ruang di antara kendali itu: dulu 6 pita
-// rata (tangga kasar), sekarang N pita hasil CAMPURAN dua kendali bersebelahan.
-// Jadi tidak ada satu pun warna "asing": semuanya kombinasi linear dua warna
-// palet, dan ujung-ujungnya persis warna palet. Bentuk objek (awan, matahari,
-// kusen) tetap digambar tanpa anti-alias, tepinya tajam seperti pixel-art.
+// Dulu (ronde 36) gradasi dibuat dengan mencampur warna kendali -> hasil
+// campuran itu BUKAN anggota palet. Sekarang langit dibangun seperti game
+// 16-bit: enam pita warna Endesga yang rata, lalu di tiap batas pita dipasang
+// DUA jalur pola Bayer 4x4 (25% dan 75%) sehingga peralihannya berangsur tapi
+// tetap hanya memakai warna palet.
+//
+// Rencana ini dipakai DUA renderer (canvas & tools/render_scene.py). Karena
+// itu isinya data murni (tanpa gambar), jadi mudah diuji paritas.
 // ---------------------------------------------------------------------------
-function keRgb(hex: string): [number, number, number] {
-  const h = hex.replace('#', '')
-  return [parseInt(h.slice(0, 2), 16), parseInt(h.slice(2, 4), 16), parseInt(h.slice(4, 6), 16)]
-}
+export interface JalurPita { v0: number; v1: number; warna: string }
+export interface JalurDither { v0: number; v1: number; a: string; b: string; level: number }
 
-function keHex(r: number, g: number, b: number): string {
-  const f = (v: number) => Math.max(0, Math.min(255, Math.round(v))).toString(16).padStart(2, '0')
-  return `#${f(r)}${f(g)}${f(b)}`
-}
-
-/** campur dua warna (t = 0 -> a, t = 1 -> b) */
-export function campur(a: string, b: string, t: number): string {
-  const k = Math.max(0, Math.min(1, t))
-  const [r1, g1, b1] = keRgb(a)
-  const [r2, g2, b2] = keRgb(b)
-  return keHex(r1 + (r2 - r1) * k, g1 + (g2 - g1) * k, b1 + (b2 - b1) * k)
-}
+/** tinggi tiap jalur peralihan (bagian dari tinggi kaca, v 0..1) */
+export const TINGGI_DITHER = 0.028
 
 /**
- * Pita langit HALUS: N warna hasil campuran 6 warna kendali palet.
- * Indeks 0 = paling atas (dekat zenith), N-1 = paling bawah (dekat horizon).
+ * Susun langit dari N warna kendali (atas -> bawah):
+ *   • N pita rata (warna kendali apa adanya)
+ *   • 2 jalur dither di setiap batas pita (level 0,25 lalu 0,75)
  */
-export function pitaHalus(kendali: readonly string[], n = 14): string[] {
-  const out: string[] = []
-  const seg = kendali.length - 1
-  for (let i = 0; i < n; i++) {
-    const t = (i / (n - 1)) * seg
-    const i0 = Math.min(seg - 1, Math.floor(t))
-    out.push(campur(kendali[i0], kendali[i0 + 1], t - i0))
+export function rencanaLangit(kendali: readonly string[]): {
+  pita: JalurPita[]; dither: JalurDither[]
+} {
+  const n = kendali.length
+  const pita: JalurPita[] = []
+  const dither: JalurDither[] = []
+  for (let i = 0; i < n; i++) pita.push({ v0: i / n, v1: (i + 1) / n, warna: kendali[i] })
+  for (let i = 0; i < n - 1; i++) {
+    const vc = (i + 1) / n
+    dither.push({
+      v0: vc - TINGGI_DITHER, v1: vc, a: kendali[i], b: kendali[i + 1], level: 0.25,
+    })
+    dither.push({
+      v0: vc, v1: vc + TINGGI_DITHER, a: kendali[i], b: kendali[i + 1], level: 0.75,
+    })
   }
-  return out
+  return { pita, dither }
 }
 
 /** empat sudut bidang kaca; v = 0 di ATAS, v = 1 di BAWAH */
@@ -135,38 +134,39 @@ export interface LangitFase {
 }
 
 /**
- * Warna langit tiap fase — ENAM pita bertangga (ciri pixel-art, bukan gradasi).
- * Tiap angka = (kolom hue, tingkat kecerahan) pada palet referensi 18x19:
- *   1 oranye · 2 jingga · 3 kuning · 9 sian · 10 biru-langit · 11 biru ·
- *   12 biru-ungu · 13 ungu · 14 magenta · 15 rose · 18 abu-abu.
- * Tingkat 1 paling terang, 19 paling gelap.
+ * Warna langit tiap fase — ENAM pita keras (ciri pixel-art 16-bit).
+ * Semua warna = anggota palet Endesga 32; peralihan antar pita dibuat
+ * DITHER oleh `rencanaLangit`, bukan gradasi campuran warna.
  */
 export function langitFase(f: Fase): LangitFase {
   switch (f) {
     case 'fajar':
+      // biru malam -> ungu -> jingga -> kuning (matahari baru naik)
       return {
-        pita: [warna(12, 11), warna(12, 9), warna(13, 7), warna(2, 4), warna(3, 3), warna(3, 2)],
-        benda: 'matahari', bintang: false, awan: warna(15, 3),
+        pita: ['#262b44', '#3a4466', '#5a6988', '#b55088', '#d77643', '#feae34'],
+        benda: 'matahari', bintang: false, awan: '#e8b796',
       }
     case 'pagi':
       return {
-        pita: [warna(11, 8), warna(11, 6), warna(10, 4), warna(10, 3), warna(9, 3), warna(9, 2)],
-        benda: 'matahari', bintang: false, awan: warna(18, 1),
+        pita: ['#124e89', '#0099db', '#2ce8f5', '#c0cbdc', '#ead4aa', '#e8b796'],
+        benda: 'matahari', bintang: false, awan: '#ffffff',
       }
     case 'siang':
       return {
-        pita: [warna(11, 7), warna(11, 5), warna(10, 4), warna(10, 3), warna(9, 3), warna(9, 2)],
-        benda: 'matahari', bintang: false, awan: warna(18, 1),
+        pita: ['#124e89', '#0099db', '#0099db', '#2ce8f5', '#c0cbdc', '#ead4aa'],
+        benda: 'matahari', bintang: false, awan: '#ffffff',
       }
     case 'senja':
+      // kuning -> jingga -> merah bata -> ungu -> malam
       return {
-        pita: [warna(11, 10), warna(12, 8), warna(2, 3), warna(2, 2), warna(3, 2), warna(3, 1)],
-        benda: 'matahari', bintang: false, awan: warna(18, 3),
+        pita: ['#3a4466', '#68386c', '#be4a2f', '#f77622', '#feae34', '#fee761'],
+        benda: 'matahari', bintang: false, awan: '#f6757a',
       }
     default:
+      // malam: biru paling gelap di zenith, sedikit lebih terang di horizon
       return {
-        pita: [warna(12, 13), warna(12, 12), warna(11, 12), warna(11, 11), warna(10, 11), warna(10, 10)],
-        benda: 'bulan', bintang: true, awan: warna(18, 6),
+        pita: ['#181425', '#181425', '#262b44', '#262b44', '#3a4466', '#5a6988'],
+        benda: 'bulan', bintang: true, awan: '#5a6988',
       }
   }
 }
@@ -195,17 +195,17 @@ export function efekCuaca(c: Cuaca): EfekCuaca {
     case 'gerimis':
       return {
         awan: 4, hujan: 20, kilat: false, pelangi: true, label: 'GERIMIS',
-        mendung: [warna(18, 4), warna(18, 5), warna(18, 6), warna(18, 7), warna(18, 8), warna(18, 8)],
+        mendung: ['#8b9bb4', '#8b9bb4', '#5a6988', '#5a6988', '#3a4466', '#3a4466'],
       }
     case 'hujan':
       return {
         awan: 5, hujan: 46, kilat: false, pelangi: false, label: 'HUJAN',
-        mendung: [warna(18, 5), warna(18, 6), warna(18, 7), warna(18, 8), warna(18, 9), warna(18, 10)],
+        mendung: ['#5a6988', '#5a6988', '#3a4466', '#3a4466', '#262b44', '#262b44'],
       }
     case 'badai':
       return {
         awan: 6, hujan: 70, kilat: true, pelangi: false, label: 'BADAI',
-        mendung: [warna(18, 6), warna(18, 8), warna(18, 9), warna(18, 10), warna(18, 11), warna(18, 12)],
+        mendung: ['#3a4466', '#3a4466', '#262b44', '#262b44', '#181425', '#181425'],
       }
     default:
       return { awan: 1, hujan: 0, kilat: false, pelangi: false, mendung: null, label: 'CERAH' }
@@ -260,7 +260,7 @@ function titik(k: Bidang, u: number, v: number): P {
   return { x: atas.x + (bawah.x - atas.x) * v, y: atas.y + (bawah.y - atas.y) * v }
 }
 
-function isiPoligon(ctx: CanvasRenderingContext2D, pts: P[], warnaIsi: string) {
+function isiPoligon(ctx: CanvasRenderingContext2D, pts: P[], warnaIsi: string | CanvasPattern) {
   ctx.fillStyle = warnaIsi
   ctx.beginPath()
   pts.forEach((p, i) => {
@@ -274,7 +274,10 @@ function isiPoligon(ctx: CanvasRenderingContext2D, pts: P[], warnaIsi: string) {
 }
 
 /** pita horizontal v0..v1 selebar bidang (untuk gradasi langit bertangga) */
-function pita(ctx: CanvasRenderingContext2D, k: Bidang, v0: number, v1: number, warnaI: string) {
+function pita(
+  ctx: CanvasRenderingContext2D, k: Bidang, v0: number, v1: number,
+  warnaI: string | CanvasPattern,
+) {
   isiPoligon(ctx, [
     titik(k, 0, v0), titik(k, 1, v0), titik(k, 1, v1), titik(k, 0, v1),
   ], warnaI)
@@ -285,7 +288,10 @@ function pita(ctx: CanvasRenderingContext2D, k: Bidang, v0: number, v1: number, 
  * Tanpa pemotongan, awan & butir hujan yang berada di luar bidang akan
  * menimpa kusen kayu (bug tampak di uji ronde langit pertama).
  */
-function kotak(ctx: CanvasRenderingContext2D, k: Bidang, u0: number, v0: number, du: number, dv: number, warnaI: string) {
+function kotak(
+  ctx: CanvasRenderingContext2D, k: Bidang, u0: number, v0: number,
+  du: number, dv: number, warnaI: string | CanvasPattern,
+) {
   const u = Math.max(0, Math.min(1, u0))
   const v = Math.max(0, Math.min(1, v0))
   const du2 = Math.min(du, 1 - u)
@@ -298,7 +304,7 @@ function kotak(ctx: CanvasRenderingContext2D, k: Bidang, u0: number, v0: number,
 
 function cakram(
   ctx: CanvasRenderingContext2D, k: Bidang,
-  u: number, v: number, ru: number, rv: number, warnaI: string,
+  u: number, v: number, ru: number, rv: number, warnaI: string | CanvasPattern,
   seg = 12,
 ) {
   const SEG = seg
@@ -321,7 +327,7 @@ function cakram(
 function awanSatu(
   ctx: CanvasRenderingContext2D, k: Bidang,
   u: number, v: number, lebar: number, skala: number,
-  atas: string, bawah: string, lingkar: string,
+  atas: string | CanvasPattern, bawah: string, lingkar: string | CanvasPattern,
 ) {
   const h = 0.075 * skala
   const dasar = v + h * 0.55
@@ -350,7 +356,9 @@ function awan(ctx: CanvasRenderingContext2D, k: Bidang, dasar: string, n: number
     if (u < 0) u += 1
     const terang = i % 2 === 0 ? dasar : gelap(dasar, 1)
     const bawah = gelap(dasar, 2)
-    const lingkar = campur(terang, gelap(dasar, 3), 0.45)
+    // lingkar luar = DITHER antara nada terang & perut awan (tepi lembut
+    // khas pixel-art, tanpa mencampur warna)
+    const lingkar = polaDither(ctx, terang, bawah, 0.5)
     awanSatu(ctx, k, u, v, lebar, skala, terang, bawah, lingkar)
   }
 }
@@ -396,7 +404,7 @@ function hujan(ctx: CanvasRenderingContext2D, k: Bidang, n: number, warnaI: stri
 function pelangi(ctx: CanvasRenderingContext2D, k: Bidang) {
   // BUSUR setengah lingkaran, tiga pita (bukan garis lurus yang terlihat
   // seperti bendera). Pusat di bawah kaca, jari-jari mengecil ke dalam.
-  const warnaPita = [warna(15, 5), warna(3, 4), warna(9, 5)]
+  const warnaPita = ['#f6757a', '#fee761', '#2ce8f5']   // merah · kuning · sian
   const SEG = 9
   for (let p = 0; p < warnaPita.length; p++) {
     const rLuar = 0.62 - p * 0.05
@@ -432,36 +440,25 @@ export function drawLangit(ctx: CanvasRenderingContext2D, k: Bidang, opsi: OpsiL
   const e = efekCuaca(cuaca)
   const pitaWarna = e.mendung ?? L.pita
 
-  // 1) LANGIT: N pita HALUS (campuran 6 warna kendali palet).
-  //    Bagian bawah (dekat horizon) diberi KABUT: warna pita dicampur warna
-  //    kabut makin kuat ke bawah, jadi horizon terlihat beruap seperti langit
-  //    nyata — bukan garis tangga yang berhenti mendadak.
-  const N = 14
-  const halus = pitaHalus(pitaWarna, N)
-  const kabut = fase === 'fajar' || fase === 'senja'
-    ? campur(warna(3, 2), warna(18, 2), 0.45)     // kabut keemasan saat rendah
-    : fase === 'malam'
-      ? campur(warna(18, 4), warna(3, 2), 0.22)   // sisa cahaya kota di horizon
-      : campur(pitaWarna[5], warna(18, 1), 0.52)  // kabut keputihan saat tinggi
-  const kuatKabut = fase === 'malam' ? 0.30 : 0.55
-  const warnaLangit: string[] = []
-  for (let i = 0; i < N; i++) {
-    const v0 = i / N
-    const v1 = (i + 1) / N
-    const tengah = (v0 + v1) / 2
-    const kuat = Math.pow(Math.max(0, (tengah - 0.55) / 0.45), 2) * kuatKabut
-    const w = campur(halus[i], kabut, kuat)
-    warnaLangit.push(w)
-    pita(ctx, k, v0, v1, w)
+  // 1) LANGIT: 6 pita KERAS (warna kendali Endesga) + peralihan BER-DITHER.
+  //    Tidak ada campuran warna sama sekali -> tidak ada warna di luar palet.
+  //    Bagian bawah tetap terasa beruap karena dither 25% -> 75% memberi
+  //    "kabut bertangga" khas game 16-bit.
+  const rencana = rencanaLangit(pitaWarna)
+  const warnaLangit: string[] = pitaWarna.slice()
+  for (const b of rencana.pita) pita(ctx, k, b.v0, b.v1, b.warna)
+  for (const d of rencana.dither) {
+    pita(ctx, k, Math.max(0, d.v0), Math.min(1, d.v1),
+      polaDither(ctx, d.a, d.b, d.level))
   }
   /** warna langit pada ketinggian v (untuk halo & tepi awan) */
   const langitDi = (v: number) => {
-    const i = Math.max(0, Math.min(N - 1, Math.round(v * (N - 1))))
+    const i = Math.max(0, Math.min(warnaLangit.length - 1, Math.round(v * (warnaLangit.length - 1))))
     return warnaLangit[i]
   }
 
   // 2) bintang (malam, tidak terlihat saat mendung tebal)
-  if (L.bintang && !e.mendung) bintang(ctx, k, warna(18, 1))
+  if (L.bintang && !e.mendung) bintang(ctx, k, '#ffffff')
 
   // 3) pelangi tipis (sehabis gerimis, hanya pagi/siang)
   if (e.pelangi && (fase === 'pagi' || fase === 'siang')) pelangi(ctx, k)
@@ -471,27 +468,26 @@ export function drawLangit(ctx: CanvasRenderingContext2D, k: Bidang, opsi: OpsiL
   const b = posisiBenda(jam, fase)
   if (b.bulan) {
     const sekitar = langitDi(b.v)
-    // halo sempit: makin ke luar makin dekat warna langit (bukan gumpalan gelap)
-    cakram(ctx, k, b.u, b.v, 0.125, 0.22, campur(sekitar, warna(18, 1), 0.30))
-    cakram(ctx, k, b.u, b.v, 0.100, 0.175, campur(sekitar, warna(18, 1), 0.55))
-    cakram(ctx, k, b.u, b.v, 0.082, 0.142, warna(18, 2))
-    cakram(ctx, k, b.u - 0.012, b.v - 0.018, 0.058, 0.100, warna(18, 1))
+    // halo sempit ber-DITHER: makin ke luar makin jarang piksel bulan, jadi
+    // menyatu dengan langit tanpa perlu mencampur warna (tetap 32 warna)
+    cakram(ctx, k, b.u, b.v, 0.128, 0.225, polaDither(ctx, sekitar, '#c0cbdc', 0.18), 20)
+    cakram(ctx, k, b.u, b.v, 0.104, 0.182, polaDither(ctx, sekitar, '#c0cbdc', 0.48), 20)
+    cakram(ctx, k, b.u, b.v, 0.082, 0.142, '#8b9bb4')
+    cakram(ctx, k, b.u - 0.012, b.v - 0.018, 0.058, 0.100, '#c0cbdc')
     // kawah: tiga bintik gelap
-    cakram(ctx, k, b.u + 0.021, b.v + 0.017, 0.014, 0.025, warna(18, 3), 8)
-    cakram(ctx, k, b.u - 0.016, b.v + 0.045, 0.010, 0.018, warna(18, 3), 8)
-    cakram(ctx, k, b.u + 0.004, b.v - 0.042, 0.008, 0.014, warna(18, 3), 8)
+    cakram(ctx, k, b.u + 0.021, b.v + 0.017, 0.014, 0.025, '#5a6988', 8)
+    cakram(ctx, k, b.u - 0.016, b.v + 0.045, 0.010, 0.018, '#5a6988', 8)
+    cakram(ctx, k, b.u + 0.004, b.v - 0.042, 0.008, 0.014, '#5a6988', 8)
   } else if (!e.mendung || e.hujan === 0) {
     // matahari: kekuningan; saat fajar/senja lebih jingga
-    // saat fajar/senja langit sudah pucat-oranye, jadi matahari diberi
-    // tepi JINGGA lebih pekat supaya tidak tenggelam di langit
     const hangat = fase === 'senja' || fase === 'fajar'
-    const tepi = hangat ? warna(2, 4) : warna(3, 2)
-    const inti = hangat ? warna(3, 2) : warna(3, 1)
+    const tepi = hangat ? '#f77622' : '#feae34'
+    const inti = hangat ? '#feae34' : '#fee761'
     const sekitar = langitDi(b.v)
-    // halo SEMPIT berlapis, warna dicampur ke arah putih hangat palet
-    cakram(ctx, k, b.u, b.v, 0.135, 0.235, campur(sekitar, inti, 0.30))
-    cakram(ctx, k, b.u, b.v, 0.108, 0.188, campur(sekitar, inti, 0.62))
-    cakram(ctx, k, b.u, b.v, 0.082, 0.144, tepi)
+    // halo SEMPIT berlapis (dither 18% lalu 48% lalu tepi pekat)
+    cakram(ctx, k, b.u, b.v, 0.138, 0.238, polaDither(ctx, sekitar, tepi, 0.14), 20)
+    cakram(ctx, k, b.u, b.v, 0.110, 0.190, polaDither(ctx, sekitar, tepi, 0.42), 20)
+    cakram(ctx, k, b.u, b.v, 0.082, 0.144, tepi, 20)
     cakram(ctx, k, b.u - 0.010, b.v - 0.016, 0.058, 0.102, inti)
   }
 
@@ -502,13 +498,14 @@ export function drawLangit(ctx: CanvasRenderingContext2D, k: Bidang, opsi: OpsiL
   if (e.awan > 0) awan(ctx, k, awanCuaca, e.awan)
 
   // 6) hujan
-  if (e.hujan > 0) hujan(ctx, k, e.hujan, e.mendung ? warna(18, 2) : warna(10, 2))
+  if (e.hujan > 0) hujan(ctx, k, e.hujan, e.mendung ? '#8b9bb4' : '#c0cbdc')
 
   // 7) kilat: setiap ±7 detik menyala 0,12 detik
   if (e.kilat) {
     const siklus = t % 7
     if (siklus < 0.12) {
-      pita(ctx, k, 0, 1, warna(18, 1))
+      // kilat menyala: seluruh kaca diputihkan (pola penuh, bukan campuran)
+      pita(ctx, k, 0, 1, '#ffffff')
     } else if (siklus > 3.4 && siklus < 3.52) {
       // KILAT BERCABANG: batang utama + dua cabang (user: lebih realistis)
       const petir: P[][] = [
@@ -527,7 +524,7 @@ export function drawLangit(ctx: CanvasRenderingContext2D, k: Bidang, opsi: OpsiL
           titik(k, 0.57, 0.54), titik(k, 0.51, 0.47),
         ],
       ]
-      for (const bentuk of petir) isiPoligon(ctx, bentuk, warna(3, 1))
+      for (const bentuk of petir) isiPoligon(ctx, bentuk, '#fee761')
     }
   }
 

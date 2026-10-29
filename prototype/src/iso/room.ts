@@ -1,6 +1,8 @@
 import { CAM, CY, DENS, EXT_E, EXT_W, HH, IH, IW, ROOM, ROOM_VISIBLE, TILE_W, ZH, dindingTersembunyi, px, type P } from './space'
 import { PAL, floorMat, gelapkanWarna, wallColors } from './palette'
 import { drawObject, footprintOf, sortedObjects } from './box'
+import { polaBayang, polaDither } from './dither'
+import { gelap } from './palet-referensi'
 import type { SceneObject } from '../scene/types'
 
 function pathOf(ctx: CanvasRenderingContext2D, pts: P[]) {
@@ -14,7 +16,9 @@ function pathOf(ctx: CanvasRenderingContext2D, pts: P[]) {
   ctx.closePath()
 }
 
-function poly(ctx: CanvasRenderingContext2D, pts: P[], color: string | CanvasGradient) {
+function poly(
+  ctx: CanvasRenderingContext2D, pts: P[], color: string | CanvasGradient | CanvasPattern,
+) {
   ctx.fillStyle = color
   pathOf(ctx, pts)
   ctx.fill()
@@ -64,6 +68,27 @@ function walls(ctx: CanvasRenderingContext2D) {
   poly(ctx, [px(0, 0, zTop), px(E, 0, zTop), px(E, 0, 0), px(0, 0, 0)], PAL.wallT)
   poly(ctx, [px(0, 0, DADO_Z), px(E, 0, DADO_Z), px(E, 0, 0), px(0, 0, 0)], PAL.trimT)
 
+  // ---- DITHER KAKI DINDING (ronde 38: ciri retro = pola kotak) ----
+  // Peralihan dinding -> lantai TIDAK lagi garis rata: dibuat TIGA pita pola
+  // Bayer 4x4 yang makin rapat ke bawah (bayangan ambient). Warna bayangan
+  // diambil dari tangga nada palet (`gelapkanWarna`), jadi tetap 32 warna.
+  const kakiDinding = (sumbu: 'w' | 'e', panjang: number, dasar: string) => {
+    const teduh = gelap(dasar, 1)   // cukup 1 langkah lebih gelap
+    const pita: [number, number, number][] = [
+      [DADO_Z + 0.55, DADO_Z + 1.05, 0.14],
+      [DADO_Z + 0.22, DADO_Z + 0.55, 0.26],
+      [DADO_Z, DADO_Z + 0.22, 0.44],
+    ]
+    for (const [z0, z1, kuat] of pita) {
+      const pts = sumbu === 'w'
+        ? [px(0, 0, z1), px(0, panjang, z1), px(0, panjang, z0), px(0, 0, z0)]
+        : [px(0, 0, z1), px(panjang, 0, z1), px(panjang, 0, z0), px(0, 0, z0)]
+      poly(ctx, pts, polaBayang(ctx, teduh, kuat))
+    }
+  }
+  kakiDinding('w', W, PAL.wallB)
+  kakiDinding('e', E, PAL.wallT)
+
   line(ctx, px(0, 0, 0), px(0, 0, zTop), PAL.seam)
 }
 
@@ -82,6 +107,23 @@ function floor(ctx: CanvasRenderingContext2D) {
   // nat: garis tipis setiap 1 tile ke dua arah (kisi diamond)
   for (let w = 0; w <= W; w++) line(ctx, px(0, w), px(E, w), PAL.grout)
   for (let e = 0; e <= E; e++) line(ctx, px(e, 0), px(e, W), PAL.grout)
+
+  // ---- DITHER BAYANGAN LANTAI di kaki dua dinding (ronde 38) ----
+  // Tiga pita pola kotak: makin dekat dinding makin rapat. Hasilnya bayangan
+  // bertangga khas game 16-bit, bukan gradasi halus.
+  const AO = Math.min(2.0, E * 0.2, W * 0.2)
+  if (AO > 0.2) {
+    const pita: [number, number][] = [
+      [AO * 0.33, 0.62], [AO * 0.66, 0.36], [AO, 0.16],
+    ]
+    for (const [d, kuat] of pita) {
+      const luar = Math.max(0, d - AO * 0.33)
+      poly(ctx, [px(0, 0), px(luar, 0), px(luar, W, 0), px(0, W, 0)],
+        polaBayang(ctx, PAL.grout, kuat))
+      poly(ctx, [px(0, 0), px(E, 0), px(E, luar, 0), px(0, luar, 0)],
+        polaBayang(ctx, PAL.grout, kuat))
+    }
+  }
   // slab alas tipis (volume balok dibatalkan user)
   const SK = 10
   const bL = px(0, W), sL = px(E, W), tR = px(E, 0)
@@ -278,15 +320,17 @@ function drawFloorObjects(ctx: CanvasRenderingContext2D, objects: SceneObject[])
     // yang membuat lantai terasa "masuk" ke dalam ruangan.
     const AO = Math.min(1.8, (e1 - e0) * 0.22, (w1 - w0) * 0.22)
     if (AO > 0.15) {
-      // tiga pita (bukan gradien) — sama seperti cara referensi menggelapkan
-      const pita: [number, string][] = [
-        [AO, 'rgba(74,33,12,0.08)'],
-        [AO * 0.66, 'rgba(74,33,12,0.10)'],
-        [AO * 0.33, 'rgba(74,33,12,0.16)'],
+      // RONDE 38: bayangan di kaki dinding = DITHER pola Bayer 4x4 (dulu rgba
+      // semi-transparan = warna di luar palet). Tiga langkah, makin rapat ke
+      // dinding. Warna bayangan diambil dari nat lantai material itu.
+      const pita: [number, number][] = [
+        [AO * 0.33, 0.60], [AO * 0.66, 0.34], [AO, 0.14],
       ]
-      for (const [leb, warna] of pita) {
-        poly(ctx, [px(e0, w0, z), px(e0, w1, z), px(e0 + leb, w1, z), px(e0 + leb, w0, z)], warna)
-        poly(ctx, [px(e0, w0, z), px(e1, w0, z), px(e1, w0 + leb, z), px(e0, w0 + leb, z)], warna)
+      for (const [leb, kuat] of pita) {
+        const dalam = Math.max(0, leb - AO * 0.33)
+        const pola = polaBayang(ctx, mat.grout, kuat)
+        poly(ctx, [px(e0, w0, z), px(e0, w1, z), px(e0 + dalam, w1, z), px(e0 + dalam, w0, z)], pola)
+        poly(ctx, [px(e0, w0, z), px(e1, w0, z), px(e1, w0 + dalam, z), px(e0, w0 + dalam, z)], pola)
       }
     }
 
@@ -363,19 +407,36 @@ export function drawWallObjects(ctx: CanvasRenderingContext2D, objects: SceneObj
       y: a.y + (b.y - a.y) * t - dz * ZH,
     })
     const Z = o.size.z
-    const kotak = (t0: number, t1: number, zA: number, zB: number, warna: string | CanvasGradient) =>
+    const kotak = (
+      t0: number, t1: number, zA: number, zB: number,
+      warna: string | CanvasGradient | CanvasPattern,
+    ) =>
       poly(ctx, [at(t0, zA), at(t1, zA), at(t1, zB), at(t0, zB)], warna)
 
     // 1) MUKA DINDING — pita nada (bukan gradien halus): terang di atas,
     //    makin teduh ke bawah. Pita keras = ciri pixel-art referensi, dan
     //    hasilnya sama di renderer mana pun (mudah ditiru renderer offline).
     kotak(0, 1, Z, 0, face)
-    kotak(0, 1, Z * 0.11, 0, gelapkanWarna(face, 0.94))
-    kotak(0, 1, Z * 0.045, 0, gelapkanWarna(face, 0.88))
+    // batas pita nada dibuat BER-DITHER (ronde 38) supaya peralihan terang ->
+    // teduh tidak berupa garis lurus yang keras: ciri pixel-art 16-bit.
+    const nadaB = gelap(face, 1)
+    const nadaC = gelap(face, 2)
+    const tipis = Math.max(0.05, Z * 0.035)
+    kotak(0, 1, Z * 0.11 + tipis, Z * 0.11 - tipis, polaDither(ctx, face, nadaB, 0.5))
+    kotak(0, 1, Z * 0.11, 0, nadaB)
+    kotak(0, 1, Z * 0.045 + tipis * 0.7, Z * 0.045 - tipis * 0.7,
+      polaDither(ctx, nadaB, nadaC, 0.5))
+    kotak(0, 1, Z * 0.045, 0, nadaC)
 
     // 2) PLINT (kaki dinding kayu) + garis gelap di atasnya
     const plint = Math.min(0.26, Z * 0.5)
     kotak(0, 1, plint, 0, trim)
+    // kaki dinding: tiga pita bayangan BER-DITHER (ronde 38) — makin rapat ke
+    // bawah. Sama dengan draw_wall() di tools/render_scene.py.
+    const teduh = gelap(face, 1)
+    for (const [z0b, z1b, kuat] of [[0, 0.22, 0.44], [0.22, 0.55, 0.26], [0.55, 1.05, 0.14]]) {
+      if (plint + z1b < Z) kotak(0, 1, plint + z1b, plint + z0b, polaBayang(ctx, teduh, kuat))
+    }
     kotak(0, 1, plint, plint - Math.min(0.05, plint * 0.3), PAL.beamDark)
 
     // 2b) LIS DINDING (dado) — memecah bidang dinding yang kosong dan
