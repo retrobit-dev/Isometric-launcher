@@ -51,18 +51,16 @@ try {
   }
   cek('galat putar-balik < 1e-6 tile', maksGalat < 1e-6, `maks ${maksGalat.toExponential(2)}`)
 
-  console.log('3. di 0/90/180/270 nat tetap SEJAJAR SUMBU (tanpa diagonal)')
-  // Ronde 43: proyeksi datar (PROYEKSI_DATAR). Di setiap sudut 90°, tepi ubin
-  // harus mendatar/tegak persis — inilah yang hilang di proyeksi isometrik.
+  console.log('3. di 0/90/180/270 tetap grid 2:1')
   for (const y of [0, 90, 180, 270]) {
     S.setYaw(y)
     const a = S.px(0, 0)
     const b = S.px(1, 0)
-    const c = S.px(0, 1)
-    const datarE = Math.abs(b.y - a.y) < 1e-6 || Math.abs(b.x - a.x) < 1e-6
-    const datarW = Math.abs(c.y - a.y) < 1e-6 || Math.abs(c.x - a.x) < 1e-6
-    cek(`yaw ${y}: langkah e sejajar sumbu`, datarE)
-    cek(`yaw ${y}: langkah w sejajar sumbu`, datarW)
+    const dx = Math.abs(b.x - a.x)
+    const dy = Math.abs(b.y - a.y)
+    // pada sudut bersih, satu langkah tile selalu bergerak 1:0,5
+    const rasio = dy / Math.max(1e-9, dx)
+    cek(`yaw ${y}: langkah tile 2:1`, Math.abs(rasio - 0.5) < 1e-6, `rasio ${rasio.toFixed(4)}`)
   }
 
   console.log('4. fitToScene menaruh isi di dalam kanvas')

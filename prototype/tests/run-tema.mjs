@@ -81,8 +81,7 @@ try {
     !['ubin', 'papan'].includes(f.pattern) || f.tones.length !== 3
     || !f.tones.every(t => HEX.test(t)) || !HEX.test(f.grout))
   cek('semua lantai sah', lantaiBuruk.length === 0, lantaiBuruk.map(([k]) => k).join(','))
-  // RONDE 43: lantai bawaan = papan kayu gelap gaya interior Pokemon NDS
-  cek('lantai bawaan kayu-nds', P.FLOOR_DEFAULT === 'lantai-kayu-nds', P.FLOOR_DEFAULT)
+  cek('lantai bawaan ubin-nds', P.FLOOR_DEFAULT === 'lantai-ubin-nds', P.FLOOR_DEFAULT)
   cek('dinding bawaan NDS', P.WALL_DEFAULT === 'dinding-nds', P.WALL_DEFAULT)
 
   console.log('5. docs/04-palet.json = palette.ts')

@@ -164,3 +164,20 @@ Tidak ada fitur yang dibuang; yang berubah hanya rupa ruangan.
 5. Scene: 3 objek latar (lantai 14×20 + dinding belakang + dinding samping).
    Perabot, tokoh, dan hiasan sengaja belum ada — tinggal ditambah dari panel
    editor.
+
+---
+
+## Ronde 45 — kembali ke isometrik
+
+Arahan user 2026-10-29: *"buat isometric seperti sebelumnya"*. Percobaan
+proyeksi datar (ronde 43–44) dibatalkan; kode proyeksi isometrik 2:1 dipulihkan
+persis seperti commit `d876b4d`. Percobaan datar tetap tersimpan di riwayat git
+(`df55185`) bila suatu saat ingin dicoba lagi.
+
+Yang tetap dipakai dari ronde 43–44:
+- material **`lantai-kayu-nds`** (papan kayu panjang satu nada) tetap ada di
+  daftar material lantai, jadi bisa dipilih kapan saja;
+- dukungan **scene kosong** (0 objek) di aplikasi dan penyimpanan;
+- `tools/render_scene.py` kini menggambar objek ber-peran lantai/dinding
+  walaupun tanda `latar` tidak ada — dulu PNG uji bisa kosong padahal layar
+  berisi ruangan.

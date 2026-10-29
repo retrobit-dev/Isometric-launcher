@@ -327,7 +327,7 @@ export const FLOOR_MATERIALS: Record<string, FloorMat> = {
   },
 }
 export const FLOOR_KEYS = Object.keys(FLOOR_MATERIALS)
-export const FLOOR_DEFAULT = 'lantai-kayu-nds'
+export const FLOOR_DEFAULT = 'lantai-ubin-nds'
 
 export function floorMat(name: unknown): FloorMat {
   return (typeof name === 'string' && FLOOR_MATERIALS[name]) || FLOOR_MATERIALS[FLOOR_DEFAULT]

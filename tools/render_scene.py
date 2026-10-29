@@ -42,15 +42,10 @@ PIKSEL = 2
 DENS = 1.775 / PIKSEL
 IW, IH = round(640 * DENS), round(400 * DENS)
 HW = 16 * DENS
-# RONDE 43 — cermin PROYEKSI_DATAR di space.ts: lantai kisi persegi.
-PROYEKSI_DATAR = True
-RASIO_DATAR = 0.72
-HH = HW * RASIO_DATAR if PROYEKSI_DATAR else HW / 2
+HH = HW / 2
 ZH = HW
 CE, CW = 10.0, 10.0
 YAW = float(os.environ.get('YAW', '0'))      # orbit kamera, kelipatan 15
-if PROYEKSI_DATAR:                            # mode datar: hanya 4 arah
-    YAW = round(YAW / 90) * 90
 _Y = math.radians(YAW)
 _KOS = (math.cos(_Y), math.sin(_Y))
 TAU = math.pi * 2
@@ -65,8 +60,6 @@ scene = json.load(open('/tmp/ruang.json'))['scene']
 def arah_kamera():
     """vektor arah kamera di ruang dunia (sama dengan arahKamera() di space.ts)"""
     c, sn = _KOS
-    if PROYEKSI_DATAR:
-        return (round(c), round(sn), 1.0)
     return (c + sn, c - sn, 1.0)
 
 
@@ -77,8 +70,6 @@ def putar_relatif(de, dw):
 
 def px(e, w, z=0.0):
     re, rw = putar_relatif(e - CE, w - CW)
-    if PROYEKSI_DATAR:
-        return (IW / 2 + rw * HW * 2, IH / 2 + re * HH * 2 - z * ZH)
     return (IW / 2 + (re - rw) * HW, IH / 2 + (re + rw) * HH - z * ZH)
 
 
@@ -94,27 +85,23 @@ def fit_scene(objs, margin=0.95):
     zmax = max(o['pos']['z'] + o['size']['z'] for o in objs)
     ce0, cw0 = (e0 + e1) / 2, (w0 + w1) / 2
     c, sn = _KOS
-    # ukur pada zoom x1 dengan kamera di pusat bbox
-    HW, ZH = 16 * DENS, 16 * DENS
-    HH = HW * RASIO_DATAR if PROYEKSI_DATAR else HW / 2
-    CE, CW = ce0, cw0
-    xs, ys = [], []
-    for ex in (e0, e1):
-        for wx in (w0, w1):
+    xmin = ymin = 1e9
+    xmax = ymax = -1e9
+    for ex in (e0 - ce0, e1 - ce0):
+        for wx in (w0 - cw0, w1 - cw0):
             for zz in (0.0, zmax):
-                p = px(ex, wx, zz)
-                xs.append(p[0]); ys.append(p[1])
-    # q = pengali zoom (cermin applyZoom(q): HW = HW_BASE * q), bukan HW itu sendiri
-    q = min((IW * margin) / max(1e-3, max(xs) - min(xs)),
-            (IH * margin) / max(1e-3, max(ys) - min(ys)))
-    HW, ZH = 16 * DENS * q, 16 * DENS * q
-    HH = HW * RASIO_DATAR if PROYEKSI_DATAR else HW / 2
-    p = px(ce0, cw0, zmax / 2)
-    dx, dy = p[0] - IW / 2, p[1] - IH / 2
-    if PROYEKSI_DATAR:
-        d_rw, d_re = dx / (HW * 2), dy / (HH * 2)
-    else:
-        d_rw, d_re = (dy / HH - dx / HW) / 2, (dy / HH + dx / HW) / 2
+                re = ex * c - wx * sn
+                rw = ex * sn + wx * c
+                x = re - rw
+                y = (re + rw) / 2 - zz
+                xmin, xmax = min(xmin, x), max(xmax, x)
+                ymin, ymax = min(ymin, y), max(ymax, y)
+    hw = min((IW * margin) / max(1e-3, xmax - xmin), (IH * margin) / max(1e-3, ymax - ymin))
+    HW, HH, ZH = hw, hw / 2, hw
+    dx = ((xmin + xmax) / 2) * hw
+    dy = ((ymin + ymax) / 2) * hw
+    d_re = (dx / hw + dy / (hw / 2)) / 2
+    d_rw = (dy / (hw / 2) - dx / hw) / 2
     CE = ce0 + (d_re * c + d_rw * sn)
     CW = cw0 + (-d_re * sn + d_rw * c)
 
@@ -1052,7 +1039,7 @@ def draw_floor(o):
             ww += U
 
     # BAYANGAN di kaki dinding = DITHER Bayer 4x4 (cermin room.ts).
-    leb = min(1.0, (e1 - e0) * 0.22, (w1 - w0) * 0.22)   # ronde 43: 1 tile
+    leb = min(1.8, (e1 - e0) * 0.22, (w1 - w0) * 0.22)
     if leb > 0.15:
         # RONDE 41 (cermin room.ts): dua pita bayangan WARNA KERAS, tanpa dither.
         gelap1 = gelap(tones[0], 1)
@@ -1060,9 +1047,8 @@ def draw_floor(o):
         for dalam, wnav in ((leb, gelap1), (leb * 0.34, gelap2)):
             poly([px(e0, w0, z), px(e0, w1, z),
                   px(e0 + dalam, w1, z), px(e0 + dalam, w0, z)], wnav, False)
-            if not PROYEKSI_DATAR:   # ronde 44: hanya tepi belakang
-                poly([px(e0, w0, z), px(e1, w0, z),
-                      px(e1, w0 + dalam, z), px(e0, w0 + dalam, z)], wnav, False)
+            poly([px(e0, w0, z), px(e1, w0, z),
+                  px(e1, w0 + dalam, z), px(e0, w0 + dalam, z)], wnav, False)
 
     SK = 10
     bL, bR, tR = px(e0, w1, z), px(e1, w1, z), px(e1, w0, z)
@@ -1135,30 +1121,56 @@ def draw_wall(o):
         poly([at(t0, zA), at(t1, zA), at(t1, zB), at(t0, zB)], warna, False)
 
     # =====================================================================
-    # DINDING GAYA INTERIOR POKÉMON NDS — RONDE 44 (cermin room.ts)
-    # bidang atas polos + satu pita nada lebih gelap + plint + garis puncak.
+    # GAYA INTERIOR "POKÉMON NDS" (ronde 41, cermin room.ts)
+    # warna rata + batas nada KERAS + wainscot kayu; tanpa dither di bidang.
     # =====================================================================
     kotak(0, 1, sz, 0, face)
-
-    z_plint = min(0.6, sz * 0.14)
-    kotak(0, 1, z_plint, 0, trim)
-    kotak(0, 1, z_plint, z_plint - min(0.06, sz * 0.015), gelap(trim, 2))
-    d.line([tuple(map(round, at(0, z_plint))), tuple(map(round, at(1, z_plint)))],
+    z_w = min(1.7, sz * 0.34)
+    z_batas = z_w + (sz - z_w) * 0.78
+    kotak(0, 1, sz, z_batas, face)
+    kotak(0, 1, z_batas, z_w, gelap(face, 1))
+    d.line([tuple(map(round, at(0, z_batas))), tuple(map(round, at(1, z_batas)))],
            fill=gelap(face, 2), width=1)
 
-    z_puncak = min(0.16, sz * 0.06)
-    kotak(0, 1, sz, sz - z_puncak, gelap(face, 2))
+    kotak(0, 1, z_w, 0, trim)
+    n_papan = max(2, round(panj / 0.85))
+    for i_p in range(1, n_papan):
+        t_p = i_p / n_papan
+        d.line([tuple(map(round, at(t_p, z_w))), tuple(map(round, at(t_p, 0)))],
+               fill=BASE['beamDark'], width=1)
+    kotak(0, 1, z_w, z_w - min(0.22, z_w * 0.22), BASE['post'])
+    kotak(0, 1, z_w + 0.16, z_w, BASE['beamTop'])
+    kotak(0, 1, z_w + 0.16, z_w + 0.11, BASE['peg'])
+    d.line([tuple(map(round, at(0, z_w))), tuple(map(round, at(1, z_w)))],
+           fill=BASE['beamDark'], width=1)
+    kotak(0, 1, min(0.14, z_w * 0.2), 0, BASE['beamDark'])
+
+    hb = min(0.5, sz * 0.4)
+    if sz > 1:
+        kotak(0, 1, sz, sz - hb, BASE['beam'])
+        kotak(0, 1, sz, sz - min(0.07, hb * 0.3), BASE['beamTop'])
+        kotak(0, 1, sz - hb, sz - hb - min(0.05, hb * 0.2), BASE['beamDark'])
+
+    tp = min(0.5, 0.42 / panj)
+    for t0, t1 in ((0, tp), (1 - tp, 1)):
+        kotak(t0, t1, sz, 0, BASE['post'])
+        kotak(t0, t0 + (t1 - t0) * 0.45, sz, 0, BASE['postLit'])
+        d.line([tuple(map(round, at(t1, sz))), tuple(map(round, at(t1, 0)))], fill=BASE['beamDark'], width=1)
+        if sz > 1.2:
+            p = at((t0 + t1) / 2, sz - min(0.75, sz * 0.35))
+            r = 1.6 * DENS * 0.6
+            d.ellipse([p[0] - r, p[1] - r, p[0] + r, p[1] + r], fill=BASE['peg'])
 
     d.line([tuple(map(round, at(0, 0))), tuple(map(round, at(1, 0)))], fill=BASE['beamDark'], width=1)
 
 
 obj = scene['objects']
-latar = [o for o in obj if o.get('latar')]
-biasa = [o for o in obj if not o.get('latar')]
-
-for o in sorted([x for x in latar if x.get('role') == 'dinding'], key=lambda x: x.get('urutan', 0)):
+# PARITAS dengan room.ts drawScene(): objek ber-peran lantai/dinding SELALU
+# digambar sebagai latar, terlepas dari tanda `latar` (dulu di sini disaring
+# pakai `latar`, sehingga PNG uji bisa kosong padahal layar berisi ruangan).
+for o in sorted([x for x in obj if x.get('role') == 'dinding'], key=lambda x: x.get('urutan', 0)):
     draw_wall(o)
-for o in sorted([x for x in latar if x.get('role') == 'lantai'], key=lambda x: x.get('urutan', 0)):
+for o in sorted([x for x in obj if x.get('role') == 'lantai'], key=lambda x: x.get('urutan', 0)):
     draw_floor(o)
 im = Image.alpha_composite(im.convert('RGBA'), AO_LAP).convert('RGB')
 d = ImageDraw.Draw(im)
@@ -1174,9 +1186,9 @@ def menempel_tersembunyi(o):
     return False
 
 
-solid = [o for o in biasa if o.get('role') not in ('lantai', 'dinding') and not menempel_tersembunyi(o)]
-latar_solid = [o for o in latar if o.get('role') not in ('lantai', 'dinding')]
-for o in sorted(latar_solid + solid,
+solid = [o for o in obj if o.get('role') not in ('lantai', 'dinding') and not menempel_tersembunyi(o)]
+latar_solid = [o for o in obj if o.get('latar') and o.get('role') not in ('lantai', 'dinding')]
+for o in sorted(solid + [x for x in latar_solid if x not in solid],
                 key=lambda o: (o.get('urutan') is None, o.get('urutan') or 0, o['pos']['e'] + o['pos']['w'])):
     draw_obj(o)
 
