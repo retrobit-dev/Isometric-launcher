@@ -155,6 +155,19 @@ html, body, #root {
 
 .phead { display: flex; gap: 6px; align-items: center; flex: none; }
 
+/* KARTU FOLDER — panel melayang seperti editor objek, BUKAN modal berlatar
+   gelap (permintaan user 2026-10-29: "saya tidak bisa melihat perubahannya
+   karena tertutup jendela editor"). Bisa digeser, tembus pandang, dan
+   posisinya di sisi kanan supaya ruangan di tengah tetap kelihatan. */
+.foldercard {
+  width: 272px;
+  z-index: 26;
+  background: rgba(27, 18, 16, 0.58);
+  backdrop-filter: blur(2px);
+  -webkit-backdrop-filter: blur(2px);
+  box-shadow: 0 6px 24px rgba(0, 0, 0, 0.45);
+}
+
 /* isi panel: semua baris bisa digulir supaya TIDAK ADA yang terpotong
    di luar layar (permintaan user: panel harus mampu menampilkan semuanya) */
 .pbody {
