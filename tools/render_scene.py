@@ -30,6 +30,9 @@ HW = 16 * DENS
 HH = HW / 2
 ZH = HW
 CE, CW = 10.0, 10.0
+YAW = float(os.environ.get('YAW', '0'))      # orbit kamera, kelipatan 15
+_Y = math.radians(YAW)
+_KOS = (math.cos(_Y), math.sin(_Y))
 TAU = math.pi * 2
 SEGMEN = 24
 INK = (0x4A, 0x1E, 0x0A)
@@ -39,8 +42,24 @@ SKALA = 1
 scene = json.load(open('/tmp/ruang.json'))['scene']
 
 
+def arah_kamera():
+    """vektor arah kamera di ruang dunia (sama dengan arahKamera() di space.ts)"""
+    c, sn = _KOS
+    return (c + sn, c - sn, 1.0)
+
+
+def putar_relatif(de, dw):
+    c, sn = _KOS
+    return (de * c - dw * sn, de * sn + dw * c)
+
+
+def px(e, w, z=0.0):
+    re, rw = putar_relatif(e - CE, w - CW)
+    return (IW / 2 + (re - rw) * HW, IH / 2 + (re + rw) * HH - z * ZH)
+
+
 def fit_scene(objs, margin=0.95):
-    """Sama dengan fitToScene() di iso/space.ts."""
+    """Sama dengan fitToScene() di iso/space.ts: bbox hasil proyeksi."""
     global HW, HH, ZH, CE, CW
     if not objs:
         return
@@ -49,11 +68,27 @@ def fit_scene(objs, margin=0.95):
     w0 = min(o['pos']['w'] for o in objs)
     w1 = max(o['pos']['w'] + o['size']['w'] for o in objs)
     zmax = max(o['pos']['z'] + o['size']['z'] for o in objs)
-    de, dw = max(0.5, e1 - e0), max(0.5, w1 - w0)
-    hw = min((IW * margin) / (de + dw), (IH * margin) / ((de + dw) / 2 + zmax))
+    ce0, cw0 = (e0 + e1) / 2, (w0 + w1) / 2
+    c, sn = _KOS
+    xmin = ymin = 1e9
+    xmax = ymax = -1e9
+    for ex in (e0 - ce0, e1 - ce0):
+        for wx in (w0 - cw0, w1 - cw0):
+            for zz in (0.0, zmax):
+                re = ex * c - wx * sn
+                rw = ex * sn + wx * c
+                x = re - rw
+                y = (re + rw) / 2 - zz
+                xmin, xmax = min(xmin, x), max(xmax, x)
+                ymin, ymax = min(ymin, y), max(ymax, y)
+    hw = min((IW * margin) / max(1e-3, xmax - xmin), (IH * margin) / max(1e-3, ymax - ymin))
     HW, HH, ZH = hw, hw / 2, hw
-    CE = (e0 + e1) / 2 - zmax / 2
-    CW = (w0 + w1) / 2 - zmax / 2
+    dx = ((xmin + xmax) / 2) * hw
+    dy = ((ymin + ymax) / 2) * hw
+    d_re = (dx / hw + dy / (hw / 2)) / 2
+    d_rw = (dy / (hw / 2) - dx / hw) / 2
+    CE = ce0 + (d_re * c + d_rw * sn)
+    CW = cw0 + (-d_re * sn + d_rw * c)
 
 
 fit_scene(scene['objects'])
@@ -62,10 +97,6 @@ im = Image.new('RGB', (IW, IH), BASE['void'])
 d = ImageDraw.Draw(im)
 AO_LAP = Image.new('RGBA', (IW, IH), (0, 0, 0, 0))
 AO = ImageDraw.Draw(AO_LAP)
-
-
-def px(e, w, z=0.0):
-    return (IW / 2 + ((e - CE) - (w - CW)) * HW, IH / 2 + ((e - CE) + (w - CW)) * HH - z * ZH)
 
 
 def _hex(c):
@@ -151,30 +182,58 @@ def draw_sprite(o):
     im.paste(kecil, (round(tengah[0] - lebar / 2), round(kaki[1] - tinggi)), kecil)
 
 
+def warnai_wajah(c, ne, nw, nz):
+    if nz > 0.5:
+        return c['top']
+    if ne > 0.5:
+        return c['right']
+    if nw > 0.5:
+        return c['left']
+    return gelapkan(c['left'], 0.22) or c['left']
+
+
 def draw_box(o):
     e, w, z = o['pos']['e'], o['pos']['w'], o['pos']['z']
     se, sw = footing(o)
     sz = o['size']['z']
     c = tone(o)
     g = tepi(o)
-    t00, t10 = px(e, w, z + sz), px(e + se, w, z + sz)
-    t11, t01 = px(e + se, w + sw, z + sz), px(e, w + sw, z + sz)
-    b10, b11, b01 = px(e + se, w, z), px(e + se, w + sw, z), px(e, w + sw, z)
-    poly([t01, t11, b11, b01], c['left'], g)
-    poly([t10, t11, b11, b10], c['right'], g)
-    poly([t00, t10, t11, t01], c['top'], g)
-    if g and sz > 0.02:
-        kb = 0.74
-        l0 = (t01[0] + (b01[0] - t01[0]) * kb, t01[1] + (b01[1] - t01[1]) * kb)
-        l1 = (t11[0] + (b11[0] - t11[0]) * kb, t11[1] + (b11[1] - t11[1]) * kb)
-        r1 = (t10[0] + (b10[0] - t10[0]) * kb, t10[1] + (b10[1] - t10[1]) * kb)
-        poly([l0, l1, b11, b01], gelapkan(c['left'], 0.28) or c['left'], False)
-        poly([r1, l1, b11, b10], gelapkan(c['right'], 0.28) or c['right'], False)
-    if g:
-        hi = terangkan(c['top'])
-        if hi:
-            for a, b in ((t00, t10), (t00, t01)):
-                d.line([tuple(map(round, a)), tuple(map(round, b))], fill=hi, width=2)
+    kam = arah_kamera()
+
+    def V(i, zf=1.0):
+        return px(e + (se if i & 1 else 0),
+                  w + (sw if i & 2 else 0),
+                  z + (sz * zf if i & 4 else 0))
+
+    wajah = [
+        ([1, 3, 7, 5], 1, 0, 0),
+        ([0, 2, 6, 4], -1, 0, 0),
+        ([2, 3, 7, 6], 0, 1, 0),
+        ([0, 1, 5, 4], 0, -1, 0),
+        ([4, 5, 7, 6], 0, 0, 1),
+    ]
+    tampak = [x for x in wajah if x[1] * kam[0] + x[2] * kam[1] + x[3] * kam[2] > 0.001]
+    tampak.sort(key=lambda x: sum(V(i)[1] for i in x[0]) / 4.0)
+
+    for idx, ne, nw, nz in tampak:
+        poly([V(i) for i in idx], warnai_wajah(c, ne, nw, nz), g)
+
+    if not g:
+        return
+
+    if sz > 0.02:
+        for idx, ne, nw, nz in tampak:
+            if nz != 0:
+                continue
+            poly([V(i, 0.26) for i in idx],
+                 gelapkan(warnai_wajah(c, ne, nw, nz), 0.28) or c['left'], False)
+
+        warna = terangkan(c['top'])
+        if warna:
+            for a, b, ne, nw in ((4, 5, 0, -1), (4, 6, -1, 0), (5, 7, 0, 1), (6, 7, 1, 0)):
+                if ne * kam[0] + nw * kam[1] > 0:
+                    continue
+                d.line([tuple(map(round, V(a))), tuple(map(round, V(b)))], fill=warna, width=2)
 
 
 def cincin(o):
@@ -194,11 +253,14 @@ def cincin(o):
 
 def _segi(bawah, atas, sudut, c, g, tutup=True):
     seg = []
+    kam = arah_kamera()
     for i in range(SEGMEN):
         j = (i + 1) % SEGMEN
         ty = (bawah[i][1] + bawah[j][1] + atas[i][1] + atas[j][1]) / 4
-        kanan = (math.cos(sudut[i]) + math.cos(sudut[j])) - (math.sin(sudut[i]) + math.sin(sudut[j]))
-        seg.append((ty, i, j, c['right'] if kanan >= 0 else c['left']))
+        ne = (math.cos(sudut[i]) + math.cos(sudut[j])) / 2
+        nw = (math.sin(sudut[i]) + math.sin(sudut[j])) / 2
+        hadap = ne * kam[0] + nw * kam[1]
+        seg.append((ty, i, j, c['right'] if hadap >= 0 else c['left']))
     for ty, i, j, warna in sorted(seg):
         poly([bawah[i], bawah[j], atas[j], atas[i]], warna, False)
     if tutup:
@@ -416,6 +478,10 @@ def draw_wall(o):
     if sz <= 0:
         return
     sisi = 'kanan' if o.get('side') == 'kanan' else 'kiri'
+    kam = arah_kamera()
+    # dinding disembunyikan bila muka DALAMnya membelakangi kamera
+    if (kam[0] if sisi == 'kiri' else kam[1]) <= 0.001:
+        return
     face, trim = wall_warna(o['style'], sisi)
     if sisi == 'kiri':
         a, b, panj = px(e, w, z), px(e, w + sw, z), sw
@@ -475,7 +541,18 @@ for o in sorted([x for x in latar if x.get('role') == 'lantai'], key=lambda x: x
 im = Image.alpha_composite(im.convert('RGBA'), AO_LAP).convert('RGB')
 d = ImageDraw.Draw(im)
 
-solid = [o for o in biasa if o.get('role') not in ('lantai', 'dinding')]
+def menempel_tersembunyi(o):
+    if o.get('role') in ('lantai', 'dinding') or o['pos']['z'] < 0.3:
+        return False
+    kam = arah_kamera()
+    if kam[0] <= 0.001 and o['pos']['e'] < 1.2:
+        return True
+    if kam[1] <= 0.001 and o['pos']['w'] < 1.2:
+        return True
+    return False
+
+
+solid = [o for o in biasa if o.get('role') not in ('lantai', 'dinding') and not menempel_tersembunyi(o)]
 latar_solid = [o for o in latar if o.get('role') not in ('lantai', 'dinding')]
 for o in sorted(latar_solid + solid,
                 key=lambda o: (o.get('urutan') is None, o.get('urutan') or 0, o['pos']['e'] + o['pos']['w'])):

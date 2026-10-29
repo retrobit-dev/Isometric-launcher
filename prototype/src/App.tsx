@@ -1,7 +1,7 @@
 import { useEffect, useRef, useState } from 'react'
 import {
   CAM, IH, IW,
-  fitToScene, setCenter, setZoom, unpx, zoomValue, zoneName,
+  fitToScene, putarKamera, setCenter, setYaw, setZoom, unpx, yawBersih, yawValue, zoomValue, zoneName,
 } from './iso/space'
 import { drawScene } from './iso/room'
 import { bboxOf, sortedObjects } from './iso/box'
@@ -142,7 +142,15 @@ export default function App() {
 
   // REFRESH: bingkai ulang diorama (seluruh ruangan masuk layar, di tengah)
   const refreshKamera = () => {
+    setYaw(0) // kembali ke sudut acuan (grid 2:1 murni)
     fitToScene(sceneRef.current.objects)
+    forceZoomLabel(v => v + 1)
+  }
+
+  // ORBIT KAMERA 15° (permintaan user 2026-10-29): putar seluruh diorama.
+  // Objek tetap sejajar grid; di 0/90/180/270 tampilannya tetap tajam 2:1.
+  const orbit = (langkah: number) => {
+    putarKamera(langkah)
     forceZoomLabel(v => v + 1)
   }
 
@@ -1039,7 +1047,12 @@ export default function App() {
                     ? simpan === 'browser' ? 'simpan: browser + file' : 'simpan: file saja (browser diblokir)'
                     : 'memuat…'}
                 </span>
-                <span>{`kamera ×${zoomValue()} (${CAM.CE.toFixed(1)}, ${CAM.CW.toFixed(1)})`}</span>
+                <span>{`kamera ×${zoomValue()} (${CAM.CE.toFixed(1)}, ${CAM.CW.toFixed(1)}) · ${yawValue()}°`}</span>
+                {!yawBersih() && (
+                  <span className="warn" title="pada sudut selain 0/90/180/270, ubin tidak lagi 2:1 (nat jadi bertangga). Tombol REFRESH mengembalikan ke 0°.">
+                    orbit {yawValue()}° — grid bukan 2:1
+                  </span>
+                )}
               </div>
             )}
           </div>
@@ -1112,8 +1125,29 @@ export default function App() {
         </button>
         <button
           className="tbtn"
+          onClick={() => orbit(-1)}
+          title="putar kamera 15° ke kiri (mengelilingi diorama)"
+        >
+          ⟲ 15°
+        </button>
+        <button
+          className="tbtn"
+          onClick={() => orbit(1)}
+          title="putar kamera 15° ke kanan (mengelilingi diorama)"
+        >
+          15° ⟳
+        </button>
+        <button
+          className="tbtn"
+          onClick={() => orbit(6)}
+          title="putar kamera 90° (tetap grid isometrik 2:1 yang tajam)"
+        >
+          90° ⟳
+        </button>
+        <button
+          className="tbtn"
           onClick={refreshKamera}
-          title="kembalikan kamera ke zoom x1 di titik (0,0)"
+          title="kembalikan kamera ke sudut acuan (0°) dan bingkai seluruh diorama"
         >
           ⟳ REFRESH
         </button>

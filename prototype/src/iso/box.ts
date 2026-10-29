@@ -1,4 +1,4 @@
-import { DENS, HW, px, type P } from './space'
+import { DENS, HW, arahKamera, px, type P } from './space'
 import { MATERIALS, UNKNOWN_STYLE } from './palette'
 import type { SceneObject } from '../scene/types'
 
@@ -102,8 +102,11 @@ export function footprintOf(o: SceneObject): { se: number; sw: number } {
     : { se: o.size.e, sw: o.size.w }
 }
 
-// Balok iso prosedural: sisi kiri-depan, kanan-depan, lalu atas.
-// Semua sisi digambar penuh (siap untuk mode orbit 3D nanti).
+// Balok iso prosedural — 6 WAJAH, dipilih lewat arah kamera.
+// Versi lama hanya menggambar 3 wajah (kiri, kanan, atas) karena kamera selalu
+// di YAW 0. Sejak ORBIT 15° (permintaan user 2026-10-29) kamera bisa berputar,
+// jadi wajah yang terlihat dihitung: wajah tampak bila normalnya menghadap
+// kamera. Urutan gambar antar-wajah memakai kedalaman layar (jauh dulu).
 export function drawBox(ctx: CanvasRenderingContext2D, o: SceneObject) {
   const { e, w, z } = o.pos
   const { se, sw } = footprintOf(o)
@@ -111,42 +114,69 @@ export function drawBox(ctx: CanvasRenderingContext2D, o: SceneObject) {
   const c0 = colorsOf(o)
   // REFLEKSI objek = cermin: sisi kiri & kanan bertukar (arah cahaya terbalik)
   const c = o.refleksi ? { top: c0.top, left: c0.right, right: c0.left } : c0
-  const t00 = px(e, w, z + sz)
-  const t10 = px(e + se, w, z + sz)
-  const t11 = px(e + se, w + sw, z + sz)
-  const t01 = px(e, w + sw, z + sz)
-  const b10 = px(e + se, w, z)
-  const b11 = px(e + se, w + sw, z)
-  const b01 = px(e, w + sw, z)
   const g = tepiOf(o)
-  poly(ctx, [t01, t11, b11, b01], c.left, g)
-  poly(ctx, [t10, t11, b11, b10], c.right, g)
-  poly(ctx, [t00, t10, t11, t01], c.top, g)
-  // PITA NADA di kaki sisi tegak: bagian bawah tiap sisi digelapkan sedikit
-  // (referensi selalu menggelapkan kaki objek — ini yang menghilangkan kesan
-  // "kotak dicat rata"). Tinggi pita 26% dari tinggi objek.
-  if (g && sz > 0.02) {
-    const kb = 0.74
-    const l0 = { x: t01.x + (b01.x - t01.x) * kb, y: t01.y + (b01.y - t01.y) * kb }
-    const l1 = { x: t11.x + (b11.x - t11.x) * kb, y: t11.y + (b11.y - t11.y) * kb }
-    const r1 = { x: t10.x + (b10.x - t10.x) * kb, y: t10.y + (b10.y - t10.y) * kb }
-    poly(ctx, [l0, l1, b11, b01], gelapkan(c.left, 0.28), false)
-    poly(ctx, [r1, l1, b11, b10], gelapkan(c.right, 0.28), false)
+  const kam = arahKamera()
+
+  /** titik sudut balok; bit 1 = e+, bit 2 = w+, bit 4 = z+ */
+  const V = (i: number, zFrac = 1): P =>
+    px(e + (i & 1 ? se : 0), w + (i & 2 ? sw : 0), z + (i & 4 ? sz * zFrac : 0))
+
+  // [indeks sudut, normal e, normal w, normal z]
+  const WAJAH: [number[], number, number, number][] = [
+    [[1, 3, 7, 5], 1, 0, 0],    // +e
+    [[0, 2, 6, 4], -1, 0, 0],   // -e
+    [[2, 3, 7, 6], 0, 1, 0],    // +w
+    [[0, 1, 5, 4], 0, -1, 0],   // -w
+    [[4, 5, 7, 6], 0, 0, 1],    // atas
+  ]
+  const tampak = WAJAH.filter(([, ne, nw, nz]) =>
+    ne * kam.e + nw * kam.w + nz * kam.z > 0.001)
+
+  const kedalaman = (idx: number[]) => idx.reduce((t, i) => t + V(i).y, 0) / idx.length
+  tampak.sort((a, b) => kedalaman(a[0]) - kedalaman(b[0]))
+
+  for (const [idx, ne, nw, nz] of tampak) {
+    poly(ctx, idx.map(i => V(i)), warnaWajah(c, ne, nw, nz), g)
   }
-  if (g) {
-    // RIM TERANG: dua sisi belakang bidang atas diberi garis lebih terang.
-    // Ini yang membuat balok terasa "kena cahaya" seperti di referensi
-    // (setiap bidang terang selalu punya bibir tipis yang lebih terang).
-    ctx.strokeStyle = terangkan(c.top)
+
+  if (!g) return
+
+  // PITA NADA: 26% kaki tiap sisi tegak digelapkan (menghilangkan kesan
+  // "kotak dicat rata"). Dipotong ke bentuk wajahnya masing-masing.
+  if (sz > 0.02) {
+    for (const [idx, ne, nw, nz] of tampak) {
+      if (nz !== 0) continue
+      poly(ctx, idx.map(i => V(i, 0.26)), gelapkan(warnaWajah(c, ne, nw, nz), 0.28), false)
+    }
+
+    // RIM TERANG di rusuk bidang atas yang menjauhi kamera
+    const warna = terangkan(c.top)
+    const rusuk: [number, number, number, number][] = [
+      [4, 5, 0, -1], [4, 6, -1, 0], [5, 7, 0, 1], [6, 7, 1, 0],
+    ]
+    ctx.strokeStyle = warna
     ctx.lineWidth = TEBAL_TEPI
     ctx.lineJoin = 'round'
-    ctx.beginPath()
-    ctx.moveTo(Math.round(t00.x), Math.round(t00.y))
-    ctx.lineTo(Math.round(t10.x), Math.round(t10.y))
-    ctx.moveTo(Math.round(t00.x), Math.round(t00.y))
-    ctx.lineTo(Math.round(t01.x), Math.round(t01.y))
-    ctx.stroke()
+    for (const [a, b, ne, nw] of rusuk) {
+      if (ne * kam.e + nw * kam.w > 0) continue
+      ctx.beginPath()
+      ctx.moveTo(Math.round(V(a).x), Math.round(V(a).y))
+      ctx.lineTo(Math.round(V(b).x), Math.round(V(b).y))
+      ctx.stroke()
+    }
   }
+}
+
+/** warna satu wajah balok menurut arah normalnya (cahaya tetap di dunia) */
+function warnaWajah(
+  c: { top: string; left: string; right: string },
+  ne: number, nw: number, nz: number,
+): string {
+  if (nz > 0.5) return c.top
+  if (ne > 0.5) return c.right     // sisi +e = kena cahaya
+  if (nw > 0.5) return c.left      // sisi +w = teduh
+  // sisi belakang (-e / -w): lebih gelap lagi supaya bentuk tetap terbaca
+  return gelapkan(c.left, 0.22)
 }
 
 // ---------------------------------------------------------------------------
@@ -189,13 +219,16 @@ function toneOf(o: SceneObject) {
 export function drawSilinder(ctx: CanvasRenderingContext2D, o: SceneObject) {
   const { bawah, atas, sudut } = cincin(o)
   const c = toneOf(o)
-  // segmen digambar dari belakang ke depan supaya saling menutup dengan benar
+  // segmen digambar dari belakang ke depan; warna dipilih dari arah KAMERA
+  // (dulu memakai aturan tetap "+e & -w = kanan", yang hanya benar di YAW 0)
+  const kam = arahKamera()
   const seg = sudut.map((t, i) => {
     const j = (i + 1) % SEGMEN
     const tengahY = (bawah[i].y + bawah[j].y + atas[i].y + atas[j].y) / 4
-    // normal keluar: +e (kanan layar) & -w (kanan layar) -> tone kanan
-    const kanan = (Math.cos(t) + Math.cos(sudut[j])) - (Math.sin(t) + Math.sin(sudut[j]))
-    return { i, j, tengahY, warna: kanan >= 0 ? c.right : c.left }
+    const ne = (Math.cos(t) + Math.cos(sudut[j])) / 2
+    const nw = (Math.sin(t) + Math.sin(sudut[j])) / 2
+    const hadap = ne * kam.e + nw * kam.w
+    return { i, j, tengahY, warna: hadap >= 0 ? c.right : c.left }
   }).sort((a, b) => a.tengahY - b.tengahY)
   const g = tepiOf(o)
   for (const s of seg) {

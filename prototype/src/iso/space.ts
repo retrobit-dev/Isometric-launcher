@@ -151,17 +151,47 @@ export function fitToScene(objs: KotakObjek[], margin = 0.95) {
     w1 = Math.max(w1, o.pos.w + o.size.w)
     zmax = Math.max(zmax, o.pos.z + o.size.z)
   }
-  const de = Math.max(0.5, e1 - e0)
-  const dw = Math.max(0.5, w1 - w0)
-  // lebar layar (px) = (de+dw)·HW ; tinggi = (de+dw)·HW/2 + zmax·HW
-  const hwLebar = (IW * margin) / (de + dw)
-  const hwTinggi = (IH * margin) / ((de + dw) / 2 + zmax)
-  applyZoom(Math.min(hwLebar, hwTinggi) / HW_BASE)
-  // titik tengah kotak + dorong ke bawah setengah tinggi dinding supaya
-  // bagian yang terpakai (dinding di atas) tetap di tengah bingkai
-  CAM.CE = (e0 + e1) / 2 - zmax / 2
-  CAM.CW = (w0 + w1) / 2 - zmax / 2
+  const ce0 = (e0 + e1) / 2
+  const cw0 = (w0 + w1) / 2
+  const { c, s } = kosYaw()
+
+  // Proyeksikan 8 titik sudut kotak pembungkus DENGAN HW = 1, lalu ukur
+  // sebarannya di layar. Cara ini benar untuk sudut kamera mana pun
+  // (sebelumnya memakai pendekatan yang hanya pas di 0°).
+  let xmin = Infinity, xmax = -Infinity, ymin = Infinity, ymax = -Infinity
+  for (const ex of [e0 - ce0, e1 - ce0]) {
+    for (const wx of [w0 - cw0, w1 - cw0]) {
+      for (const zz of [0, zmax]) {
+        const re = ex * c - wx * s
+        const rw = ex * s + wx * c
+        const x = re - rw
+        const y = (re + rw) / 2 - zz
+        xmin = Math.min(xmin, x); xmax = Math.max(xmax, x)
+        ymin = Math.min(ymin, y); ymax = Math.max(ymax, y)
+      }
+    }
+  }
+  const wLebar = Math.max(0.001, xmax - xmin)
+  const wTinggi = Math.max(0.001, ymax - ymin)
+  const hw = Math.min((IW * margin) / wLebar, (IH * margin) / wTinggi)
+  applyZoom(hw / HW_BASE)
+
+  // geser supaya PUSAT bbox proyeksi jatuh di tengah kanvas.
+  // x = (re-rw)·HW, y = (re+rw)·HH ; selesaikan Δre, Δrw lalu balik rotasi.
+  const dx = ((xmin + xmax) / 2) * hw
+  const dy = ((ymin + ymax) / 2) * hw
+  const dRe = (dx / hw + dy / (hw / 2)) / 2
+  const dRw = (dy / (hw / 2) - dx / hw) / 2
+  CAM.CE = ce0 + (dRe * c + dRw * s)
+  CAM.CW = cw0 + (-dRe * s + dRw * c)
 }
+
+/** Dinding mana yang harus disembunyikan (muka dalamnya membelakangi kamera) */
+export function dindingTersembunyi(): { kiri: boolean; kanan: boolean } {
+  const kam = arahKamera()
+  return { kiri: kam.e <= 0.001, kanan: kam.w <= 0.001 }
+}
+
 
 // terapkan zoom awal (HW/HH/ZH) sesuai posisi awal
 applyZoom(CAM.Q)
@@ -171,11 +201,75 @@ export const CY = IH / 2
 
 export interface P { x: number; y: number }
 
+// ---------------------------------------------------------------------------
+// ORBIT KAMERA — kelipatan 15 derajat (permintaan user 2026-10-29).
+//
+// Kamera boleh mengelilingi diorama. YAW = 0 berarti komposisi isometrik
+// klasik (2:1, paling tajam). Setiap kelipatan 15 derajat memutar DUNIA
+// terhadap kamera — objek tetap sejajar grid (tidak ikut miring sendiri),
+// karena itu bentuk balok/objek tidak perlu diubah, hanya arah pandang.
+//
+// Catatan jujur: pada 0/90/180/270 hasilnya tetap grid 2:1 yang tajam.
+// Di sudut lain ubin tidak lagi 2:1 (nat jadi bertangga) — itu konsekuensi
+// wajar dari kamera miring pada pixel-art, dan sengaja dibiarkan apa adanya
+// (tanpa anti-alias) supaya tetap pixel-art.
+// ---------------------------------------------------------------------------
+export const YAW_LANGKAH = 15
+export const YAW_MIN = 0
+export const YAW_MAX = 345
+export let YAW = 0
+
+export function normalYaw(deg: number): number {
+  const n = Math.round(deg / YAW_LANGKAH) * YAW_LANGKAH
+  return ((n % 360) + 360) % 360
+}
+
+export function setYaw(deg: number) {
+  YAW = normalYaw(deg)
+}
+
+/** geser orbit sejumlah langkah 15° (positif = searah jarum jam) */
+export function putarKamera(langkah: number) {
+  setYaw(YAW + langkah * YAW_LANGKAH)
+}
+
+/** sudut kamera sekarang (derajat, kelipatan 15) */
+export function yawValue(): number {
+  return YAW
+}
+
+/** true bila tampilan masih grid 2:1 murni (0/90/180/270) */
+export function yawBersih(): boolean {
+  return YAW % 90 === 0
+}
+
+function kosYaw() {
+  const a = (YAW * Math.PI) / 180
+  return { c: Math.cos(a), s: Math.sin(a) }
+}
+
+/**
+ * Vektor arah KAMERA di ruang dunia (tidak dinormalisasi).
+ * Dipakai untuk memilih wajah objek yang terlihat & sisi dinding yang tampak.
+ * YAW = 0 -> (1, 1, 1): sisi +e dan +w dan atas, sama seperti renderer lama.
+ */
+export function arahKamera(): { e: number; w: number; z: number } {
+  const { c, s } = kosYaw()
+  return { e: c + s, w: c - s, z: 1 }
+}
+
+/** putar koordinat relatif-kamera (dipakai px & fitToScene) */
+export function putarRelatif(de: number, dw: number): { e: number; w: number } {
+  const { c, s } = kosYaw()
+  return { e: de * c - dw * s, w: de * s + dw * c }
+}
+
 // Proyeksi grid (e, w, z) -> piksel internal, relatif terhadap tengah kamera
 export function px(e: number, w: number, z = 0): P {
+  const r = putarRelatif(e - CAM.CE, w - CAM.CW)
   return {
-    x: OX + ((e - CAM.CE) - (w - CAM.CW)) * HW,
-    y: CY + ((e - CAM.CE) + (w - CAM.CW)) * HH - z * ZH,
+    x: OX + (r.e - r.w) * HW,
+    y: CY + (r.e + r.w) * HH - z * ZH,
   }
 }
 
@@ -183,7 +277,11 @@ export function px(e: number, w: number, z = 0): P {
 export function unpx(sx: number, sy: number): { e: number; w: number } {
   const dx = (sx - OX) / HW
   const dy = (sy - CY) / HH
-  return { e: CAM.CE + (dy + dx) / 2, w: CAM.CW + (dy - dx) / 2 }
+  const re = (dy + dx) / 2
+  const rw = (dy - dx) / 2
+  const { c, s } = kosYaw()
+  // rotasi balik (invers): pakai sudut negatif
+  return { e: CAM.CE + (re * c + rw * s), w: CAM.CW + (-re * s + rw * c) }
 }
 
 // Zona kasar untuk instruksi: U / T / S / B / TENGAH

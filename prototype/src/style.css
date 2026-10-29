@@ -737,3 +737,13 @@ html, body, #root {
   border-left: 3px solid #b07f3f;
   border-radius: 2px;
 }
+
+/* --- chip peringatan orbit (sudut bukan kelipatan 90) --- */
+.coord .warn,
+.warn {
+  color: #f0b165;
+  background: #3a2415;
+  border: 1px solid #7a5326;
+  border-radius: 2px;
+  padding: 0 4px;
+}

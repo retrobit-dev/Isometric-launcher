@@ -265,6 +265,22 @@ ditiru renderer Kotlin (semua sudah ada di `render_scene.py`):
 | lantai | bayangan ambient 3 pita (lebar 1,0/0,66/0,33 × min(1,8; 0,22·de; 0,22·dw), alpha 20/26/41 dari `rgba(74,33,12,·)`); deck = papan dengan sambungan tiap ~0,45 tile + bibir `#d98f4a` + dasar `#4a210c` |
 | komposisi | `fitToScene()` (docs/05 §3), margin 0,95 |
 
+## 4d. Orbit kamera (2026-10-29)
+
+Kamera boleh mengelilingi diorama dalam langkah **15°**; objek tetap sejajar
+grid. Rumus & aturan lengkap: `docs/06-ORBIT-15.md`. Yang WAJIB ditiru
+renderer lain:
+
+| Elemen | Aturan |
+|---|---|
+| proyeksi | `re=(e−CE)cosφ−(w−CW)sinφ`, `rw=(e−CE)sinφ+(w−CW)cosφ`, `x=OX+(re−rw)HW`, `y=CY+(re+rw)HW/2−z·ZH` |
+| invers | putar balik dengan sudut −φ (bukan sekadar swap) |
+| wajah balok | 6 wajah, tampak bila `normal·(cosφ+sinφ, cosφ−sinφ, 1) > 0`, gambar jauh→dekat |
+| silinder | warna segmen = `hadap = ne·kameraE + nw·kameraW` (`≥0` kanan, selain itu kiri) |
+| dinding | gambar hanya bila `kameraE > 0` (sisi kiri) / `kameraW > 0` (sisi kanan) |
+| objek tempel | ikut disembunyikan bila `z ≥ 0,3` dan menempel dinding tersembunyi |
+| bingkai | bbox proyeksi 8 sudut kotak pembungkus → zoom & geser (margin 0,95) |
+
 **Hash acuan urutan gambar:** `b1d32a86ae59`
 (dihitung dari urutan `meja,buku,lampu` pada scene uji di `tests/run-kontrak.mjs`).
 Bila hash berubah, urutan gambar berubah — periksa dulu apakah disengaja,

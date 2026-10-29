@@ -1,4 +1,4 @@
-import { CAM, CY, DENS, EXT_E, EXT_W, HH, IH, IW, ROOM, ROOM_VISIBLE, TILE_W, ZH, px, type P } from './space'
+import { CAM, CY, DENS, EXT_E, EXT_W, HH, IH, IW, ROOM, ROOM_VISIBLE, TILE_W, ZH, dindingTersembunyi, px, type P } from './space'
 import { PAL, floorMat, gelapkanWarna, wallColors } from './palette'
 import { drawObject, footprintOf, sortedObjects } from './box'
 import type { SceneObject } from '../scene/types'
@@ -329,10 +329,17 @@ function drawFloorObjects(ctx: CanvasRenderingContext2D, objects: SceneObject[])
 // side 'kanan' (DT) = bidang w konstan, membentang sepanjang e.
 // Palet: sisi teduh/cahaya + plint kayu di kaki dinding (seperti palet ruangan).
 export function drawWallObjects(ctx: CanvasRenderingContext2D, objects: SceneObject[]) {
+  const sembunyi = dindingTersembunyi()
   for (const o of objects) {
     if (o.role !== 'dinding') continue
     const z0 = o.pos.z
     if (o.size.z <= 0) continue
+    // ORBIT: dinding yang muka DALAMnya membelakangi kamera disembunyikan,
+    // kalau tidak ruangan tertutup saat kamera berputar (seperti melihat
+    // kotak dari luar). Objek yang menempel dinding itu ikut disembunyikan
+    // (lihat objekMenempelDinding di bawah), supaya tidak melayang.
+    if (o.side === 'kiri' && sembunyi.kiri) continue
+    if (o.side !== 'kiri' && sembunyi.kanan) continue
 
     let a: P, b: P
     let panj: number
@@ -436,6 +443,17 @@ function drawLatarGambar(ctx: CanvasRenderingContext2D, img: CanvasImageSource, 
   ctx.drawImage(img, (IW - w) / 2, (IH - h) / 2, w, h)
 }
 
+/** true bila objek ini menempel pada dinding yang sedang disembunyikan */
+export function menempelDindingTersembunyi(o: SceneObject): boolean {
+  if (o.role === 'dinding' || o.role === 'lantai') return false
+  if (o.pos.z < 0.3) return false          // hanya barang yang dipasang di dinding
+  const sembunyi = dindingTersembunyi()
+  // dinding kiri = bidang e tetap (dekat e kecil), kanan = bidang w tetap
+  if (sembunyi.kiri && o.pos.e < 1.2) return true
+  if (sembunyi.kanan && o.pos.w < 1.2) return true
+  return false
+}
+
 export function drawScene(ctx: CanvasRenderingContext2D, o: DrawOpts) {
   ctx.fillStyle = PAL.void
   ctx.fillRect(0, 0, IW, IH)
@@ -465,7 +483,8 @@ export function drawScene(ctx: CanvasRenderingContext2D, o: DrawOpts) {
   // tiga lapis: underlay (bawah) -> main -> overlay (atas),
   // masing-masing tetap diurutkan kedalaman agar isometrik benar
   const layerOf = (x: SceneObject) => x.layer ?? 'main'
-  const solid = objek.filter(x => x.role !== 'lantai' && x.role !== 'dinding')
+  const solid = objek.filter(x =>
+    x.role !== 'lantai' && x.role !== 'dinding' && !menempelDindingTersembunyi(x))
   // LATAR lebih dulu: apa pun objek latar, selalu di belakang perabot
   for (const obj of sortedObjects(solid.filter(x => x.latar === true))) drawObject(ctx, obj)
   for (const obj of sortedObjects(solid.filter(x => x.latar !== true && layerOf(x) === 'underlay'))) drawObject(ctx, obj)
