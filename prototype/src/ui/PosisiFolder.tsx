@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from 'react'
-import { UKURAN_MIN } from '../scene/types'
+import { OPASITAS_MIN, UKURAN_MIN } from '../scene/types'
 import NumField from './NumField'
 
 /**
@@ -33,6 +33,9 @@ interface Props {
   anggota: number
   onSet: (sumbu: 'e' | 'w' | 'z', nilai: number) => void
   onSetUkuran: (sumbu: 'e' | 'w' | 'z', nilai: number) => void
+  /** transparansi seluruh isi folder (0.05..1) */
+  opasitas: number
+  onOpasitas: (nilai: number) => void
   /** putar seluruh isi folder 15° (arah −1 = kiri, +1 = kanan) */
   onPutar: (arah: 1 | -1) => void
   /** salin SELURUH isi folder menjadi folder baru */
@@ -151,6 +154,17 @@ export default function PosisiFolder(p: Props) {
           <NumField
             label="tinggi" value={p.ukuran.z} min={UKURAN_MIN}
             onChange={v => p.onSetUkuran('z', v)}
+          />
+        </div>
+
+        <div className="row">
+          <span className="rl">transparansi</span>
+          <NumField
+            label="opasitas"
+            value={p.opasitas}
+            min={OPASITAS_MIN}
+            desimal={2}
+            onChange={v => p.onOpasitas(Math.min(1, v))}
           />
         </div>
 

@@ -155,6 +155,12 @@ Aturan wajib:
 
 Field `bentuk` pada objek: `balok` (default) · `silinder` · `kerucut` · `bola` · `cakram` · `daun`.
 
+**Transparansi (`opasitas`).** Objek dengan `opasitas` < 1 digambar dengan alpha
+`opasitas` (kanvas: `globalAlpha` dikalikan, lalu dipulihkan; renderer offline
+`tools/render_scene.py` menggambar objek ke lapisan RGBA terpisah lalu
+`alpha_composite`, supaya tumpang-tindih di dalam satu objek tidak menumpuk dua
+kali). Kisaran sah 0.05–1, 2 desimal; nilai 1 = pekat dan tidak disimpan.
+
 **Grid rotasi 15°.** Semua sudut objek disimpan sebagai kelipatan **15°** (`ROTASI_GRID = 15`,
 `normalRotasi()` di `scene/types.ts`). Tombol di panel editor objek tetap melangkah **30°**
 (`ROTASI_LANGKAH`), sedangkan tombol rotasi folder melangkah **15°** (`ROTASI_FOLDER`) — kalau grid

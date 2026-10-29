@@ -174,7 +174,25 @@ try {
   cek('latar tidak ikut terhapus', sisaLatar.some(x => x.id === 'lantai2'))
   cek('folder tak dikenal -> tidak berubah', F.hapusFolder(d0, 'tidak-ada') === d0)
 
-  console.log('10. aman untuk nilai aneh')
+  console.log('10. transparansi folder')
+  const t0 = [
+    o('t1', { e: 0, w: 0, z: 0 }, { e: 1, w: 1, z: 1 }, { grup: 'g-t' }),
+    o('t2', { e: 2, w: 0, z: 0 }, { e: 1, w: 1, z: 1 }, { grup: 'g-t' }),
+    o('tk', { e: 4, w: 0, z: 0 }, { e: 1, w: 1, z: 1 }, { grup: 'g-t', kunci: 'semua' }),
+  ]
+  const pudar = F.opasitasFolder(t0, 'g-t', 0.4)
+  cek('semua anggota jadi 0.4',
+    pudar.filter(x => x.id !== 'tk').every(x => x.opasitas === 0.4),
+    pudar.map(x => String(x.opasitas)).join(','))
+  cek('objek terkunci tidak ikut pudar', pudar.find(x => x.id === 'tk').opasitas === undefined)
+  cek('posisi/ukuran tidak berubah', pudar.find(x => x.id === 't1').pos.e === 0)
+  const pekat = F.opasitasFolder(pudar, 'g-t', 1)
+  cek('opasitas 1 menghapus field', pekat.every(x => x.opasitas === undefined))
+  cek('opasitas rata-rata dihitung', F.opasitasRata(pudar, 'g-t') === 0.4,
+    String(F.opasitasRata(pudar, 'g-t')))
+  cek('rata-rata folder kosong = 1', F.opasitasRata([o('z', { e: 0, w: 0, z: 0 }, { e: 1, w: 1, z: 1 })], 'g-x') === 1)
+
+  console.log('11. aman untuk nilai aneh')
   cek('delta 0 -> objek tidak berubah', F.pindahFolder(objects, 'g-j', 'z', 2.5) === objects)
   cek('folder tak dikenal -> tidak berubah', F.pindahFolder(objects, 'tidak-ada', 'z', 9) === objects)
 } catch (e) {

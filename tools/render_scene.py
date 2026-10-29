@@ -480,6 +480,29 @@ def draw_profil(o):
 
 
 def draw_obj(o):
+    # TRANSPARANSI (permintaan user 2026-10-29): objek dengan opasitas < 1
+    # digambar ke lapisan terpisah lalu dicampur, supaya warnanya benar-benar
+    # tembus pandang (paritas dengan iso/box.ts di prototipe web).
+    op = o.get('opasitas')
+    if isinstance(op, (int, float)) and 0.05 <= op < 0.999:
+        draw_obj_alpha(o, float(op))
+        return
+    draw_obj_pekat(o)
+
+
+def draw_obj_alpha(o, op):
+    global d, im
+    simpan = d
+    lapis = Image.new('RGBA', (IW, IH), (0, 0, 0, 0))
+    d = ImageDraw.Draw(lapis)
+    draw_obj_pekat(o)
+    d = simpan
+    lapis.putalpha(lapis.getchannel('A').point(lambda v: int(v * op)))
+    im = Image.alpha_composite(im.convert('RGBA'), lapis).convert('RGB')
+    d = ImageDraw.Draw(im)
+
+
+def draw_obj_pekat(o):
     if o.get('sprite'):
         return draw_sprite(o)
     b = o.get('bentuk')

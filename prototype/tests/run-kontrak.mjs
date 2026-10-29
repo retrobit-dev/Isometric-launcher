@@ -67,6 +67,22 @@ try {
   cek('label tidak kosong', bersih.objects.every(o => o.label.length > 0))
   cek('urutan bulat', bersih.objects.every(o => o.urutan === undefined || Number.isInteger(o.urutan)))
   cek('latar di urutan pertama', bersih.objects[0].latar === true)
+  // TRANSPARANSI: dibatasi 0.05..1, dibulatkan 2 desimal, 1 = tidak ditulis
+  const opScene = store.normalisasiScene({
+    ...kotor,
+    objects: [
+      { id: 'x1', label: 'pudar', pos: { e: 0, w: 0, z: 0 }, size: { e: 1, w: 1, z: 1 }, style: 'wood', opasitas: 0.37 },
+      { id: 'x2', label: 'terlalu pudar', pos: { e: 0, w: 0, z: 0 }, size: { e: 1, w: 1, z: 1 }, style: 'wood', opasitas: 0 },
+      { id: 'x3', label: 'kebanyakan', pos: { e: 0, w: 0, z: 0 }, size: { e: 1, w: 1, z: 1 }, style: 'wood', opasitas: 9 },
+      { id: 'x4', label: 'pekat', pos: { e: 0, w: 0, z: 0 }, size: { e: 1, w: 1, z: 1 }, style: 'wood', opasitas: 1 },
+    ],
+  })
+  const op = (id) => opScene.objects.find(o => o.id === id).opasitas
+  cek('opasitas dibulatkan 2 desimal', op('x1') === 0.37, String(op('x1')))
+  cek('opasitas minimal 0.05', op('x2') === 0.05, String(op('x2')))
+  cek('opasitas > 1 dianggap pekat (field dibuang)', op('x3') === undefined, String(op('x3')))
+  cek('opasitas 1 tidak ditulis ke file', op('x4') === undefined, String(op('x4')))
+
   cek('meta hanya field yang dikenal',
     Object.keys(bersih.meta).every(k => ['locked', 'savedAt', 'latarMigrasi', 'updatedAt', 'latarGambar', 'latarMode'].includes(k)),
     Object.keys(bersih.meta).join(','))

@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from 'react'
-import { UKURAN_MIN } from '../scene/types'
+import { OPASITAS_MIN, UKURAN_MIN, normalOpasitas } from '../scene/types'
 import { FLOOR_DEFAULT, FLOOR_KEYS, MATERIAL_KEYS, WALL_STYLE_KEYS, floorMat } from '../iso/palette'
 import type { SceneObject } from '../scene/types'
 import NumField from './NumField'
@@ -200,6 +200,17 @@ export default function EditPanel(p: Props) {
         >
           {cermin ? 'CERMIN ✓' : 'NORMAL'}
         </button>
+      </div>
+      <div className="row">
+        <span className="rl">transparansi</span>
+        <NumField
+          label="opasitas"
+          value={normalOpasitas(o.opasitas)}
+          min={OPASITAS_MIN}
+          desimal={2}
+          disabled={frozen}
+          onChange={v => p.onChange({ opasitas: normalOpasitas(Math.min(1, v)) })}
+        />
       </div>
       <div className="row">
         <span className="rl">pantulan</span>

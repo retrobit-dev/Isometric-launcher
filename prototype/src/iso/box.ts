@@ -522,9 +522,20 @@ function drawProfil(ctx: CanvasRenderingContext2D, o: SceneObject) {
   poly(ctx, dpn, c.left, g)
 }
 
+/** opasitas objek (0.05..1). Tidak diisi = 1 (pekat). */
+export function opasitasOf(o: SceneObject): number {
+  const v = o.opasitas
+  if (typeof v !== 'number' || !Number.isFinite(v)) return 1
+  return Math.min(1, Math.max(0.05, v))
+}
+
 export function drawObject(ctx: CanvasRenderingContext2D, o: SceneObject) {
   const status = terapkanAnim(ctx, o)
   if (status === 'lewat') return
+  // TRANSPARANSI: hanya mengubah cara menggambar, data objek tetap utuh
+  const alphaAwal = ctx.globalAlpha
+  const op = opasitasOf(o)
+  if (op < 0.999) ctx.globalAlpha = alphaAwal * op
   if (o.bentuk === 'silinder') drawSilinder(ctx, o)
   else if (o.bentuk === 'kerucut') drawKerucut(ctx, o)
   else if (o.bentuk === 'bola') drawBola(ctx, o)
@@ -532,6 +543,7 @@ export function drawObject(ctx: CanvasRenderingContext2D, o: SceneObject) {
   else if (o.bentuk === 'daun') drawDaun(ctx, o)
   else if (o.bentuk === 'profil') drawProfil(ctx, o)
   else drawBox(ctx, o)
+  ctx.globalAlpha = alphaAwal
   if (status === 'geser') ctx.restore()
 }
 

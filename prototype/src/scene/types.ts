@@ -89,6 +89,19 @@ export function normalRotasi(deg: number): number {
   return ((b % 360) + 360) % 360
 }
 
+/** batas transparansi paling tembus pandang (5% = hampir hilang) */
+export const OPASITAS_MIN = 0.05
+
+/**
+ * TRANSPARANSI OBJEK (permintaan user 2026-10-29: "tambahkan juga fitur untuk
+ * mengatur transparasi objek dan folder").
+ * `opasitas` 0.05..1 — 1 atau tidak diisi berarti pekat (normal).
+ */
+export function normalOpasitas(v: unknown): number {
+  const n = typeof v === 'number' && Number.isFinite(v) ? v : 1
+  return Math.round(Math.min(1, Math.max(OPASITAS_MIN, n)) * 100) / 100
+}
+
 /** jumlah desimal semua angka geometri (posisi & ukuran) */
 export const GEOMETRI_DESIMAL = 3
 /** pembulatan ke 0,001 */
@@ -122,6 +135,12 @@ export interface SceneObject {
   // menukar panjang/lebar (footprint) sehingga balok berputar 90/270 derajat.
   /** derajat, kelipatan 30 (0..330) — lihat normalRotasi() */
   rotasi?: number
+  /**
+   * transparansi 0.05..1 (1/tidak diisi = pekat). Berlaku saat digambar, jadi
+   * data posisi/ukuran TIDAK berubah: hit-test, grup, kunci, dan file scene
+   * tetap sama.
+   */
+  opasitas?: number
   /** LAMA: 0..3 (= 90° per langkah). Hanya dibaca, ditulis ulang jadi `rotasi`. */
   rot?: 0 | 1 | 2 | 3
   // REFLEKSI OBJEK = objek dicerminkan (mirror): warna sisi kiri & kanan

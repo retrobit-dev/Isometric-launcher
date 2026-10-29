@@ -1,4 +1,4 @@
-import { ROTASI_FOLDER, UKURAN_MIN, normalRotasi, type SceneObject } from './types'
+import { OPASITAS_MIN, ROTASI_FOLDER, UKURAN_MIN, normalOpasitas, normalRotasi, type SceneObject } from './types'
 
 /**
  * OPERASI FOLDER (grup) — dipisah dari App.tsx supaya bisa diuji tanpa React.
@@ -259,6 +259,38 @@ export function duplikatFolder(
     }
   })
   return { objects: [...objects, ...baru], baru }
+}
+
+/**
+ * TRANSPARANSI FOLDER — permintaan user 2026-10-29: "mengatur transparasi objek
+ * dan folder". Semua anggota (termasuk sub-folder) diberi `opasitas` yang sama.
+ * Hanya mengubah cara menggambar; posisi/ukuran/grup/kunci tidak tersentuh.
+ */
+export function opasitasFolder(
+  objects: SceneObject[],
+  gid: string,
+  nilai: number,
+): SceneObject[] {
+  const op = normalOpasitas(nilai)
+  const ids = new Set(
+    anggotaFolder(objects, gid).filter(o => !o.kunci).map(o => o.id),
+  )
+  if (ids.size === 0) return objects
+  return objects.map(o => {
+    if (!ids.has(o.id)) return o
+    const sisa = { ...o }
+    if (op >= 1) delete sisa.opasitas
+    else sisa.opasitas = Math.max(OPASITAS_MIN, op)
+    return sisa
+  })
+}
+
+/** opasitas rata-rata anggota folder (dipakai kartu folder sebagai nilai awal) */
+export function opasitasRata(objects: SceneObject[], gid: string): number {
+  const anggota = anggotaFolder(objects, gid).filter(o => !o.kunci)
+  if (anggota.length === 0) return 1
+  const total = anggota.reduce((t, o) => t + normalOpasitas(o.opasitas), 0)
+  return Math.round((total / anggota.length) * 100) / 100
 }
 
 /** gabungkan dua daftar (nilai sudut minimum semua anggota, tanpa melihat kunci) */

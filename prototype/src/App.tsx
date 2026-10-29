@@ -13,7 +13,7 @@ import { LATAR_TAG, gabungLatar, geserTumpukan, hapusLatarImage, latarImageUrl, 
 import { type JenisAnim, type Scene, type SceneObject } from './scene/types'
 import EditPanel from './ui/EditPanel'
 import ObjectList from './ui/ObjectList'
-import { anggotaFolder, bboxFolder, duplikatFolder, hapusFolder, pindahFolder, putarFolder, skalaFolder, type Sumbu } from './scene/folder'
+import { anggotaFolder, bboxFolder, duplikatFolder, hapusFolder, opasitasFolder, opasitasRata, pindahFolder, putarFolder, skalaFolder, type Sumbu } from './scene/folder'
 import PosisiFolder from './ui/PosisiFolder'
 import Confirm, { type ConfirmReq } from './ui/Confirm'
 
@@ -606,6 +606,12 @@ export default function App() {
     setPanelDirty(true)
   }
 
+  // TRANSPARANSI FOLDER: semua anggota dapat opasitas yang sama.
+  const transparansiFolder = (gid: string, nilai: number) => {
+    setScene(sc => ({ ...sc, objects: opasitasFolder(sc.objects, gid, nilai) }))
+    setPanelDirty(true)
+  }
+
   // PUTAR FOLDER: seluruh isi folder berputar 15° mengelilingi poros tengahnya.
   const putarGrup = (gid: string, arah: 1 | -1) => {
     setScene(sc => ({ ...sc, objects: putarFolder(sc.objects, gid, arah) }))
@@ -1175,6 +1181,8 @@ export default function App() {
             anggota={anggotaFolderCount(geserGrup.gid)}
             onSet={(sumbu, v) => posisiFolder(geserGrup.gid, sumbu, v)}
             onSetUkuran={(sumbu, v) => ukuranFolder(geserGrup.gid, sumbu, v)}
+            opasitas={opasitasRata(scene.objects, geserGrup.gid)}
+            onOpasitas={v => transparansiFolder(geserGrup.gid, v)}
             onPutar={arah => putarGrup(geserGrup.gid, arah)}
             onDuplikat={() => duplikatGrup(geserGrup.gid)}
             onHapus={() => { hapusGrup(geserGrup.gid); setGeserGrup(null) }}

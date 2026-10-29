@@ -1,5 +1,5 @@
 import { FLOOR_DEFAULT, FLOOR_MATERIALS } from '../iso/palette'
-import { ROOM_FROM_FILE, ROOM_FIXED, normalRotasi, ukuranSah, type Scene, type SceneObject } from './types'
+import { ROOM_FROM_FILE, ROOM_FIXED, normalOpasitas, normalRotasi, ukuranSah, type Scene, type SceneObject } from './types'
 import { presetOf } from './presets'
 
 // v4: ruangan saja (fase penyamaan ruangan dengan referensi; objek menyusul)
@@ -201,6 +201,9 @@ export function normalisasiScene(scene: Scene): Scene {
         z: ukuranSah(o.size.z),
       },
       ...(o.urutan === undefined ? {} : { urutan: Math.round(o.urutan) }),
+      // TRANSPARANSI: dibatasi 0.05..1 dan dibulatkan 2 desimal; nilai 1
+      // (pekat) tidak ditulis supaya file tetap ramping.
+      ...(o.opasitas === undefined ? {} : { opasitas: normalOpasitas(o.opasitas) }),
       // ROTASI OBJEK (kelipatan 30°). Data lama `rot` 0..3 = 90° per langkah
       // dimigrasi sekali di sini; `rot` lama tidak ditulis ulang.
       ...(() => {
@@ -211,6 +214,10 @@ export function normalisasiScene(scene: Scene): Scene {
       })(),
     }
   })
+  // opasitas 1 = pekat = tidak perlu disimpan (file tetap ramping)
+  for (const o of objects) {
+    if (o.opasitas !== undefined && o.opasitas >= 1) delete o.opasitas
+  }
   objects.sort((a, b) =>
     Number(b.latar === true) - Number(a.latar === true)
     || (a.urutan ?? 0) - (b.urutan ?? 0))
@@ -487,6 +494,11 @@ export function validateScene(data: unknown): Scene | null {
       })(),
       ...(normalAnim(ob.anim) ? { anim: normalAnim(ob.anim)! } : {}),
       ...(typeof ob.refleksi === 'boolean' ? { refleksi: ob.refleksi } : {}),
+      ...(() => {
+        if (ob.opasitas === undefined) return {}
+        const op = normalOpasitas(ob.opasitas)
+        return op >= 1 ? {} : { opasitas: op }
+      })(),
       ...(typeof ob.pantulan === 'boolean' ? { pantulan: ob.pantulan } : {}),
       ...(ob.polaRot === 1 ? { polaRot: 1 as const } : {}),
       ...(ob.role === 'lantai' || ob.role === 'dinding' ? { role: ob.role } : {}),
