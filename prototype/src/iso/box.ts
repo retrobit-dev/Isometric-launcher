@@ -71,6 +71,22 @@ export function depthOf(o: SceneObject): number {
   return o.pos.e + se / 2 + o.pos.w + sw / 2
 }
 
+/**
+ * Urutan gambar: `urutan` eksplisit (dari tombol NAIKKAN / TURUNKAN) menang;
+ * yang belum punya `urutan` tetap memakai kedalaman isometrik. Nilai eksplisit
+ * selalu dianggap di atas nilai otomatis, supaya objek baru (urutan terbesar)
+ * benar-benar menimpa objek lama.
+ */
 export function sortedObjects(objects: SceneObject[]): SceneObject[] {
-  return [...objects].sort((a, b) => depthOf(a) - depthOf(b))
+  return [...objects].sort((a, b) => {
+    const ua = a.urutan
+    const ub = b.urutan
+    if (ua !== undefined && ub !== undefined) {
+      if (ua !== ub) return ua - ub
+      return depthOf(a) - depthOf(b)
+    }
+    if (ua !== undefined) return 1
+    if (ub !== undefined) return -1
+    return depthOf(a) - depthOf(b)
+  })
 }

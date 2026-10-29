@@ -9,7 +9,11 @@ interface Props {
   onResize: (de: number, dw: number, dz: number) => void
   onCycleStyle: () => void
   onCycleKunci: () => void
-  onCycleLayer: () => void
+  /** naikkan ke atas objek sebelumnya (overlay) / turunkan ke bawah objek berikutnya */
+  onRaise: () => void
+  onLower: () => void
+  /** posisi tumpukan objek ini, mis. "3 / 6" */
+  tumpukan: string
   onRotate: () => void
   onDuplicate: () => void
   onDelete: () => void
@@ -277,9 +281,23 @@ export default function EditPanel(p: Props) {
         </button>
       </div>
       <div className="row">
-        <span className="rl">layer</span>
-        <button className="sbtn wide" disabled={frozen} onClick={p.onCycleLayer}>
-          {(o.layer ?? 'main').toUpperCase()} ⟳
+        <span className="rl">tumpukan</span>
+        <span className="rv">{p.tumpukan}</span>
+        <button
+          className="sbtn wide"
+          disabled={frozen}
+          onClick={p.onRaise}
+          title="NAIKKAN: objek ini digambar di ATAS objek sebelumnya (jadi overlay terhadapnya)"
+        >
+          ▲ NAIKKAN
+        </button>
+        <button
+          className="sbtn wide"
+          disabled={frozen}
+          onClick={p.onLower}
+          title="TURUNKAN: objek ini digambar di BAWAH objek berikutnya (underlay terhadapnya)"
+        >
+          ▼ TURUNKAN
         </button>
       </div>
       <div className="row">

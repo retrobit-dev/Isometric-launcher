@@ -68,6 +68,13 @@ export interface SceneObject {
   // SUB-FOLDER: id grup induk. Grup boleh bersarang (folder di dalam folder);
   // semua anggota satu grup memakai grupNama & grupInduk yang sama.
   grupInduk?: string
+  // URUTAN TUMPUKAN (permintaan user 2026-10-29): angka bulat yang menentukan
+  // siapa digambar di atas siapa DI DALAM lapisan yang sama (semakin besar =
+  // semakin ke depan/overlay). Objek baru & hasil duplikat selalu mendapat
+  // nilai paling besar -> otomatis menimpa objek lain. Tombol NAIKKAN /
+  // TURUNKAN di panel editor & DAFTAR OBJEK hanya menukar nilai ini dengan
+  // tetangganya. Tidak diisi = urut otomatis berdasarkan kedalaman isometrik.
+  urutan?: number
   // LATAR = lapisan BACKGROUND kanvas (permintaan user 2026-10-29: kelima objek
   // lama — lantai, 2 dinding, 2 balok — dijadikan latar). Objek latar:
   //   • digambar paling bawah (di belakang semua perabot)

@@ -22,6 +22,10 @@ interface Props {
   /** keluarkan folder dari induknya (jadi folder tingkat atas) */
   onDetachGroup: (gid: string) => void
   onCycleKunci: (id: string) => void
+  /** naikkan objek ke atas objek sebelumnya (overlay) */
+  onRaise: (id: string) => void
+  /** turunkan objek ke bawah objek berikutnya (underlay) */
+  onLower: (id: string) => void
   /** pasang kembali scene dari cadangan/riwayat (objek yang hilang) */
   onRestore: (scene: Scene) => void
   /** jumlah objek LATAR (background kanvas) — tidak tampil sebagai baris */
@@ -164,6 +168,18 @@ export default function ObjectList(p: Props) {
           <span className="oltag">{roleTag(o)}</span>
           <span className="oltag">{LAYER_TAG[o.layer ?? 'main'] ?? 'M'}</span>
           <span className="olpos">e{o.pos.e} w{o.pos.w}</span>
+          <button
+            className="olbtn z"
+            disabled={frozen}
+            title="NAIKKAN — gambar objek ini di atas objek sebelumnya (overlay)"
+            onClick={ev => { ev.stopPropagation(); if (!frozen) p.onRaise(o.id) }}
+          >↑</button>
+          <button
+            className="olbtn z"
+            disabled={frozen}
+            title="TURUNKAN — gambar objek ini di bawah objek berikutnya (underlay)"
+            onClick={ev => { ev.stopPropagation(); if (!frozen) p.onLower(o.id) }}
+          >↓</button>
         </div>
       </div>
     )
@@ -275,7 +291,7 @@ export default function ObjectList(p: Props) {
         {lepas.map(o => objRow(o, false))}
       </div>
 
-      <div className="olfoot">folder bersarang · ＋SUB di dalam folder · ☐ centang · 🔒 kunci · LATAR = background</div>
+      <div className="olfoot">folder bersarang · ☐ centang · ↑↓ tumpukan · 🔒 kunci · LATAR = background</div>
     </div>
   )
 

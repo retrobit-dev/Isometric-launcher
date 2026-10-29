@@ -343,6 +343,7 @@ export function validateScene(data: unknown): Scene | null {
       ...(typeof ob.grupInduk === 'string' && ob.grupInduk ? { grupInduk: ob.grupInduk } : {}),
       ...(ob.kunci === 'warna' || ob.kunci === 'semua' ? { kunci: ob.kunci } : {}),
       ...(ob.latar === true ? { latar: true } : {}),
+      ...(typeof ob.urutan === 'number' && Number.isFinite(ob.urutan) ? { urutan: Math.round(ob.urutan) } : {}),
     })
   }
   const m = d.meta as Partial<Scene['meta']> | undefined
@@ -356,6 +357,11 @@ export function validateScene(data: unknown): Scene | null {
         palette: ROOM_FIXED.palette,
       }
     : { ...ROOM_FIXED }
+  // URUTAN: scene lama belum punya `urutan` -> diberi nilai sekali jalan
+  // mengikuti urutan gambar yang berlaku sekarang (latar dulu, lalu per layer,
+  // lalu kedalaman isometrik) supaya tampilan TIDAK berubah sedikit pun.
+  const berurut = beriUrutan(objects)
+
   const latarMigrasi = typeof m?.latarMigrasi === 'string'
     ? String(m?.latarMigrasi)
     : (objects.some(o => o.latar === true) ? LATAR_TAG : undefined)
@@ -363,7 +369,7 @@ export function validateScene(data: unknown): Scene | null {
   return {
     version: 1,
     room,
-    objects,
+    objects: berurut,
     meta: {
       locked: Boolean(m?.locked),
       savedAt: typeof m?.savedAt === 'string' ? m.savedAt : null,
@@ -391,6 +397,55 @@ export function migrasiLatar(scene: Scene): Scene {
     objects: scene.objects.map(o => ({ ...o, latar: true })),
     meta: { ...meta, latarMigrasi: LATAR_TAG },
   }
+}
+
+/**
+ * NAIKKAN / TURUNKAN (permintaan user 2026-10-29): tukar posisi tumpukan objek
+ * dengan tetangga terdekat DI LAPISAN YANG SAMA. Nilai `urutan` dirapikan dulu
+ * (0..n-1) supaya hasilnya selalu bisa diprediksi walau scene berasal dari file
+ * lama. Objek LATAR tidak ikut (selalu paling belakang).
+ */
+export function geserTumpukan(scene: Scene, id: string, arah: 1 | -1): Scene {
+  const daftar = scene.objects
+    .filter(o => o.latar !== true)
+    .sort((a, b) =>
+      (RANK_LAPISAN[a.layer ?? 'main'] ?? 1) - (RANK_LAPISAN[b.layer ?? 'main'] ?? 1)
+      || (a.urutan ?? 0) - (b.urutan ?? 0))
+  const i = daftar.findIndex(o => o.id === id)
+  if (i < 0) return scene
+  const j = i + arah
+  if (j < 0 || j >= daftar.length) return scene
+  if ((daftar[i].layer ?? 'main') !== (daftar[j].layer ?? 'main')) return scene
+  const nilai = new Map(daftar.map((o, k) => [o.id, k]))
+  const tmp = nilai.get(daftar[i].id) ?? i
+  nilai.set(daftar[i].id, nilai.get(daftar[j].id) ?? j)
+  nilai.set(daftar[j].id, tmp)
+  return { ...scene, objects: scene.objects.map(o => (nilai.has(o.id) ? { ...o, urutan: nilai.get(o.id) } : o)) }
+}
+
+/** kedalaman isometrik kasar (sama seperti depthOf di iso/box.ts) */
+function dalamOf(o: SceneObject): number {
+  const swap = (o.rot ?? 0) % 2 === 1
+  const se = swap ? o.size.w : o.size.e
+  const sw = swap ? o.size.e : o.size.w
+  return o.pos.e + se / 2 + o.pos.w + sw / 2
+}
+
+const RANK_LAPISAN: Record<string, number> = { underlay: 0, main: 1, overlay: 2 }
+
+/**
+ * Beri `urutan` pada objek yang belum punya. Urutan yang dipakai = urutan
+ * GAMBAR saat ini, jadi tidak ada perubahan tampilan; sesudah ini tumpukan
+ * bisa diatur manual lewat NAIKKAN / TURUNKAN.
+ */
+function beriUrutan(objects: SceneObject[]): SceneObject[] {
+  if (!objects.some(o => o.urutan === undefined)) return objects
+  const urut = [...objects].sort((a, b) =>
+    Number(b.latar === true) - Number(a.latar === true)
+    || (RANK_LAPISAN[a.layer ?? 'main'] ?? 1) - (RANK_LAPISAN[b.layer ?? 'main'] ?? 1)
+    || dalamOf(a) - dalamOf(b))
+  const nilai = new Map(urut.map((o, i) => [o.id, i]))
+  return objects.map(o => (o.urutan === undefined ? { ...o, urutan: nilai.get(o.id) ?? 0 } : o))
 }
 
 function num(v: unknown): number {

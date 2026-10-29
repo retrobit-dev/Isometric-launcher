@@ -6,7 +6,7 @@ import {
 import { drawScene } from './iso/room'
 import { bboxOf, sortedObjects } from './iso/box'
 import { FLOOR_DEFAULT, FLOOR_KEYS, MATERIAL_KEYS, WALL_STYLE_KEYS } from './iso/palette'
-import { LATAR_TAG, gabungLatar, loadCandidates, loadDraft, loadLocked, loadSceneFile, objekBiasa, objekLatar, saveDraftGuarded, saveLocked, saveSceneFile, storageWorks, validateScene } from './scene/store'
+import { LATAR_TAG, gabungLatar, geserTumpukan, loadCandidates, loadDraft, loadLocked, loadSceneFile, objekBiasa, objekLatar, saveDraftGuarded, saveLocked, saveSceneFile, storageWorks, validateScene } from './scene/store'
 import { type Scene, type SceneObject } from './scene/types'
 import EditPanel from './ui/EditPanel'
 import ObjectList from './ui/ObjectList'
@@ -340,6 +340,15 @@ export default function App() {
   }
 
   // --- aksi editor (docs/03 §4) ---
+  const urutanTeratas = () =>
+    sceneRef.current.objects.reduce((m, o) => Math.max(m, o.urutan ?? -1), -1) + 1
+
+  // NAIKKAN / TURUNKAN: logikanya ada di scene/store.ts (geserTumpukan)
+  const geser = (id: string, arah: 1 | -1) => {
+    setScene(s => geserTumpukan(s, id, arah))
+    setPanelDirty(true)
+  }
+
   const addObject = () => {
     const n = sceneRef.current.objects.length + 1
     const id = `objek-${n}-${Date.now().toString(36).slice(-3)}`
@@ -347,6 +356,8 @@ export default function App() {
       id, label: `Objek ${n}`,
       pos: { e: 6, w: 6, z: 0 }, size: { e: 2, w: 1, z: 1 },
       style: 'wood', app: null, layer: 'main',
+      // permintaan user 2026-10-29: objek baru otomatis di ATAS objek lain
+      urutan: urutanTeratas(),
     }
     setScene(s => ({ ...s, objects: [...s.objects, obj] }))
     setSelectedId(id)
@@ -364,9 +375,11 @@ export default function App() {
         // salinan berdiri sendiri: lepas dari grup & dari kunci objek asal
         grup: undefined,
         kunci: undefined,
-        // permintaan user 2026-10-28: hasil duplikat SELALU layer overlay
-        // supaya langsung terlihat di atas objek lain
-        layer: 'overlay',
+        // duplikat selalu di ATAS objek lain (permintaan user 2026-10-29:
+        // tumpukan diatur lewat `urutan`, bukan lagi memaksa layer overlay
+        // yang akan mengunci salinan di paling atas selamanya)
+        layer: 'main',
+        urutan: urutanTeratas(),
       }],
     }))
     setSelectedId(nid)
@@ -598,6 +611,17 @@ export default function App() {
     terjadwal()
   }
 
+  // posisi tumpukan objek (mis. "3 / 6") untuk ditampilkan di panel editor
+  const tumpukanDari = (id: string): string => {
+    const o = scene.objects.find(x => x.id === id)
+    if (!o) return '-'
+    const satu = scene.objects
+      .filter(x => x.latar !== true && (x.layer ?? 'main') === (o.layer ?? 'main'))
+      .sort((a, b) => (a.urutan ?? 0) - (b.urutan ?? 0))
+    const i = satu.findIndex(x => x.id === id)
+    return `${i + 1} / ${satu.length}`
+  }
+
   // --- bingkai tablet ---
   // ROTASI selalu AUTO: orientasi perangkat mengikuti bentuk jendela
   const rotated = vp.h > vp.w
@@ -790,11 +814,9 @@ export default function App() {
             patchObject(selected.id, { rot: (((cur + 1) % 4) as 0 | 1 | 2 | 3) })
           }}
           onCycleKunci={() => cycleKunci(selected.id)}
-          onCycleLayer={() => {
-            const order = ['underlay', 'main', 'overlay'] as const
-            const cur = selected.layer ?? 'main'
-            patchObject(selected.id, { layer: order[(order.indexOf(cur) + 1) % order.length] })
-          }}
+          onRaise={() => geser(selected.id, 1)}
+          onLower={() => geser(selected.id, -1)}
+          tumpukan={tumpukanDari(selected.id)}
           onDuplicate={() => duplicateObject(selected.id)}
           onDelete={() => requestDelete(selected.id)}
           onClose={() => setSelectedId(null)}
@@ -828,6 +850,8 @@ export default function App() {
           onDetachGroup={gid => detachGroup(gid)}
           onUngroup={ungroupSelected}
           onCycleKunci={id => cycleKunci(id)}
+          onRaise={id => geser(id, 1)}
+          onLower={id => geser(id, -1)}
           onRestore={sc => restoreScene(sc)}
           onClose={() => setShowList(false)}
         />

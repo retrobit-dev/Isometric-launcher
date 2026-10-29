@@ -447,6 +447,16 @@ html, body, #root {
   color: #6f7590;
 }
 
+/* tombol tumpukan (naikkan / turunkan) di baris objek */
+.olbtn.z {
+  width: 17px;
+  height: 15px;
+  font-size: 10px;
+  line-height: 1;
+  color: #9fb2d9;
+}
+.olbtn.z:disabled { opacity: 0.3; }
+
 .olbtn {
   flex: none;
   width: 20px;
