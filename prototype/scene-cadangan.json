@@ -1,1 +1,278 @@
-{"savedAt":"2026-10-29T06:40:10.105Z","scene":{"version":1,"room":{"e":20,"w":20,"wallZ":9.5,"palette":"malam-biru"},"objects":[{"id":"lantai","label":"Lantai Ruangan","pos":{"e":0,"w":0,"z":0},"size":{"e":20,"w":20,"z":0.2},"style":"lantai-kayu-terang","app":null,"role":"lantai","layer":"main","latar":true,"urutan":0},{"id":"dinding-db","label":"Dinding Kiri (DB)","pos":{"e":0,"w":0,"z":0},"size":{"e":0.2,"w":20,"z":25},"style":"dinding-krem","app":null,"role":"dinding","side":"kiri","layer":"main","latar":true,"urutan":1},{"id":"dinding-dt","label":"Dinding Kanan (DT)","pos":{"e":0,"w":0,"z":0},"size":{"e":20,"w":0.2,"z":25},"style":"dinding-krem","app":null,"role":"dinding","side":"kanan","layer":"main","latar":true,"urutan":2},{"id":"jendela-1","label":"JENDELA 1","pos":{"e":12.308,"w":0,"z":7.441},"size":{"e":4.385,"w":0.5,"z":4.271},"style":"kaca-terang","app":null,"layer":"main","grup":"grup-jendela","grupNama":"JENDELA","preset":"jendela","langit":true,"urutan":0},{"id":"jendela-5","label":"JENDELA 5","pos":{"e":12.9,"w":0.9,"z":7.6},"size":{"e":5,"w":1.2,"z":0.5},"style":"kayu-gelap","app":null,"rotasi":180,"layer":"main","grup":"grup-jendela","grupNama":"JENDELA","preset":"jendela","urutan":1},{"id":"jendela-3","label":"JENDELA 3","pos":{"e":16.692,"w":0,"z":7.154},"size":{"e":0.308,"w":0.5,"z":4.846},"style":"kayu-gelap","app":null,"layer":"main","grup":"grup-jendela","grupNama":"JENDELA","preset":"jendela","urutan":2},{"id":"jendela-2","label":"JENDELA 2","pos":{"e":12,"w":0,"z":7.154},"size":{"e":0.308,"w":0.5,"z":4.846},"style":"kayu-gelap","app":null,"layer":"main","grup":"grup-jendela","grupNama":"JENDELA","preset":"jendela","urutan":3},{"id":"jendela-4","label":"JENDELA 4","pos":{"e":12,"w":0,"z":11.712},"size":{"e":5,"w":0.5,"z":0.288},"style":"kayu-gelap","app":null,"layer":"main","grup":"grup-jendela","grupNama":"JENDELA","preset":"jendela","urutan":4}],"meta":{"locked":true,"savedAt":"2026-10-29T06:39:32.041Z","latarMigrasi":"latar-v1","updatedAt":"2026-10-29T06:40:09.488Z"}}}
+{
+ "savedAt": "2026-10-29T06:53:19.071Z",
+ "scene": {
+  "version": 1,
+  "room": {
+   "e": 20,
+   "w": 20,
+   "wallZ": 9.5,
+   "palette": "malam-biru"
+  },
+  "objects": [
+   {
+    "id": "lantai",
+    "label": "Lantai Ruangan",
+    "pos": {
+     "e": 0,
+     "w": 0,
+     "z": 0
+    },
+    "size": {
+     "e": 20,
+     "w": 20,
+     "z": 0.2
+    },
+    "style": "lantai-kayu-terang",
+    "app": null,
+    "role": "lantai",
+    "layer": "main",
+    "latar": true,
+    "urutan": 0
+   },
+   {
+    "id": "dinding-db",
+    "label": "Dinding Kiri (DB)",
+    "pos": {
+     "e": 0,
+     "w": 0,
+     "z": 0
+    },
+    "size": {
+     "e": 0.2,
+     "w": 20,
+     "z": 25
+    },
+    "style": "dinding-krem",
+    "app": null,
+    "role": "dinding",
+    "side": "kiri",
+    "layer": "main",
+    "latar": true,
+    "urutan": 1
+   },
+   {
+    "id": "dinding-dt",
+    "label": "Dinding Kanan (DT)",
+    "pos": {
+     "e": 0,
+     "w": 0,
+     "z": 0
+    },
+    "size": {
+     "e": 20,
+     "w": 0.2,
+     "z": 25
+    },
+    "style": "dinding-krem",
+    "app": null,
+    "role": "dinding",
+    "side": "kanan",
+    "layer": "main",
+    "latar": true,
+    "urutan": 2
+   },
+   {
+    "id": "jendela-1",
+    "label": "JENDELA 1",
+    "pos": {
+     "e": 13.308,
+     "w": 0,
+     "z": 7.287
+    },
+    "size": {
+     "e": 4.385,
+     "w": 0.5,
+     "z": 4.271
+    },
+    "style": "kaca-terang",
+    "app": null,
+    "layer": "main",
+    "grup": "grup-jendela",
+    "grupNama": "JENDELA",
+    "preset": "jendela",
+    "langit": true,
+    "urutan": 0
+   },
+   {
+    "id": "jendela-5",
+    "label": "JENDELA 5",
+    "pos": {
+     "e": 13.9,
+     "w": 0.9,
+     "z": 7.446
+    },
+    "size": {
+     "e": 5,
+     "w": 1.2,
+     "z": 0.5
+    },
+    "style": "kayu-gelap",
+    "app": null,
+    "rotasi": 180,
+    "layer": "main",
+    "grup": "grup-jendela",
+    "grupNama": "JENDELA",
+    "preset": "jendela",
+    "urutan": 1
+   },
+   {
+    "id": "jendela-3",
+    "label": "JENDELA 3",
+    "pos": {
+     "e": 17.692,
+     "w": 0,
+     "z": 7
+    },
+    "size": {
+     "e": 0.308,
+     "w": 0.5,
+     "z": 4.846
+    },
+    "style": "kayu-gelap",
+    "app": null,
+    "layer": "main",
+    "grup": "grup-jendela",
+    "grupNama": "JENDELA",
+    "preset": "jendela",
+    "urutan": 2
+   },
+   {
+    "id": "jendela-2",
+    "label": "JENDELA 2",
+    "pos": {
+     "e": 13,
+     "w": 0,
+     "z": 7
+    },
+    "size": {
+     "e": 0.308,
+     "w": 0.5,
+     "z": 4.846
+    },
+    "style": "kayu-gelap",
+    "app": null,
+    "layer": "main",
+    "grup": "grup-jendela",
+    "grupNama": "JENDELA",
+    "preset": "jendela",
+    "urutan": 3
+   },
+   {
+    "id": "jendela-4",
+    "label": "JENDELA 4",
+    "pos": {
+     "e": 13,
+     "w": 0,
+     "z": 11.558
+    },
+    "size": {
+     "e": 5,
+     "w": 0.5,
+     "z": 0.288
+    },
+    "style": "kayu-gelap",
+    "app": null,
+    "layer": "main",
+    "grup": "grup-jendela",
+    "grupNama": "JENDELA",
+    "preset": "jendela",
+    "urutan": 4
+   },
+   {
+    "id": "grup-jendela-tirai-1-3",
+    "label": "TIRAI 1",
+    "pos": {
+     "e": 16.248,
+     "w": 0.18,
+     "z": 7.027
+    },
+    "size": {
+     "e": 0.26,
+     "w": 0.1,
+     "z": 4.14
+    },
+    "style": "tirai-putih",
+    "app": null,
+    "layer": "main",
+    "grup": "grup-jendela",
+    "grupNama": "JENDELA",
+    "preset": "jendela",
+    "tepi": false,
+    "urutan": 13
+   },
+   {
+    "id": "grup-jendela-tirai-2-3",
+    "label": "TIRAI 2",
+    "pos": {
+     "e": 16.508,
+     "w": 0.18,
+     "z": 7.027
+    },
+    "size": {
+     "e": 0.28,
+     "w": 0.1,
+     "z": 4.14
+    },
+    "style": "lilin",
+    "app": null,
+    "layer": "main",
+    "grup": "grup-jendela",
+    "grupNama": "JENDELA",
+    "preset": "jendela",
+    "tepi": false,
+    "urutan": 14
+   },
+   {
+    "id": "grup-jendela-tirai-3-3",
+    "label": "TIRAI 3",
+    "pos": {
+     "e": 16.788,
+     "w": 0.18,
+     "z": 7.027
+    },
+    "size": {
+     "e": 0.24,
+     "w": 0.1,
+     "z": 4.14
+    },
+    "style": "tirai-putih",
+    "app": null,
+    "layer": "main",
+    "grup": "grup-jendela",
+    "grupNama": "JENDELA",
+    "preset": "jendela",
+    "tepi": false,
+    "urutan": 15
+   },
+   {
+    "id": "grup-jendela-tirai-4-3",
+    "label": "TIRAI 4",
+    "pos": {
+     "e": 16.248,
+     "w": 0.18,
+     "z": 7.027
+    },
+    "size": {
+     "e": 1,
+     "w": 0.1,
+     "z": 0.14
+    },
+    "style": "lilin",
+    "app": null,
+    "layer": "main",
+    "grup": "grup-jendela",
+    "grupNama": "JENDELA",
+    "preset": "jendela",
+    "tepi": false,
+    "urutan": 16
+   }
+  ],
+  "meta": {
+   "locked": false,
+   "savedAt": "2026-10-29T06:39:32.041Z",
+   "latarMigrasi": "latar-v1",
+   "updatedAt": "2026-10-29T06:53:18.468Z",
+   "tiraiV1": true
+  }
+ }
+}

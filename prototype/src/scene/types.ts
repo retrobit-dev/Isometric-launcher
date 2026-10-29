@@ -142,6 +142,12 @@ export interface SceneObject {
    */
   langit?: boolean
   /**
+   * Bagian TIRAI (kain) hasil preset jendela. Penanda ini dipakai supaya
+   * migrasi tidak menambahkan tirai dua kali dan supaya user bisa menghapusnya
+   * tanpa tirai muncul lagi saat aplikasi dibuka.
+   */
+  tirai?: boolean
+  /**
    * transparansi 0.05..1 (1/tidak diisi = pekat). Berlaku saat digambar, jadi
    * data posisi/ukuran TIDAK berubah: hit-test, grup, kunci, dan file scene
    * tetap sama.
@@ -242,6 +248,9 @@ export interface SceneMeta {
   // penanda migrasi LATAR sekali jalan: bila terisi, objek lama TIDAK lagi
   // otomatis dipindahkan ke latar (supaya "BUKA LATAR" tidak terulang).
   latarMigrasi?: string
+  // penanda migrasi TIRAI sekali jalan (2026-10-29): setelah true, tirai yang
+  // SENGAJA dihapus user tidak ditambahkan lagi saat aplikasi dibuka.
+  tiraiV1?: boolean
   // CAP WAKTU SIMPAN TERAKHIR (ISO). Dipakai saat aplikasi dibuka untuk
   // memilih mana yang lebih baru: draf browser atau file .isola-scene.json.
   // Tanpa ini, tab lama yang baru dibuka bisa menimpa file dengan scene usang.

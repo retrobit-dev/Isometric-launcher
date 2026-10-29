@@ -214,6 +214,8 @@ export function normalisasiScene(scene: Scene): Scene {
       // KACA LANGIT dinamis (jendela): dibawa bila true, atau dinyalakan
       // otomatis untuk scene lama yang bagian kacanya belum bertanda.
       ...(o.langit === true || perluLangit(o) ? { langit: true } : {}),
+      // TIRAI: penanda bagian kain ikut disimpan (lihat migrasiTirai)
+      ...(o.tirai === true ? { tirai: true } : {}),
       // TRANSPARANSI: dibatasi 0.05..1 dan dibulatkan 2 desimal; nilai 1
       // (pekat) tidak ditulis supaya file tetap ramping.
       ...(o.opasitas === undefined ? {} : { opasitas: normalOpasitas(o.opasitas) }),
@@ -245,12 +247,13 @@ export function normalisasiScene(scene: Scene): Scene {
       // cap waktu simpan WAJIB ikut saat scene dibaca dari file, kalau tidak
       // perbandingan "mana yang lebih baru" saat boot selalu kalah ke draf.
       ...(typeof scene.meta?.updatedAt === 'string' ? { updatedAt: scene.meta.updatedAt } : {}),
-    ...(typeof scene.meta?.latarGambar === 'string' ? { latarGambar: scene.meta.latarGambar } : {}),
-    ...(scene.meta?.latarMode === 'muat' || scene.meta?.latarMode === 'isi'
-      ? { latarMode: scene.meta.latarMode } : {}),
       ...(typeof scene.meta?.latarGambar === 'string' ? { latarGambar: scene.meta.latarGambar } : {}),
       ...(scene.meta?.latarMode === 'muat' || scene.meta?.latarMode === 'isi'
         ? { latarMode: scene.meta.latarMode } : {}),
+      // PENANDA MIGRASI TIRAI (2026-10-29). WAJIB ikut: tanpa ini, setiap kali
+      // scene dinormalisasi penandanya hilang, migrasi jalan lagi di boot, dan
+      // tirai terpasang BERULANG (kejadian nyata: 4 tirai jadi 8).
+      ...(scene.meta?.tiraiV1 === true ? { tiraiV1: true } : {}),
     },
   }
 }
@@ -668,6 +671,7 @@ export function validateScene(data: unknown): Scene | null {
       ...(typeof m?.updatedAt === 'string' ? { updatedAt: m.updatedAt } : {}),
       ...(typeof m?.latarGambar === 'string' ? { latarGambar: m.latarGambar } : {}),
       ...(m?.latarMode === 'muat' || m?.latarMode === 'isi' ? { latarMode: m.latarMode } : {}),
+      ...(m?.tiraiV1 === true ? { tiraiV1: true } : {}),
     },
   }
 }
