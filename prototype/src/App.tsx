@@ -6,7 +6,9 @@ import {
 import { drawScene } from './iso/room'
 import { bboxOf, sortedObjects } from './iso/box'
 import { FLOOR_DEFAULT, FLOOR_KEYS, MATERIAL_KEYS, WALL_STYLE_KEYS } from './iso/palette'
-import { LATAR_TAG, gabungLatar, geserTumpukan, loadCandidates, loadDraft, loadLocked, loadSceneFile, objekBiasa, objekLatar, saveDraftGuarded, saveLocked, saveSceneFile, storageWorks, validateScene } from './scene/store'
+import PresetPicker from './ui/PresetPicker'
+import { buatPreset, type Preset } from './scene/presets'
+import { LATAR_TAG, gabungLatar, geserTumpukan, loadCandidates, loadDraft, loadLocked, loadSceneFile, normalisasiScene, objekBiasa, objekLatar, saveDraftGuarded, saveLocked, saveSceneFile, storageWorks, validateScene } from './scene/store'
 import { type Scene, type SceneObject } from './scene/types'
 import EditPanel from './ui/EditPanel'
 import ObjectList from './ui/ObjectList'
@@ -41,6 +43,7 @@ export default function App() {
   // di server dev) — ditampilkan di chip supaya user tahu data aman atau tidak
   const [simpan, setSimpan] = useState<'browser' | 'file'>('browser')
   const [panelDirty, setPanelDirty] = useState(false) // perubahan panel editor belum disimpan eksplisit
+  const [showPreset, setShowPreset] = useState(false) // pemilih objek (+ TAMBAH)
   const [dimuat, setDimuat] = useState(false)
   // KLIK OBJEK = HANYA INFO (permintaan user 2026-10-28: "objek dipilih dari
   // tombol objek, klik objek hanya memberi informasi nama objek").
@@ -363,6 +366,23 @@ export default function App() {
     setSelectedId(id)
   }
 
+  // TAMBAH PRESET: satu objek katalog = satu folder berisi beberapa balok
+  const tambahPreset = (preset: Preset) => {
+    const gid = `grup-${Date.now().toString(36).slice(-4)}`
+    const idAwal = `${preset.id}-${Date.now().toString(36).slice(-3)}`
+    const snap2 = (v: number) => Math.round(v * 10) / 10
+    const e = snap2(Math.max(0, CAM.CE - preset.lebar / 2))
+    const w = snap2(Math.max(0, CAM.CW - preset.dalam / 2))
+    const parts = buatPreset({
+      preset, e, w, z: 0,
+      grup: gid, nama: preset.nama,
+      urutanAwal: urutanTeratas(), idAwal,
+    })
+    setScene(s => ({ ...s, objects: [...s.objects, ...parts] }))
+    setSelectedId(parts[0]?.id ?? null)
+    setShowPreset(false)
+  }
+
   const duplicateObject = (id: string) => {
     const src = sceneRef.current.objects.find(o => o.id === id)
     if (!src) return
@@ -541,7 +561,8 @@ export default function App() {
     setMode('edit')
   }
 
-  const exportJSON = () => JSON.stringify(scene, null, 2)
+  // EXPORT/SALIN JSON juga dinormalisasi (kontrak renderer docs/04)
+  const exportJSON = () => JSON.stringify(normalisasiScene(scene), null, 2)
 
   // SALIN JSON: satu ketuk ke clipboard (permintaan user)
   const [copied, setCopied] = useState(false)
@@ -728,7 +749,11 @@ export default function App() {
             >
               MODE: {mode.toUpperCase()}
             </button>
-            {mode === 'edit' && <button className="tbtn" onClick={addObject}>+ TAMBAH</button>}
+            {mode === 'edit' && (
+              <button className="tbtn" onClick={() => setShowPreset(true)} title="tambah objek: pilih dari katalog atau balok kosong">
+                + TAMBAH
+              </button>
+            )}
             <button
               className={showList ? 'tbtn on' : 'tbtn'}
               onClick={() => setShowList(v => !v)}
@@ -855,6 +880,14 @@ export default function App() {
           <button className="sbtn" onClick={undoDelete}>URUNGKAN</button>
           <button className="sbtn" onClick={() => setUndo(null)}>✕</button>
         </div>
+      )}
+
+      {showPreset && (
+        <PresetPicker
+          onPick={pr => tambahPreset(pr)}
+          onBlank={() => { addObject(); setShowPreset(false) }}
+          onClose={() => setShowPreset(false)}
+        />
       )}
 
       {modal && (

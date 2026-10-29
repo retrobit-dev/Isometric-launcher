@@ -136,6 +136,48 @@ export function storageWorks(): boolean {
   }
 }
 
+/**
+ * NORMALISASI sebelum scene keluar dari editor (file .isola-scene.json,
+ * EXPORT/UNDUH, dan salin JSON). Tujuannya supaya APK tidak pernah menerima
+ * variasi liar: semua angka kelipatan 0.1, ukuran minimal 0.1, id unik,
+ * label terisi, urutan tumpukan bulat, dan urutan array stabil
+ * (latar dulu, lalu urutan tumpukan). Lihat docs/04-KONTRAK-RENDERER.md.
+ */
+export function normalisasiScene(scene: Scene): Scene {
+  const snap = (v: number) => Math.round((Number.isFinite(v) ? v : 0) * 10) / 10
+  const dipakai = new Set<string>()
+  const objects = scene.objects.map((o, i) => {
+    let id = (o.id ?? '').trim() || `objek-${i + 1}`
+    while (dipakai.has(id)) id = `${id}-${i + 1}`
+    dipakai.add(id)
+    return {
+      ...o,
+      id,
+      label: (o.label ?? '').trim() || id,
+      pos: { e: snap(o.pos.e), w: snap(o.pos.w), z: snap(o.pos.z) },
+      size: {
+        e: Math.max(0.1, snap(o.size.e)),
+        w: Math.max(0.1, snap(o.size.w)),
+        z: Math.max(0.1, snap(o.size.z)),
+      },
+      ...(o.urutan === undefined ? {} : { urutan: Math.round(o.urutan) }),
+    }
+  })
+  objects.sort((a, b) =>
+    Number(b.latar === true) - Number(a.latar === true)
+    || (a.urutan ?? 0) - (b.urutan ?? 0))
+  return {
+    ...scene,
+    version: 1,
+    objects,
+    meta: {
+      locked: Boolean(scene.meta?.locked),
+      savedAt: scene.meta?.savedAt ?? null,
+      ...(scene.meta?.latarMigrasi ? { latarMigrasi: scene.meta.latarMigrasi } : {}),
+    },
+  }
+}
+
 /** scene terakhir di file server (null bila belum ada / gagal) */
 export async function loadSceneFile(): Promise<Scene | null> {
   try {
@@ -165,7 +207,8 @@ export async function saveSceneFile(scene: Scene, izinkanKosong = false): Promis
     const r = await fetch(API_SCENE, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ savedAt: new Date().toISOString(), scene }),
+      // file selalu NORMAL: APK tidak boleh menerima angka kotor
+      body: JSON.stringify({ savedAt: new Date().toISOString(), scene: normalisasiScene(scene) }),
     })
     return r.ok
   } catch {

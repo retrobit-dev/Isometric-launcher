@@ -1,0 +1,382 @@
+{
+  "versi": "palet-v1",
+  "dibuat": "2026-10-29",
+  "materi": {
+    "wood": {
+      "top": "#a9764f",
+      "left": "#8a5c3c",
+      "right": "#754c31"
+    },
+    "wood-dark": {
+      "top": "#8a5c3c",
+      "left": "#6e4a30",
+      "right": "#5c3d28"
+    },
+    "metal": {
+      "top": "#9aa1b2",
+      "left": "#767d8f",
+      "right": "#62687a"
+    },
+    "paper": {
+      "top": "#ded7c2",
+      "left": "#b8b2a0",
+      "right": "#a49e8c"
+    },
+    "teal": {
+      "top": "#5f8f8a",
+      "left": "#4a736f",
+      "right": "#3d5f5c"
+    },
+    "cream": {
+      "top": "#cfc8b4",
+      "left": "#aaa493",
+      "right": "#96907f"
+    },
+    "amber": {
+      "top": "#d9a05b",
+      "left": "#b07f3f",
+      "right": "#96692f"
+    },
+    "slate": {
+      "top": "#565d78",
+      "left": "#434a63",
+      "right": "#383e54"
+    },
+    "crimson": {
+      "top": "#a8574f",
+      "left": "#87453e",
+      "right": "#703a34"
+    },
+    "sage": {
+      "top": "#6f8f6a",
+      "left": "#597455",
+      "right": "#4a6147"
+    },
+    "night-wood": {
+      "top": "#c08552",
+      "left": "#8f5f3a",
+      "right": "#7a4f30"
+    },
+    "board": {
+      "top": "#e8e4c9",
+      "left": "#c9c4b0",
+      "right": "#b5b09c"
+    },
+    "cork": {
+      "top": "#b9895a",
+      "left": "#96693f",
+      "right": "#825836"
+    },
+    "metal-light": {
+      "top": "#a8aec9",
+      "left": "#8890ad",
+      "right": "#767e99"
+    },
+    "curtain": {
+      "top": "#b9bdd9",
+      "left": "#9aa0c0",
+      "right": "#8890b0"
+    },
+    "plant": {
+      "top": "#5f9e6a",
+      "left": "#4a7f55",
+      "right": "#3d6846"
+    },
+    "terracotta": {
+      "top": "#b06a4a",
+      "left": "#8f5339",
+      "right": "#7a4630"
+    },
+    "chair-dark": {
+      "top": "#3a3f52",
+      "left": "#2e3345",
+      "right": "#252a3a"
+    },
+    "lamp-amber": {
+      "top": "#e8b060",
+      "left": "#c08c42",
+      "right": "#a5763a"
+    },
+    "book-red": {
+      "top": "#a05252",
+      "left": "#834242",
+      "right": "#6f3838"
+    },
+    "book-green": {
+      "top": "#5d7f63",
+      "left": "#4b6850",
+      "right": "#3f5744"
+    },
+    "book-blue": {
+      "top": "#5a6f9e",
+      "left": "#485a82",
+      "right": "#3d4d6f"
+    },
+    "paper-night": {
+      "top": "#d9d6c8",
+      "left": "#b3b0a2",
+      "right": "#9c998c"
+    },
+    "pastel-mint": {
+      "top": "#bfe3d0",
+      "left": "#a5d4bc",
+      "right": "#8fc4aa"
+    },
+    "pastel-peach": {
+      "top": "#f6cfb8",
+      "left": "#e8b79c",
+      "right": "#d9a387"
+    },
+    "pastel-lavender": {
+      "top": "#d6cdeb",
+      "left": "#beb3db",
+      "right": "#a79bc9"
+    },
+    "pastel-blue": {
+      "top": "#c6dcf2",
+      "left": "#adcae6",
+      "right": "#95b6d6"
+    },
+    "pastel-butter": {
+      "top": "#f4e7b8",
+      "left": "#e6d79f",
+      "right": "#d4c489"
+    },
+    "pastel-rose": {
+      "top": "#f2c7cf",
+      "left": "#e2afb9",
+      "right": "#ce99a4"
+    },
+    "pastel-sage": {
+      "top": "#cfe0c4",
+      "left": "#b9cfac",
+      "right": "#a3be96"
+    },
+    "pastel-clay": {
+      "top": "#e7cdbb",
+      "left": "#d6b7a1",
+      "right": "#c2a08a"
+    }
+  },
+  "lantai": {
+    "lantai-kayu": {
+      "pattern": "papan",
+      "tones": [
+        "#b98a58",
+        "#b3824e",
+        "#bf9060"
+      ],
+      "grout": "#8f6a44",
+      "skirtL": "#7a5530",
+      "skirtR": "#86603a",
+      "plank": 4,
+      "grain": "#a1743f"
+    },
+    "lantai-kayu-terang": {
+      "pattern": "papan",
+      "tones": [
+        "#d3a771",
+        "#cb9d66",
+        "#dab27c"
+      ],
+      "grout": "#a67c4c",
+      "skirtL": "#8a6238",
+      "skirtR": "#94683c",
+      "plank": 4,
+      "grain": "#bb8d58"
+    },
+    "lantai-kayu-gelap": {
+      "pattern": "papan",
+      "tones": [
+        "#8a5c3c",
+        "#815537",
+        "#94633f"
+      ],
+      "grout": "#5f4029",
+      "skirtL": "#4a3222",
+      "skirtR": "#553a28",
+      "plank": 4,
+      "grain": "#6f482d"
+    },
+    "lantai-pastel-krem": {
+      "pattern": "papan",
+      "tones": [
+        "#f3e3c7",
+        "#ebdaba",
+        "#f7ebd3"
+      ],
+      "grout": "#d9c6a5",
+      "skirtL": "#c9b58f",
+      "skirtR": "#d5c29b",
+      "plank": 4,
+      "grain": "#e3d0ae"
+    },
+    "lantai-pastel-sakura": {
+      "pattern": "papan",
+      "tones": [
+        "#f6dcdd",
+        "#f0d2d4",
+        "#fbe6e7"
+      ],
+      "grout": "#dcc0c2",
+      "skirtL": "#cdaeb1",
+      "skirtR": "#d9bcc0",
+      "plank": 4,
+      "grain": "#e8cbce"
+    },
+    "lantai-pastel-mint": {
+      "pattern": "papan",
+      "tones": [
+        "#dcefe4",
+        "#d3e8dc",
+        "#e5f5ec"
+      ],
+      "grout": "#bfd6c9",
+      "skirtL": "#b0c8bb",
+      "skirtR": "#bcd4c7",
+      "plank": 4,
+      "grain": "#cbe3d6"
+    },
+    "lantai-pastel-lavender": {
+      "pattern": "papan",
+      "tones": [
+        "#e4def2",
+        "#dbd4ec",
+        "#ede8f8"
+      ],
+      "grout": "#c6bedc",
+      "skirtL": "#b7aecd",
+      "skirtR": "#c3bada",
+      "plank": 4,
+      "grain": "#d3cbe6"
+    },
+    "lantai-pastel-biru": {
+      "pattern": "papan",
+      "tones": [
+        "#dce8f5",
+        "#d3e1f0",
+        "#e6f0fa"
+      ],
+      "grout": "#bfd0e2",
+      "skirtL": "#b0c2d6",
+      "skirtR": "#bccfe2",
+      "plank": 4,
+      "grain": "#cbdaea"
+    },
+    "lantai-pastel-ijo": {
+      "pattern": "papan",
+      "tones": [
+        "#e0edd8",
+        "#d6e5ce",
+        "#eaf4e3"
+      ],
+      "grout": "#c2d2b8",
+      "skirtL": "#b3c4a8",
+      "skirtR": "#bfd1b4",
+      "plank": 4,
+      "grain": "#d0dfc6"
+    },
+    "lantai-ubin": {
+      "pattern": "ubin",
+      "tones": [
+        "#4e557d",
+        "#4a5178",
+        "#565b86"
+      ],
+      "grout": "#373a5e",
+      "skirtL": "#171a2b",
+      "skirtR": "#1d2134"
+    }
+  },
+  "dinding": {
+    "dinding-navy": {
+      "kiri": "#232e48",
+      "kanan": "#2a3552",
+      "trimKiri": "#5e4038",
+      "trimKanan": "#7d5140"
+    },
+    "dinding-krem": {
+      "kiri": "#c4b89c",
+      "kanan": "#d6cbb2",
+      "trimKiri": "#7a5530",
+      "trimKanan": "#86603a"
+    },
+    "dinding-kayu": {
+      "kiri": "#6e4a30",
+      "kanan": "#8a5c3c",
+      "trimKiri": "#4a3222",
+      "trimKanan": "#553a28"
+    },
+    "dinding-teal": {
+      "kiri": "#3d5f5c",
+      "kanan": "#4a736f",
+      "trimKiri": "#2a4442",
+      "trimKanan": "#33514e"
+    },
+    "dinding-bata": {
+      "kiri": "#8f4f45",
+      "kanan": "#a35c50",
+      "trimKiri": "#5c312a",
+      "trimKanan": "#6b3a31"
+    },
+    "dinding-kertas": {
+      "kiri": "#a49e8c",
+      "kanan": "#b8b2a0",
+      "trimKiri": "#7a5530",
+      "trimKanan": "#86603a"
+    },
+    "dinding-pastel-krem": {
+      "kiri": "#e8decb",
+      "kanan": "#f1e9da",
+      "trimKiri": "#c9b79b",
+      "trimKanan": "#d6c5a9"
+    },
+    "dinding-pastel-sakura": {
+      "kiri": "#ead3d6",
+      "kanan": "#f4e1e3",
+      "trimKiri": "#cdb2b6",
+      "trimKanan": "#d9c2c5"
+    },
+    "dinding-pastel-mint": {
+      "kiri": "#d6e7dd",
+      "kanan": "#e3f0e8",
+      "trimKiri": "#b6cbbf",
+      "trimKanan": "#c3d7cb"
+    },
+    "dinding-pastel-lavender": {
+      "kiri": "#ddd6ec",
+      "kanan": "#eae4f6",
+      "trimKiri": "#bcb3d0",
+      "trimKanan": "#c9c1dd"
+    },
+    "dinding-pastel-biru": {
+      "kiri": "#d6e2f0",
+      "kanan": "#e4edf8",
+      "trimKiri": "#b6c4d6",
+      "trimKanan": "#c3d1e2"
+    },
+    "dinding-pastel-kuning": {
+      "kiri": "#f0e4c2",
+      "kanan": "#f8efd6",
+      "trimKiri": "#d4c49b",
+      "trimKanan": "#e0d2ac"
+    }
+  },
+  "warnaDasar": {
+    "void": "#12131f",
+    "wallB": "#232e48",
+    "wallT": "#2a3552",
+    "trimB": "#5e4038",
+    "trimT": "#7d5140",
+    "seam": "#161d31",
+    "floorBase": "#4e557d",
+    "floorAlt": "#4a5178",
+    "floorC": "#565b86",
+    "grout": "#373a5e",
+    "skirtL": "#171a2b",
+    "skirtR": "#1d2134",
+    "grid": "rgba(206,222,255,0.28)",
+    "zone": "rgba(232,176,96,0.75)",
+    "hud": "#c3cdec"
+  }
+}

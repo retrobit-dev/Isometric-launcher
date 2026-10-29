@@ -610,6 +610,36 @@ html, body, #root {
   text-align: center;
 }
 
+/* pemilih objek (+ TAMBAH) */
+.mcard.preset { width: min(520px, 94vw); max-height: 86vh; }
+.plist {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  padding-right: 2px;
+}
+.pitem {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 7px 8px;
+  font: 11px/1.3 ui-monospace, 'Courier New', monospace;
+  text-align: left;
+  color: #cfd3e4;
+  background: #171a26;
+  border: 1px solid #232a3c;
+  border-radius: 4px;
+  cursor: pointer;
+  touch-action: manipulation;
+}
+.pitem:hover { background: #1f2434; border-color: #7a5c2e; }
+.pitem:active { background: #2b2416; }
+.pname { flex: none; width: 118px; color: #e8e2cf; letter-spacing: 0.05em; }
+.pket { flex: 1; min-width: 0; font-size: 10px; color: #7d8298; text-transform: none; }
+.psize { flex: none; font-size: 9px; color: #6f7590; }
+
 /* toast URUNGKAN setelah hapus/import */
 .toast {
   position: fixed;
