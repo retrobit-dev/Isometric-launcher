@@ -24,6 +24,12 @@ interface Props {
   onCycleKunci: (id: string) => void
   /** pasang kembali scene dari cadangan/riwayat (objek yang hilang) */
   onRestore: (scene: Scene) => void
+  /** jumlah objek LATAR (background kanvas) — tidak tampil sebagai baris */
+  latarCount: number
+  /** pindahkan objek bercetang ke lapisan LATAR */
+  onSetLatar: () => void
+  /** keluarkan semua objek dari lapisan LATAR */
+  onBukaLatar: () => void
   onClose: () => void
 }
 
@@ -97,7 +103,7 @@ export default function ObjectList(p: Props) {
 
   // scene kosong = kemungkinan objek hilang -> langsung tawarkan pemulihan
   useEffect(() => {
-    if (p.objects.length > 0) return
+    if (p.objects.length > 0 || p.latarCount > 0) return
     const c = loadCandidates()
     if (c.length > 0) { setRescue(c); setShowRescue(true) }
     // hanya saat panel pertama dibuka
@@ -174,7 +180,7 @@ export default function ObjectList(p: Props) {
         title="seret untuk memindahkan daftar"
       >
         <span className="pgrip">⠿</span>
-        <span className="ptitle">OBJEK ({p.objects.length})</span>
+        <span className="ptitle">OBJEK ({p.objects.length}){p.latarCount > 0 ? ` · LATAR ${p.latarCount}` : ''}</span>
         <button className="sbtn" onClick={p.onClose} title="tutup daftar">✕</button>
       </div>
 
@@ -207,6 +213,29 @@ export default function ObjectList(p: Props) {
           ⟲
         </button>
       </div>
+
+      {/* LATAR: lapisan background kanvas (lantai & dinding) */}
+      <div className="ollatar">
+        <span className="olhint">
+          LATAR {p.latarCount > 0 ? `${p.latarCount} objek · terkunci` : 'kosong'}
+        </span>
+        <button
+          className="sbtn"
+          disabled={p.multi.length === 0}
+          onClick={p.onSetLatar}
+          title="pindahkan objek bercetang ke lapisan LATAR (background kanvas): tidak bisa dipilih/diubah/dihapus, dan tidak tersentuh UNDO/IMPORT"
+        >
+          JADIKAN LATAR
+        </button>
+        <button
+          className="sbtn"
+          disabled={p.latarCount === 0}
+          onClick={p.onBukaLatar}
+          title="keluarkan semua objek latar kembali menjadi objek biasa supaya bisa diedit"
+        >
+          BUKA
+        </button>
+      </div>
       {grupCount > 0 && <div className="olhint">{grupCount} folder ({gids.filter(g => indukOf(g)).length} sub-folder)</div>}
 
       {showRescue && (
@@ -230,10 +259,15 @@ export default function ObjectList(p: Props) {
 
       {p.locked && <div className="olhint">scene terkunci — buka kunci untuk mengedit</div>}
 
-      {p.objects.length === 0 && (
+      {p.objects.length === 0 && p.latarCount === 0 && (
         <button className="sbtn wide danger" onClick={openRescue} title="cari objek di cadangan & riwayat">
           OBJEK 0 — CARI CADANGAN ⟲
         </button>
+      )}
+      {p.objects.length === 0 && p.latarCount > 0 && (
+        <div className="olhint">
+          belum ada perabot — yang ada hanya LATAR ({p.latarCount} objek). Tambah perabot dengan + TAMBAH.
+        </div>
       )}
 
       <div className="ollist">
@@ -241,7 +275,7 @@ export default function ObjectList(p: Props) {
         {lepas.map(o => objRow(o, false))}
       </div>
 
-      <div className="olfoot">folder bersarang · ＋SUB di dalam folder · ☐ centang · 🔒 kunci</div>
+      <div className="olfoot">folder bersarang · ＋SUB di dalam folder · ☐ centang · 🔒 kunci · LATAR = background</div>
     </div>
   )
 

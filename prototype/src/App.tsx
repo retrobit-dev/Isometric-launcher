@@ -6,7 +6,7 @@ import {
 import { drawScene } from './iso/room'
 import { bboxOf, sortedObjects } from './iso/box'
 import { FLOOR_DEFAULT, FLOOR_KEYS, MATERIAL_KEYS, WALL_STYLE_KEYS } from './iso/palette'
-import { loadCandidates, loadDraft, loadLocked, loadSceneFile, saveDraftGuarded, saveLocked, saveSceneFile, storageWorks, validateScene } from './scene/store'
+import { LATAR_TAG, gabungLatar, loadCandidates, loadDraft, loadLocked, loadSceneFile, objekBiasa, objekLatar, saveDraftGuarded, saveLocked, saveSceneFile, storageWorks, validateScene } from './scene/store'
 import { type Scene, type SceneObject } from './scene/types'
 import EditPanel from './ui/EditPanel'
 import ObjectList from './ui/ObjectList'
@@ -108,7 +108,7 @@ export default function App() {
     if (!target) return
     futureRef.current.push(sceneRef.current)
     skipHistRef.current = true
-    setScene(target)
+    setScene(gabungLatar(target, sceneRef.current)) // LATAR tidak ikut dibatalkan
     setSelectedId(null)
     setHistVer(v => v + 1)
   }
@@ -119,7 +119,7 @@ export default function App() {
     if (!target) return
     pastRef.current.push(sceneRef.current)
     skipHistRef.current = true
-    setScene(target)
+    setScene(gabungLatar(target, sceneRef.current)) // LATAR tidak ikut dibatalkan
     setSelectedId(null)
     setHistVer(v => v + 1)
   }
@@ -151,7 +151,7 @@ export default function App() {
       if (dariFile && dariFile.objects.length > lokal.objects.length) {
         setUndo({ scene: lokal, label: 'scene sebelum dimuat dari file' })
         setLocked(false)
-        setScene(dariFile)
+        setScene(gabungLatar(dariFile, lokal))
         setDipulihkan(dariFile.objects.length)
       }
       setDimuat(true)
@@ -372,6 +372,32 @@ export default function App() {
     setSelectedId(nid)
   }
 
+  // JADIKAN LATAR: objek bercetang dipindahkan ke lapisan background kanvas
+  // (permintaan user 2026-10-29). Objek latar hilang dari DAFTAR OBJEK dan
+  // tidak bisa diubah/dihapus sampai latar dibuka lagi.
+  const jadikanLatar = () => {
+    if (multi.length === 0) return
+    const ids = new Set(multi)
+    setScene(s => ({
+      ...s,
+      objects: s.objects.map(o => ids.has(o.id)
+        ? { ...o, latar: true, grup: undefined, grupNama: undefined, grupInduk: undefined }
+        : o),
+      meta: { ...(s.meta ?? { locked: false, savedAt: null }), latarMigrasi: LATAR_TAG },
+    }))
+    setMulti([])
+    setSelectedId(null)
+  }
+
+  // BUKA LATAR: semua objek latar kembali menjadi objek biasa (bisa diedit lagi)
+  const bukaLatar = () => {
+    setScene(s => ({
+      ...s,
+      objects: s.objects.map(o => (o.latar ? { ...o, latar: undefined } : o)),
+      meta: { ...(s.meta ?? { locked: false, savedAt: null }), latarMigrasi: LATAR_TAG },
+    }))
+  }
+
   // GABUNG GRUP: semua objek bercetang mendapat id grup yang sama, sehingga
   // menyeret salah satunya menggeser semuanya (jarak relatif tetap).
   const groupSelected = () => {
@@ -444,7 +470,8 @@ export default function App() {
 
   // PULIHKAN: pasang kembali scene dari cadangan/riwayat (objek yang hilang)
   const restoreScene = (sc: Scene) => {
-    setScene({ ...sc, meta: { locked: Boolean(sc.meta?.locked), savedAt: sc.meta?.savedAt ?? null } })
+    // LATAR tidak ikut diganti oleh PULIHKAN
+    setScene(gabungLatar(sc, sceneRef.current))
     setLocked(false)
     setSelectedId(null)
   }
@@ -455,6 +482,7 @@ export default function App() {
   const requestDelete = (id: string) => {
     const o = sceneRef.current.objects.find(x => x.id === id)
     if (!o) return
+    if (o.latar) return // LATAR dilindungi: buka dulu lewat tombol BUKA LATAR
     const grupN = o.grup ? sceneRef.current.objects.filter(x => x.grup === o.grup).length : 0
     const terakhir = sceneRef.current.objects.length === 1
     const lines = [
@@ -544,7 +572,8 @@ export default function App() {
     const next = parsed.objects.length
     const terjadwal = () => {
       setUndo({ scene: sceneRef.current, label: 'scene sebelum import' })
-      setScene(parsed as Scene)
+      // LATAR tidak ikut diganti oleh IMPORT
+      setScene(gabungLatar(parsed as Scene, sceneRef.current))
       setLocked(Boolean(parsed.meta?.locked))
       setSelectedId(null)
       setModal(null)
@@ -557,6 +586,7 @@ export default function App() {
         lines: [
           `Import akan MENGGANTI seluruh scene: ${now} objek → ${next} objek.`,
           next < now ? `PERHATIAN: ${now - next} objek akan hilang dari layar` : 'jumlah objek bertambah',
+          'LATAR (background) tidak ikut terhapus — tetap dipertahankan',
           'tombol URUNGKAN muncul ±8 detik setelah import',
         ],
         confirmLabel: 'YA, GANTI SCENE',
@@ -637,7 +667,7 @@ export default function App() {
                   }}
                 >
                   <b>{o.label || o.id}</b>
-                  <span>{peran} · {o.size.e}×{o.size.w}×{o.size.z}</span>
+                  <span>{peran}{o.latar ? ' · LATAR' : ''} · {o.size.e}×{o.size.w}×{o.size.z}</span>
                   <span>e {o.pos.e} · w {o.pos.w} · z {o.pos.z}</span>
                   <em>pilih objek lewat tombol OBJEK</em>
                 </div>
@@ -646,7 +676,9 @@ export default function App() {
             {(
               <div className="chip">
                 <span>
-                  {hover ? `(e=${hover.e}, w=${hover.w}) · ${zoneName(hover.e, hover.w)}` : `${scene.objects.length} objek`}
+                  {hover
+                    ? `(e=${hover.e}, w=${hover.w}) · ${zoneName(hover.e, hover.w)}`
+                    : `${objekBiasa(scene).length} perabot${objekLatar(scene).length ? ` · ${objekLatar(scene).length} latar` : ''}`}
                 </span>
                 {(() => {
                   const fl = scene.objects.filter(o => o.role === 'lantai')
@@ -688,7 +720,7 @@ export default function App() {
               onClick={() => setShowList(v => !v)}
               title="daftar semua objek yang sudah dibuat — ketuk untuk memilih"
             >
-              OBJEK {scene.objects.length}
+              OBJEK {objekBiasa(scene).length}{objekLatar(scene).length > 0 ? ` (+${objekLatar(scene).length} latar)` : ''}
             </button>
           </>
         )}
@@ -771,7 +803,10 @@ export default function App() {
 
       {showList && (
         <ObjectList
-          objects={scene.objects}
+          objects={objekBiasa(scene)}
+          latarCount={objekLatar(scene).length}
+          onSetLatar={jadikanLatar}
+          onBukaLatar={bukaLatar}
           selectedId={selectedId}
           locked={locked}
           onSelect={id => setSelectedId(id)}

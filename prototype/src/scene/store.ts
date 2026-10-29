@@ -8,6 +8,35 @@ const DRAFT_KEY = 'isola-draft-v6'
 const LOCKED_KEY = 'isola-locked-v6'
 const PREV_DRAFT_KEYS = ['isola-draft-v5', 'isola-draft-v4'] as const
 
+// ---------------------------------------------------------------------------
+// LATAR (permintaan user 2026-10-29): lapisan background kanvas.
+// Objek ber-flag `latar` tidak pernah hilang karena UNDO / REDO / IMPORT /
+// PULIHKAN — helper `gabungLatar()` selalu mengembalikan set latar yang
+// sedang aktif ke scene tujuan.
+// ---------------------------------------------------------------------------
+export const LATAR_TAG = 'latar-v1'
+
+export function objekLatar(scene: Scene): SceneObject[] {
+  return scene.objects.filter(o => o.latar === true)
+}
+
+export function objekBiasa(scene: Scene): SceneObject[] {
+  return scene.objects.filter(o => o.latar !== true)
+}
+
+/** scene tujuan + set LATAR milik scene sumber (latar tidak bisa hilang) */
+export function gabungLatar(target: Scene, sumber: Scene): Scene {
+  const latar = objekLatar(sumber)
+  const meta = {
+    locked: Boolean(target.meta?.locked),
+    savedAt: target.meta?.savedAt ?? null,
+    ...(target.meta?.latarMigrasi || latar.length ? { latarMigrasi: LATAR_TAG } : {}),
+  }
+  if (latar.length === 0) return { ...target, meta }
+  const ids = new Set(latar.map(o => o.id))
+  return { ...target, meta, objects: [...latar, ...objekBiasa(target).filter(o => !ids.has(o.id))] }
+}
+
 export function emptyRoom(): Scene {
   return {
     version: 1,
@@ -18,7 +47,7 @@ export function emptyRoom(): Scene {
 }
 
 export function loadDraft(): Scene {
-  return normalize(read(DRAFT_KEY) ?? migratePrevDraft() ?? emptyRoom())
+  return migrasiLatar(normalize(read(DRAFT_KEY) ?? migratePrevDraft() ?? emptyRoom()))
 }
 
 // Migrasi sekali jalan dari draft lama (v5/v4): objek berupa "lempeng" besar &
@@ -116,7 +145,8 @@ export async function loadSceneFile(): Promise<Scene | null> {
     if (!txt) return null
     const data = JSON.parse(txt)
     const raw = data && typeof data === 'object' && 'scene' in data ? data.scene : data
-    return validateScene(raw)
+    const sc = validateScene(raw)
+    return sc ? migrasiLatar(sc) : null
   } catch {
     return null
   }
@@ -312,6 +342,7 @@ export function validateScene(data: unknown): Scene | null {
       ...(typeof ob.grupNama === 'string' && ob.grupNama ? { grupNama: ob.grupNama } : {}),
       ...(typeof ob.grupInduk === 'string' && ob.grupInduk ? { grupInduk: ob.grupInduk } : {}),
       ...(ob.kunci === 'warna' || ob.kunci === 'semua' ? { kunci: ob.kunci } : {}),
+      ...(ob.latar === true ? { latar: true } : {}),
     })
   }
   const m = d.meta as Partial<Scene['meta']> | undefined
@@ -325,6 +356,10 @@ export function validateScene(data: unknown): Scene | null {
         palette: ROOM_FIXED.palette,
       }
     : { ...ROOM_FIXED }
+  const latarMigrasi = typeof m?.latarMigrasi === 'string'
+    ? String(m?.latarMigrasi)
+    : (objects.some(o => o.latar === true) ? LATAR_TAG : undefined)
+
   return {
     version: 1,
     room,
@@ -332,7 +367,29 @@ export function validateScene(data: unknown): Scene | null {
     meta: {
       locked: Boolean(m?.locked),
       savedAt: typeof m?.savedAt === 'string' ? m.savedAt : null,
+      ...(latarMigrasi ? { latarMigrasi } : {}),
     },
+  }
+}
+
+/**
+ * MIGRASI LATAR sekali jalan (permintaan user 2026-10-29: "kelima objek itu
+ * semua masuk latar"). HANYA dipakai untuk scene yang DIMUAT editor (draf
+ * browser & file scene.json) — bukan untuk IMPORT, supaya perabot hasil import
+ * tidak ikut berubah jadi latar. Penanda `latarMigrasi` membuat migrasi ini
+ * tidak terulang dan "BUKA LATAR" tetap dihormati.
+ */
+export function migrasiLatar(scene: Scene): Scene {
+  const meta = { locked: Boolean(scene.meta?.locked), savedAt: scene.meta?.savedAt ?? null }
+  if (scene.meta?.latarMigrasi) return scene
+  if (scene.objects.length === 0) return scene
+  if (scene.objects.some(o => o.latar === true)) {
+    return { ...scene, meta: { ...meta, latarMigrasi: LATAR_TAG } }
+  }
+  return {
+    ...scene,
+    objects: scene.objects.map(o => ({ ...o, latar: true })),
+    meta: { ...meta, latarMigrasi: LATAR_TAG },
   }
 }
 

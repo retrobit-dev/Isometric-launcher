@@ -157,7 +157,8 @@ function drawReflections(ctx: CanvasRenderingContext2D, objects: SceneObject[]) 
   ctx.globalAlpha = 0.12
   // refleksi kini PER OBJEK (diatur dari editor objek), default ON
   const reflectable = objects.filter(
-    x => (x.layer ?? 'main') !== 'underlay'
+    x => x.latar !== true
+      && (x.layer ?? 'main') !== 'underlay'
       && x.role !== 'lantai' && x.role !== 'dinding'
       && x.pantulan !== false,
   )
@@ -315,21 +316,25 @@ export function drawScene(ctx: CanvasRenderingContext2D, o: DrawOpts) {
     walls(ctx)
     floor(ctx)
   }
-  // dinding dari objek (role 'dinding') digambar lebih dulu (paling belakang)
-  drawWallObjects(ctx, o.objects)
+  // dinding dari objek (role 'dinding') digambar lebih dulu (paling belakang);
+  // dinding LATAR didahulukan supaya tetap di belakang dinding lain
+  drawWallObjects(ctx, [...o.objects].sort((a, b) => Number(b.latar === true) - Number(a.latar === true)))
 
   overlays(ctx, o.grid, o.edit)
 
   // lantai dari objek (role 'lantai') digambar paling bawah
-  drawFloorObjects(ctx, o.objects)
+  // (lantai latar didahulukan, lalu lantai biasa)
+  drawFloorObjects(ctx, [...o.objects].sort((a, b) => Number(b.latar === true) - Number(a.latar === true)))
 
   // tiga lapis: underlay (bawah) -> main -> overlay (atas),
   // masing-masing tetap diurutkan kedalaman agar isometrik benar
   const layerOf = (x: SceneObject) => x.layer ?? 'main'
   const solid = o.objects.filter(x => x.role !== 'lantai' && x.role !== 'dinding')
-  for (const obj of sortedObjects(solid.filter(x => layerOf(x) === 'underlay'))) drawBox(ctx, obj)
-  for (const obj of sortedObjects(solid.filter(x => layerOf(x) === 'main'))) drawBox(ctx, obj)
-  for (const obj of sortedObjects(solid.filter(x => layerOf(x) === 'overlay'))) drawBox(ctx, obj)
+  // LATAR lebih dulu: apa pun objek latar, selalu di belakang perabot
+  for (const obj of sortedObjects(solid.filter(x => x.latar === true))) drawBox(ctx, obj)
+  for (const obj of sortedObjects(solid.filter(x => x.latar !== true && layerOf(x) === 'underlay'))) drawBox(ctx, obj)
+  for (const obj of sortedObjects(solid.filter(x => x.latar !== true && layerOf(x) === 'main'))) drawBox(ctx, obj)
+  for (const obj of sortedObjects(solid.filter(x => x.latar !== true && layerOf(x) === 'overlay'))) drawBox(ctx, obj)
 
   const marks = o.objects.filter(x =>
     x.id === o.selectedId || (o.highlightIds ?? []).includes(x.id))

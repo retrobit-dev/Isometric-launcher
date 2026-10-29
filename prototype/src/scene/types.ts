@@ -68,6 +68,13 @@ export interface SceneObject {
   // SUB-FOLDER: id grup induk. Grup boleh bersarang (folder di dalam folder);
   // semua anggota satu grup memakai grupNama & grupInduk yang sama.
   grupInduk?: string
+  // LATAR = lapisan BACKGROUND kanvas (permintaan user 2026-10-29: kelima objek
+  // lama — lantai, 2 dinding, 2 balok — dijadikan latar). Objek latar:
+  //   • digambar paling bawah (di belakang semua perabot)
+  //   • TIDAK muncul di DAFTAR OBJEK, tidak bisa dipilih/diubah/dihapus
+  //   • tidak tersentuh UNDO / REDO / IMPORT / PULIHKAN
+  //   • tetap tersimpan & ter-export di scene.json
+  latar?: boolean
   // KUNCI pengeditan per objek:
   //   'warna' = posisi/ukuran/rotasi/layer/peran/sisi/hapus DIKUNCI,
   //             hanya material (warna) yang masih bisa diubah
@@ -80,6 +87,9 @@ export interface SceneMeta {
   // mengunci OBJEK saja (sementara — bisa dibuka lagi)
   locked: boolean
   savedAt: string | null
+  // penanda migrasi LATAR sekali jalan: bila terisi, objek lama TIDAK lagi
+  // otomatis dipindahkan ke latar (supaya "BUKA LATAR" tidak terulang).
+  latarMigrasi?: string
 }
 
 export interface Scene {

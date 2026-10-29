@@ -546,6 +546,20 @@ html, body, #root {
 
 .olrow.infolder { background: #141826; }
 
+/* baris LATAR (lapisan background kanvas) di daftar objek */
+.ollatar {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  padding: 4px 5px;
+  background: #10131c;
+  border: 1px solid #2f3650;
+  border-radius: 4px;
+}
+.ollatar .olhint { flex: 1; min-width: 0; }
+.ollatar .sbtn { flex: none; padding: 3px 5px; font-size: 9px; }
+.ollatar .sbtn:disabled { opacity: 0.4; }
+
 /* panel PULIHKAN di dalam daftar objek */
 .olrescue {
   display: flex;
