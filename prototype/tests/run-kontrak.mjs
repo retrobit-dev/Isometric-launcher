@@ -75,7 +75,7 @@ try {
   console.log('2. katalog preset')
   const daftar = presets.PRESETS
   cek('katalog terbaca', Array.isArray(daftar),
-    `${daftar.length} preset (katalog SENGAJA kosong sejak ronde 17: objek referensi dihapus)`)
+    `${daftar.length} preset (katalog diisi ulang sejak ronde 18: objek buatan sendiri)`)
   let bagianTotal = 0
   let katalogSah = true
   let katalogDetail = ''
@@ -114,15 +114,23 @@ try {
       && o.profil.every(t => Array.isArray(t) && t.length === 2
         && t.every(v => typeof v === 'number' && Number.isFinite(v)))))
   cek('bentuk profil punya siluet sah', profilSah)
-  cek('katalog memakai bentuk baru (bila katalog terisi)',
-    daftar.length === 0 || (bentukPakai.has('silinder') && bentukPakai.has('kerucut')),
-    daftar.length === 0 ? 'katalog kosong' : [...bentukPakai].join(','))
+  // Sejak ronde 18 katalog diisi objek buatan sendiri satu per satu, jadi yang
+  // diuji adalah KESAHAN bentuk/animasi yang dipakai — bukan kewajiban memakai
+  // semua bentuk sekaligus (dulu katalog kosong sehingga uji ini dilewati).
+  const BENTUK_DIKENAL = new Set(['balok', 'silinder', 'kerucut', 'bola', 'cakram', 'daun', 'profil'])
+  const bentukAsing = [...bentukPakai].filter(x => !BENTUK_DIKENAL.has(x))
+  cek('bentuk yang dipakai katalog dikenal renderer', bentukAsing.length === 0,
+    `${[...bentukPakai].join(',')}${bentukAsing.length ? ` | asing: ${bentukAsing.join(',')}` : ''}`)
   cek('id preset unik', new Set(daftar.map(p => p.id)).size === daftar.length)
+  const JENIS_ANIM = new Set(['naik-turun', 'ayun', 'denyut', 'kedip', 'putar'])
   const beranim = daftar.flatMap(pr => pr.bagian).filter(x => x.anim)
+  const animSah = beranim.every(o => JENIS_ANIM.has(o.anim.jenis)
+    && o.anim.laju >= 0.05 && o.anim.laju <= 5
+    && o.anim.besar >= 0.1 && o.anim.besar <= 5
+    && o.anim.fase >= 0 && o.anim.fase <= 1)
   const jenisAnim = [...new Set(beranim.map(x => x.anim.jenis))]
-  cek('preset memakai animasi (bila katalog terisi)',
-    daftar.length === 0 || beranim.length > 0,
-    daftar.length === 0 ? 'katalog kosong' : `${beranim.length} bagian: ${jenisAnim.join(',')}`)
+  cek('animasi yang dipakai katalog sah', animSah,
+    beranim.length === 0 ? 'belum ada animasi (ditentukan nanti)' : `${beranim.length} bagian: ${jenisAnim.join(',')}`)
 
   // --------------------------------------------------------- 3. urutan gambar
   console.log('3. urutan gambar')
