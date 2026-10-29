@@ -206,22 +206,24 @@ export const PRESETS: Preset[] = [
   // BERGANTIAN seperti tertiup angin, tanpa mesin animasi baru dan tanpa
   // mengubah data scene (lihat docs/04 §4b).
   //
-  // Bentuk (12 bagian, urutan = urutan gambar; daun jauh digambar dulu):
+  // Bentuk (22 bagian, urutan = urutan gambar; daun jauh digambar dulu):
   //   1) pot: `profil` — siluet bebas, menyempit di bawah + bibir tebal di atas
   //   2) tanah: balok `walnut` yang menonjol 0,10 di atas bibir pot
   //   3) batang: balok `kayu-tua` 0,12 x 0,12, dari dalam tanah
-  //   4-12) sembilan daun MEMBULAT `daun-sage` / `daun-gelap`, beranim `ayun`
+  //   4-22) DELAPAN BELAS daun MEMBULAT `daun-sage` / `daun-gelap` dalam tiga
+  //         tingkat (bawah/tengah/atas), semuanya beranim `ayun`
   // Tinggi total ±6,4 tile (pot 1,34 + batang 3,40 + daun terpanjang 2,10),
   // jadi lebih tinggi daripada meja kerja (1,60) dan dari ambang jendela
   // (2,06). Ronde lanjutan: "buat daun membulat saja, batang lebih panjang"
   // -> daun memakai helper bd() (bentuk 'daun' + `bulat: 1` = elips tumpul)
-  // dan batang dinaikkan 2,60 -> 3,40.
+  // dan batang dinaikkan 2,60 -> 3,40. Lalu "buat daun lebih lebat" ->
+  // daun 9 -> 18 (lima di tingkat bawah, enam tengah, tujuh atas).
   //
   // Arah `miring` (derajat): 90 = tegak lurus ke atas, <90 = condong ke +e
   // (depan-kanan), >90 = condong ke -e (belakang-kiri). Lebar daun tumbuh ke w.
   {
     id: 'tanaman-pot', nama: 'TANAMAN POT',
-    ket: 'Tanaman tinggi berdaun MEMBULAT dalam pot keramik gelap; 9 daun bergoyang bergantian.',
+    ket: 'Tanaman tinggi berdaun MEMBULAT & lebat (18 daun, 3 tingkat) dalam pot keramik gelap.',
     pasang: 'lantai', lebar: 1.8, dalam: 1.8,
     bagian: [
       // --- 1. badan pot (siluet: alas sempit, melebar ke atas) ---
@@ -238,7 +240,43 @@ export const PRESETS: Preset[] = [
       b(0.12, 0.12, 1.04, 1.16, 1.16, 0.12, 'walnut'),
       // --- 4. batang lebih panjang lagi (pucuk di z 4,56) ---
       b(0.64, 0.64, 1.16, 0.14, 0.14, 3.40, 'kayu-tua'),
-      // --- 5-13. daun MEMBULAT: belakang dulu (condong -e), lalu depan ---
+      // --- 5-22. daun MEMBULAT, tiga tingkat supaya tajuk LEBAT ---
+      // Permintaan user 2026-10-29: "buat daun lebih lebat" -> 9 -> 18 daun
+      // dalam tiga tingkat mengikuti batang:
+      //   TINGKAT BAWAH (z 2,38–2,55) : 5 daun kecil, sudut lebar (turun ke
+      //                                samping) supaya batang tidak gundul
+      //   TINGKAT TENGAH (z 3,32–3,52): 6 daun sedang
+      //   TINGKAT ATAS   (z 4,24–4,46): 7 daun besar, yang tertinggi tegak
+      // Urutan gambar: tingkat bawah dulu, tiap tingkat dari BELAKANG
+      // (`miring` besar, condong -e) ke DEPAN (`miring` kecil, condong +e).
+      // Semua `bulat: 1` (elips tumpul) dan beranim `ayun` dengan fase
+      // berjarak supaya daun bergoyang bergantian, bukan serempak.
+      //
+      // --- TINGKAT BAWAH ---
+      beranim(bd(0.66, 0.58, 2.38, 1.40, 0.18, 0.74, 'daun-gelap', 148),
+        { jenis: 'ayun', laju: 0.16, besar: 0.9, fase: 0.05 }),
+      beranim(bd(0.80, 0.70, 2.50, 1.25, 0.18, 0.68, 'daun-sage', 96),
+        { jenis: 'ayun', laju: 0.16, besar: 0.9, fase: 0.28 }),
+      beranim(bd(0.74, 0.80, 2.42, 1.30, 0.18, 0.70, 'daun-sage', 124),
+        { jenis: 'ayun', laju: 0.16, besar: 0.9, fase: 0.46 }),
+      beranim(bd(0.60, 0.86, 2.48, 1.22, 0.18, 0.66, 'daun-gelap', 28),
+        { jenis: 'ayun', laju: 0.16, besar: 0.9, fase: 0.64 }),
+      beranim(bd(0.52, 0.62, 2.55, 1.45, 0.18, 0.78, 'daun-sage', 52),
+        { jenis: 'ayun', laju: 0.16, besar: 0.9, fase: 0.82 }),
+      // --- TINGKAT TENGAH ---
+      beranim(bd(0.62, 0.54, 3.32, 1.65, 0.20, 0.88, 'daun-gelap', 140),
+        { jenis: 'ayun', laju: 0.17, besar: 0.85, fase: 0.12 }),
+      beranim(bd(0.72, 0.78, 3.38, 1.58, 0.20, 0.86, 'daun-sage', 118),
+        { jenis: 'ayun', laju: 0.17, besar: 0.85, fase: 0.34 }),
+      beranim(bd(0.82, 0.64, 3.40, 1.52, 0.20, 0.82, 'daun-sage', 102),
+        { jenis: 'ayun', laju: 0.17, besar: 0.85, fase: 0.52 }),
+      beranim(bd(0.70, 0.86, 3.52, 1.48, 0.20, 0.80, 'daun-gelap', 20),
+        { jenis: 'ayun', laju: 0.17, besar: 0.85, fase: 0.70 }),
+      beranim(bd(0.60, 0.88, 3.44, 1.58, 0.20, 0.88, 'daun-sage', 66),
+        { jenis: 'ayun', laju: 0.17, besar: 0.85, fase: 0.88 }),
+      beranim(bd(0.52, 0.66, 3.50, 1.72, 0.20, 0.94, 'daun-gelap', 44),
+        { jenis: 'ayun', laju: 0.17, besar: 0.85, fase: 0.24 }),
+      // --- TINGKAT ATAS ---
       beranim(bd(0.70, 0.62, 4.30, 1.90, 0.20, 0.98, 'daun-gelap', 132),
         { jenis: 'ayun', laju: 0.18, besar: 0.8, fase: 0.55 }),
       beranim(bd(0.64, 0.76, 4.24, 1.70, 0.20, 0.90, 'daun-sage', 146),
@@ -252,12 +290,8 @@ export const PRESETS: Preset[] = [
         { jenis: 'ayun', laju: 0.18, besar: 0.8, fase: 0.30 }),
       beranim(bd(0.58, 0.74, 4.38, 1.85, 0.20, 1.00, 'daun-sage', 74),
         { jenis: 'ayun', laju: 0.18, besar: 0.8, fase: 0.15 }),
-      beranim(bd(0.54, 0.68, 4.32, 1.55, 0.20, 0.86, 'daun-gelap', 50),
+      beranim(bd(0.62, 0.80, 4.26, 1.50, 0.20, 0.86, 'daun-sage', 40),
         { jenis: 'ayun', laju: 0.18, besar: 0.8, fase: 0.42 }),
-      beranim(bd(0.62, 0.80, 4.26, 1.40, 0.20, 0.80, 'daun-sage', 32),
-        { jenis: 'ayun', laju: 0.18, besar: 0.8, fase: 0.62 }),
-      beranim(bd(0.76, 0.76, 4.22, 1.25, 0.20, 0.74, 'daun-gelap', 62),
-        { jenis: 'ayun', laju: 0.18, besar: 0.8, fase: 0.78 }),
     ],
   },
 ]
