@@ -1,4 +1,4 @@
-import { px, type P } from './space'
+import { DENS, px, type P } from './space'
 import { MATERIALS, UNKNOWN_STYLE } from './palette'
 import type { SceneObject } from '../scene/types'
 
@@ -12,7 +12,7 @@ export interface Box { x0: number; y0: number; x1: number; y1: number }
 // ---------------------------------------------------------------------------
 const INK = { r: 0x33, g: 0x2b, b: 0x3d }
 const CAMPUR = 0.34        // 0 = tanpa garis, 1 = tinta penuh
-const TEBAL_TEPI = 1       // piksel internal (×4 = 4 px di tablet)
+const TEBAL_TEPI = 2       // piksel internal (resolusi naik 1,775x 2026-10-29)
 
 function gelapkan(warna: string, f = CAMPUR): string {
   const m = /^#([0-9a-f]{6})$/i.exec(warna)
@@ -283,14 +283,59 @@ export function drawDaun(ctx: CanvasRenderingContext2D, o: SceneObject) {
   poly(ctx, badan(0.5).map(q => ({ x: q.x - 1, y: q.y - 1 })), c.top, false)
 }
 
+// ---------------------------------------------------------------------------
+// ANIMASI (permintaan user 2026-10-29)
+// Transform hanya saat MENGGAMBAR: ctx.save/translate/rotate/restore. Data
+// scene tidak diubah, jadi hit-test, bbox, kunci, dan JSON tetap sama.
+// ---------------------------------------------------------------------------
+const sekarang = () => (typeof performance !== 'undefined' ? performance.now() : Date.now())
+
+type StatusAnim = 'tidak' | 'geser' | 'lewat'
+
+function terapkanAnim(ctx: CanvasRenderingContext2D, o: SceneObject): StatusAnim {
+  const a = o.anim
+  if (!a) return 'tidak'
+  const { se, sw } = footprintOf(o)
+  const dasar = px(o.pos.e + se / 2, o.pos.w + sw / 2, o.pos.z)
+  const laju = a.laju ?? 0.5
+  const besar = a.besar ?? 1
+  const fase = (a.fase ?? 0) * Math.PI * 2
+  const s = Math.sin((sekarang() / 1000) * laju * Math.PI * 2 + fase)
+  if (a.jenis === 'kedip') {
+    // 30% siklus mati -> terlihat berkedip; crispify membuat tepinya tegas
+    if (s < -0.55) return 'lewat'
+  }
+  ctx.save()
+  if (a.jenis === 'naik-turun') {
+    ctx.translate(0, -besar * 4 * DENS * (0.5 + 0.5 * s))
+  } else if (a.jenis === 'ayun') {
+    ctx.translate(dasar.x, dasar.y)
+    ctx.rotate(((besar * 3.5 * Math.PI) / 180) * s)
+    ctx.translate(-dasar.x, -dasar.y)
+  } else if (a.jenis === 'denyut') {
+    const k = 1 + besar * 0.05 * s
+    ctx.translate(dasar.x, dasar.y)
+    ctx.scale(k, k)
+    ctx.translate(-dasar.x, -dasar.y)
+  } else if (a.jenis === 'putar') {
+    ctx.translate(dasar.x, dasar.y)
+    ctx.rotate(((besar * 8 * Math.PI) / 180) * s)
+    ctx.translate(-dasar.x, -dasar.y)
+  }
+  return 'geser'
+}
+
 /** penggambar objek: pilih bentuk sesuai field `bentuk` */
 export function drawObject(ctx: CanvasRenderingContext2D, o: SceneObject) {
-  if (o.bentuk === 'silinder') return drawSilinder(ctx, o)
-  if (o.bentuk === 'kerucut') return drawKerucut(ctx, o)
-  if (o.bentuk === 'bola') return drawBola(ctx, o)
-  if (o.bentuk === 'cakram') return drawCakram(ctx, o)
-  if (o.bentuk === 'daun') return drawDaun(ctx, o)
-  return drawBox(ctx, o)
+  const status = terapkanAnim(ctx, o)
+  if (status === 'lewat') return
+  if (o.bentuk === 'silinder') drawSilinder(ctx, o)
+  else if (o.bentuk === 'kerucut') drawKerucut(ctx, o)
+  else if (o.bentuk === 'bola') drawBola(ctx, o)
+  else if (o.bentuk === 'cakram') drawCakram(ctx, o)
+  else if (o.bentuk === 'daun') drawDaun(ctx, o)
+  else drawBox(ctx, o)
+  if (status === 'geser') ctx.restore()
 }
 
 export function bboxOf(o: SceneObject): Box {

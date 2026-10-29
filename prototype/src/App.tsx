@@ -9,7 +9,7 @@ import { FLOOR_DEFAULT, FLOOR_KEYS, MATERIAL_KEYS, WALL_STYLE_KEYS } from './iso
 import PresetPicker from './ui/PresetPicker'
 import { buatPreset, type Preset } from './scene/presets'
 import { LATAR_TAG, gabungLatar, geserTumpukan, hapusLatarImage, latarImageUrl, loadCandidates, loadDraft, loadLocked, loadSceneFile, normalisasiScene, objekBiasa, objekLatar, saveDraftGuarded, saveLatarImage, saveLocked, saveSceneFile, storageWorks, validateScene } from './scene/store'
-import { type Scene, type SceneObject } from './scene/types'
+import { type JenisAnim, type Scene, type SceneObject } from './scene/types'
 import EditPanel from './ui/EditPanel'
 import ObjectList from './ui/ObjectList'
 import Confirm, { type ConfirmReq } from './ui/Confirm'
@@ -490,6 +490,38 @@ export default function App() {
     setScene(s => ({ ...s, objects: [...s.objects, ...parts] }))
     setSelectedId(parts[0]?.id ?? null)
     setShowPreset(false)
+  }
+
+  // ANIMASI: siklus jenis & laju (permintaan user 2026-10-29)
+  const URUT_ANIM: (JenisAnim | 'mati')[] = ['mati', 'naik-turun', 'ayun', 'denyut', 'kedip', 'putar']
+  const ubahObjek = (id: string, fn: (o: SceneObject) => SceneObject) => {
+    setScene(s => ({ ...s, objects: s.objects.map(o => (o.id === id ? fn(o) : o)) }))
+    setPanelDirty(true)
+  }
+  const cycleAnim = (id: string) => {
+    ubahObjek(id, o => {
+      const kini = o.anim?.jenis ?? 'mati'
+      const next = URUT_ANIM[(URUT_ANIM.indexOf(kini) + 1) % URUT_ANIM.length]
+      if (next === 'mati') return { ...o, anim: undefined }
+      return {
+        ...o,
+        anim: {
+          jenis: next,
+          laju: o.anim?.laju ?? 0.5,
+          besar: o.anim?.besar ?? 1,
+          fase: o.anim?.fase ?? 0,
+        },
+      }
+    })
+  }
+  const cycleAnimLaju = (id: string) => {
+    ubahObjek(id, o => {
+      if (!o.anim) return o
+      const urut = [0.25, 0.5, 1, 1.5, 2]
+      const i = urut.indexOf(o.anim.laju ?? 0.5)
+      const laju = urut[(i + 1) % urut.length]
+      return { ...o, anim: { ...o.anim, laju } }
+    })
   }
 
   const duplicateObject = (id: string) => {
@@ -1050,6 +1082,8 @@ export default function App() {
             patchObject(selected.id, { rot: (((cur + 1) % 4) as 0 | 1 | 2 | 3) })
           }}
           onCycleKunci={() => cycleKunci(selected.id)}
+          onCycleAnim={() => cycleAnim(selected.id)}
+          onCycleAnimLaju={() => cycleAnimLaju(selected.id)}
           onRaise={() => geser(selected.id, 1)}
           onLower={() => geser(selected.id, -1)}
           tumpukan={tumpukanDari(selected.id)}

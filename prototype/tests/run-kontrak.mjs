@@ -93,6 +93,11 @@ try {
       && bagian.every(o => o.bentuk === undefined
         || ['silinder', 'kerucut', 'bola', 'cakram', 'daun'].includes(o.bentuk))
       // puncak hanya untuk kerucut, nilainya >= 0 dan 2 desimal
+      // animasi: jenis dikenal, angka dalam batas
+      && bagian.every(o => o.anim === undefined
+        || (['naik-turun', 'ayun', 'denyut', 'kedip', 'putar'].includes(o.anim.jenis)
+          && (o.anim.laju ?? 0.5) > 0 && (o.anim.laju ?? 0.5) <= 5
+          && (o.anim.besar ?? 1) >= 0.1 && (o.anim.besar ?? 1) <= 5))
       && bagian.every(o => o.puncak === undefined
         || (o.bentuk === 'kerucut' && o.puncak >= 0
           && Math.abs(o.puncak * 100 - Math.round(o.puncak * 100)) < 1e-6))
@@ -103,6 +108,9 @@ try {
   cek('katalog memakai bentuk baru', bentukPakai.has('silinder') && bentukPakai.has('kerucut'),
     [...bentukPakai].join(','))
   cek('id preset unik', new Set(daftar.map(p => p.id)).size === daftar.length)
+  const beranim = daftar.flatMap(pr => pr.bagian).filter(x => x.anim)
+  const jenisAnim = [...new Set(beranim.map(x => x.anim.jenis))]
+  cek('preset memakai animasi', beranim.length > 0, `${beranim.length} bagian: ${jenisAnim.join(',')}`)
 
   // --------------------------------------------------------- 3. urutan gambar
   console.log('3. urutan gambar')

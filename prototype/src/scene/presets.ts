@@ -14,7 +14,7 @@
 // prototipe web dan APK menghasilkan gambar yang sama
 // (lihat docs/04-KONTRAK-RENDERER.md).
 
-import type { SceneObject } from './types'
+import type { Animasi, SceneObject } from './types'
 
 type Bentuk = 'balok' | 'silinder' | 'kerucut' | 'bola' | 'cakram' | 'daun'
 
@@ -29,6 +29,7 @@ interface Bahan {
   bentuk?: Bentuk
   puncak?: number
   miring?: number
+  anim?: Animasi
 }
 
 export interface Preset {
@@ -52,6 +53,9 @@ const b = (
   ...(puncak !== undefined ? { puncak } : {}),
   ...(miring !== undefined ? { miring } : {}),
 })
+
+/** beri animasi ke satu bagian */
+const beranim = (x: Bahan, a: Animasi): Bahan => ({ ...x, anim: a })
 
 /** satu buku berdiri di rak */
 const buku = (e: number, z: number, tebal: number, tinggi: number, style: string, w = 0.2): Bahan =>
@@ -248,9 +252,11 @@ export const PRESETS: Preset[] = [
       b(2.72, 0.0, 2.92, 2.3, 0.06, 4.06, 'kaca-langit'),
       b(2.56, 0.0, 2.92, 0.16, 0.14, 4.06, 'kertas-putih'),   // palang tengah
       // matahari + awan di panel kiri
-      b(0.78, 0.04, 6.0, 0.62, 0.04, 0.62, 'pastel-butter', 'cakram'),
+      beranim(b(0.78, 0.04, 6.0, 0.62, 0.04, 0.62, 'pastel-butter', 'cakram'),
+        { jenis: 'denyut', laju: 0.18, besar: 1, fase: 0 }),          // matahari
       b(0.86, 0.03, 5.86, 0.5, 0.04, 0.5, 'kertas-putih', 'cakram'),
-      b(1.2, 0.03, 5.78, 0.6, 0.04, 0.6, 'kertas-putih', 'cakram'),
+      beranim(b(1.2, 0.03, 5.78, 0.6, 0.04, 0.6, 'kertas-putih', 'cakram'),
+        { jenis: 'naik-turun', laju: 0.09, besar: 0.8, fase: 0.3 }),  // awan
       b(1.5, 0.03, 5.9, 0.44, 0.04, 0.44, 'kertas-putih', 'cakram'),
       // awan kecil di panel kanan
       b(3.9, 0.03, 3.9, 0.5, 0.04, 0.5, 'kertas-putih', 'cakram'),
@@ -259,14 +265,18 @@ export const PRESETS: Preset[] = [
       b(0, 0.2, 2.34, 5.6, 0.5, 0.18, 'kertas-putih'),
       b(0, 0.68, 2.26, 5.6, 0.06, 0.1, 'tirai-putih'),
       // TIRAI kiri (lebar di atas & bawah, menyempit di ikatan)
-      b(0.0, 0.12, 5.0, 0.78, 0.14, 1.9, 'tirai-putih'),
+      beranim(b(0.0, 0.12, 5.0, 0.78, 0.14, 1.9, 'tirai-putih'),
+        { jenis: 'ayun', laju: 0.13, besar: 0.7, fase: 0.1 }),        // tirai kiri
       b(0.18, 0.13, 4.5, 0.5, 0.13, 0.36, 'tirai-putih'),
-      b(0.06, 0.12, 2.66, 0.66, 0.14, 1.86, 'tirai-putih'),
+      beranim(b(0.06, 0.12, 2.66, 0.66, 0.14, 1.86, 'tirai-putih'),
+        { jenis: 'ayun', laju: 0.13, besar: 0.7, fase: 0.1 }),        // tirai kiri bawah
       b(0.3, 0.1, 4.42, 0.3, 0.16, 0.1, 'kertas-putih'),      // ikatan
       // TIRAI kanan
-      b(4.82, 0.12, 5.0, 0.78, 0.14, 1.9, 'tirai-putih'),
+      beranim(b(4.82, 0.12, 5.0, 0.78, 0.14, 1.9, 'tirai-putih'),
+        { jenis: 'ayun', laju: 0.13, besar: 0.7, fase: 0.6 }),        // tirai kanan
       b(5.12, 0.13, 4.5, 0.5, 0.13, 0.36, 'tirai-putih'),
-      b(4.88, 0.12, 2.66, 0.66, 0.14, 1.86, 'tirai-putih'),
+      beranim(b(4.88, 0.12, 2.66, 0.66, 0.14, 1.86, 'tirai-putih'),
+        { jenis: 'ayun', laju: 0.13, besar: 0.7, fase: 0.6 }),        // tirai kanan bawah
       b(4.98, 0.1, 4.42, 0.3, 0.16, 0.1, 'kertas-putih'),     // ikatan
       // batang tirai + ujung bola + cincin
       b(0.0, 0.09, 7.42, 5.6, 0.12, 0.12, 'kertas-putih', 'silinder'),
@@ -292,7 +302,8 @@ export const PRESETS: Preset[] = [
       b(0.42, 0.42, 1.32, 0.38, 0.38, 0.2, 'chair-dark', 'silinder'), // sendi
       b(0.5, 0.5, 1.46, 0.16, 0.16, 0.34, 'chair-dark'),          // lengan atas
       b(0.12, 0.16, 1.62, 0.92, 0.92, 0.62, 'chair-dark', 'kerucut', 0.3), // kap
-      b(0.4, 0.44, 1.58, 0.36, 0.36, 0.28, 'pastel-butter', 'bola'),       // bola lampu
+      beranim(b(0.4, 0.44, 1.58, 0.36, 0.36, 0.28, 'pastel-butter', 'bola'),
+        { jenis: 'denyut', laju: 0.4, besar: 1.6, fase: 0 }),                 // bola lampu (berdenyut)
     ],
   },
 
@@ -305,13 +316,20 @@ export const PRESETS: Preset[] = [
       b(0.18, 0.18, 0, 1.54, 1.54, 1.24, 'terracotta', 'kerucut', 1.22), // badan pot
       b(0.06, 0.06, 1.2, 1.78, 1.78, 0.22, 'terracotta', 'silinder'),    // bibir pot
       b(0.22, 0.22, 1.34, 1.46, 1.46, 0.1, 'wood-dark', 'silinder'),     // tanah
-      b(0.94, 0.94, 1.4, 2.0, 0.42, 1.1, 'daun-sage', 'daun', undefined, 96),
-      b(0.94, 0.94, 1.4, 2.1, 0.42, 1.1, 'daun-gelap', 'daun', undefined, 74),
-      b(0.94, 0.94, 1.4, 1.9, 0.42, 1.1, 'daun-sage', 'daun', undefined, 118),
-      b(0.96, 0.96, 1.42, 1.6, 0.4, 1.0, 'daun-gelap', 'daun', undefined, 140),
-      b(0.96, 0.96, 1.42, 1.7, 0.4, 1.0, 'daun-sage', 'daun', undefined, 52),
-      b(1.0, 1.0, 1.46, 1.3, 0.38, 0.9, 'daun-gelap', 'daun', undefined, 166),
-      b(1.0, 1.0, 1.46, 1.35, 0.38, 0.9, 'daun-sage', 'daun', undefined, 26),
+      beranim(b(0.94, 0.94, 1.4, 2.0, 0.42, 1.1, 'daun-sage', 'daun', undefined, 96),
+        { jenis: 'ayun', laju: 0.22, besar: 1, fase: 0 }),
+      beranim(b(0.94, 0.94, 1.4, 2.1, 0.42, 1.1, 'daun-gelap', 'daun', undefined, 74),
+        { jenis: 'ayun', laju: 0.22, besar: 1, fase: 0.14 }),
+      beranim(b(0.94, 0.94, 1.4, 1.9, 0.42, 1.1, 'daun-sage', 'daun', undefined, 118),
+        { jenis: 'ayun', laju: 0.22, besar: 1, fase: 0.29 }),
+      beranim(b(0.96, 0.96, 1.42, 1.6, 0.4, 1.0, 'daun-gelap', 'daun', undefined, 140),
+        { jenis: 'ayun', laju: 0.22, besar: 1, fase: 0.43 }),
+      beranim(b(0.96, 0.96, 1.42, 1.7, 0.4, 1.0, 'daun-sage', 'daun', undefined, 52),
+        { jenis: 'ayun', laju: 0.22, besar: 1, fase: 0.57 }),
+      beranim(b(1.0, 1.0, 1.46, 1.3, 0.38, 0.9, 'daun-gelap', 'daun', undefined, 166),
+        { jenis: 'ayun', laju: 0.22, besar: 1, fase: 0.71 }),
+      beranim(b(1.0, 1.0, 1.46, 1.35, 0.38, 0.9, 'daun-sage', 'daun', undefined, 26),
+        { jenis: 'ayun', laju: 0.22, besar: 1, fase: 0.86 }),
     ],
   },
 
@@ -443,6 +461,7 @@ export function buatPreset(opts: {
     ...(bag.bentuk ? { bentuk: bag.bentuk } : {}),
     ...(bag.puncak !== undefined ? { puncak: bag.puncak } : {}),
     ...(bag.miring !== undefined ? { miring: bag.miring } : {}),
+    ...(bag.anim ? { anim: bag.anim } : {}),
     app: null,
     layer: 'main' as const,
     grup,

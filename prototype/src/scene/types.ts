@@ -24,6 +24,24 @@ export const ROOM_FROM_FILE = true
 
 export type Layer = 'underlay' | 'main' | 'overlay'
 
+/**
+ * ANIMASI OBJEK (permintaan user 2026-10-29: "objek bisa diedit dan
+ * ditambahkan animasi"). Animasi TIDAK mengubah data scene: posisi/ukuran di
+ * JSON tetap sama, renderer hanya menggeser/memutar saat menggambar, sehingga
+ * hit-test, bbox, grup, kunci, dan file APK tidak terpengaruh.
+ */
+export type JenisAnim = 'naik-turun' | 'ayun' | 'denyut' | 'kedip' | 'putar'
+
+export interface Animasi {
+  jenis: JenisAnim
+  /** getaran per detik (default 0.5 = satu siklus per 2 detik) */
+  laju?: number
+  /** besar gerakan, pengali (default 1) */
+  besar?: number
+  /** geser fase 0..1 supaya bagian yang sama tidak bergerak serempak */
+  fase?: number
+}
+
 export interface SceneObject {
   id: string
   label: string
@@ -55,6 +73,8 @@ export interface SceneObject {
   // GARIS TEPI 1px berwarna lebih gelap (ciri gambar referensi). Bawaan ON;
   // set false untuk bagian yang terlalu kecil sehingga garisnya mengganggu.
   tepi?: boolean
+  // ANIMASI tampilan (tidak mengubah data): lihat interface Animasi di atas.
+  anim?: Animasi
   // ARAH PAPAN LANTAI: 0 = papan membentang sepanjang sumbu e (bawaan),
   // 1 = diputar 90 derajat sehingga membentang sepanjang sumbu w.
   // Hanya berpengaruh untuk lantai ber-pola 'papan' (kayu).

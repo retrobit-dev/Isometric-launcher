@@ -55,6 +55,7 @@ Tombol **SIMPAN & KUNCI** mengunci **objek saja**: layout beku untuk diterapkan 
 | `pos.e / pos.w` | number | koordinat grid (docs/01 §4). **Bebas, maks 3 desimal** — aturan kelipatan 0.1 dihapus 2026-10-29 |
 | `pos.z` | number | tinggi dasar dari lantai, satuan z, maks 3 desimal |
 | `size.e / size.w / size.z` | number | ukuran dalam tile & z, **minimum 0.01**, maks 3 desimal |
+| `anim` | object / tidak ada | **animasi tampilan** (lihat §0e): `{ jenis, laju?, besar?, fase? }`. Tidak mengubah posisi/ukuran di data |
 | `style` | string \| {top,left,right} | nama material (daftar §2) atau 3 warna eksplisit |
 | `app` | string \| null | binding tindakan/app (null = dekorasi); diisi fase app |
 | `layer` | `underlay` \| `main` \| `overlay` | urutan gambar: underlay = di bawah objek main (karpet, bayangan, decal lantai); main = default, urutan kedalaman normal; overlay = di atas semua (lampu gantung, balok plafon, tanaman menjulang). Tiap layer tetap diurutkan kedalaman isometrik internal |
@@ -95,6 +96,31 @@ ruangan — datanya tetap utuh dan muncul lagi begitu gambar latar dihapus.
 
 Batas ukuran unggah 16 MB base64 (≈12 MB gambar); UI preview menolak berkas
 > 8 MB lebih dulu.
+
+## 0e. Animasi objek — 2026-10-29
+
+Permintaan user: *"objek bisa diedit dan ditambahkan animasi"*. Animasi
+**tidak mengubah data**: `pos`/`size` di JSON tetap sama, renderer hanya
+menggeser/memutar saat menggambar. Jadi hit-test, bbox, grup, kunci, unduh
+JSON, dan APK tidak terpengaruh — objek tetap bisa diedit seperti biasa.
+
+```json
+{ "anim": { "jenis": "ayun", "laju": 0.22, "besar": 1, "fase": 0.14 } }
+```
+
+| Field | Arti |
+|---|---|
+| `jenis` | `naik-turun` · `ayun` · `denyut` · `kedip` · `putar` |
+| `laju` | getaran per detik, `0.05`–`5` (bawaan `0.5`) |
+| `besar` | pengali amplitudo, `0.1`–`5` (bawaan `1`) |
+| `fase` | geser fase `0`–`1` supaya bagian serupa tidak bergerak serempak |
+
+Di preview, panel editor objek punya baris **ANIMASI** (tombol siklus
+MATI → NAIK-TURUN → AYUN → DENYUT → KEDIP → PUTAR) dan **LAJU**
+(LAMBAT/CEPAT). Katalog preset sudah memakai animasi: bola lampu berdenyut,
+7 daun tanaman berayun dengan fase berbeda, matahari berdenyut, awan
+naik-turun, 4 bagian tirai berayun.
+
 
 ## 1. Kondisi awal scene (seed DIHAPUS)
 

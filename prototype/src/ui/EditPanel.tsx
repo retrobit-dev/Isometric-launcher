@@ -8,6 +8,10 @@ interface Props {
   onMove: (de: number, dw: number) => void
   onResize: (de: number, dw: number, dz: number) => void
   onCycleStyle: () => void
+  /** ganti jenis animasi: MATI -> naik-turun -> ayun -> denyut -> kedip -> putar */
+  onCycleAnim: () => void
+  /** ganti laju animasi (0.25 / 0.5 / 1 / 1.5 / 2) */
+  onCycleAnimLaju: () => void
   onCycleKunci: () => void
   /** naikkan ke atas objek sebelumnya (overlay) / turunkan ke bawah objek berikutnya */
   onRaise: () => void
@@ -304,6 +308,31 @@ export default function EditPanel(p: Props) {
             title="kiri = dinding DB (bidang e), kanan = dinding DT (bidang w)"
           >
             {(o.side ?? 'kiri').toUpperCase()} ⟳
+          </button>
+        </div>
+      )}
+      <div className="row">
+        <span className="rl">animasi</span>
+        <button
+          className={o.anim ? 'sbtn wide on' : 'sbtn wide'}
+          disabled={frozen}
+          onClick={p.onCycleAnim}
+          title="gerak tampilan objek ini. Data posisi/ukuran TIDAK berubah, jadi hit-test, grup, kunci, dan file scene tetap sama"
+        >
+          {o.anim ? o.anim.jenis.toUpperCase() : 'MATI'} ⟳
+        </button>
+      </div>
+      {o.anim && (
+        <div className="row">
+          <span className="rl">laju</span>
+          <span className="rv">{(o.anim.laju ?? 0.5).toFixed(2)}×</span>
+          <button
+            className="sbtn wide"
+            disabled={frozen}
+            onClick={p.onCycleAnimLaju}
+            title="kecepatan gerak: makin besar makin cepat"
+          >
+            {(o.anim.laju ?? 0.5) >= 1 ? 'CEPAT' : 'LAMBAT'} ⟳
           </button>
         </div>
       )}

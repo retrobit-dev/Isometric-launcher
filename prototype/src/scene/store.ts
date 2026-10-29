@@ -147,6 +147,24 @@ export function storageWorks(): boolean {
  * label terisi, urutan tumpukan bulat, dan urutan array stabil
  * (latar dulu, lalu urutan tumpukan). Lihat docs/04-KONTRAK-RENDERER.md.
  */
+const JENIS_ANIM = ['naik-turun', 'ayun', 'denyut', 'kedip', 'putar'] as const
+
+/** animasi yang sah saja yang boleh masuk file (jenis dikenal, angka dibatasi) */
+function normalAnim(a: SceneObject['anim']): SceneObject['anim'] | null {
+  if (!a || typeof a !== 'object') return null
+  if (!JENIS_ANIM.includes(a.jenis as (typeof JENIS_ANIM)[number])) return null
+  const angka = (v: unknown, def: number, lo: number, hi: number) => {
+    const n = typeof v === 'number' && Number.isFinite(v) ? v : def
+    return Math.round(Math.min(hi, Math.max(lo, n)) * 100) / 100
+  }
+  return {
+    jenis: a.jenis,
+    laju: angka(a.laju, 0.5, 0.05, 5),
+    besar: angka(a.besar, 1, 0.1, 5),
+    fase: angka(a.fase, 0, 0, 1),
+  }
+}
+
 export function normalisasiScene(scene: Scene): Scene {
   const snap = (v: number) => Math.round((Number.isFinite(v) ? v : 0) * 1000) / 1000
   const dipakai = new Set<string>()
@@ -435,6 +453,7 @@ export function validateScene(data: unknown): Scene | null {
         : 'wood',
       app: typeof ob.app === 'string' ? ob.app : null,
       ...(ob.rot === 1 || ob.rot === 2 || ob.rot === 3 ? { rot: ob.rot } : { rot: 0 }),
+      ...(normalAnim(ob.anim) ? { anim: normalAnim(ob.anim)! } : {}),
       ...(typeof ob.refleksi === 'boolean' ? { refleksi: ob.refleksi } : {}),
       ...(typeof ob.pantulan === 'boolean' ? { pantulan: ob.pantulan } : {}),
       ...(ob.polaRot === 1 ? { polaRot: 1 as const } : {}),
@@ -453,6 +472,7 @@ export function validateScene(data: unknown): Scene | null {
       ...(typeof ob.miring === 'number' && Number.isFinite(ob.miring)
         ? { miring: Math.round(ob.miring) } : {}),
       ...(ob.tepi === false ? { tepi: false } : {}),
+      ...(normalAnim(ob.anim) ? { anim: normalAnim(ob.anim)! } : {}),
       ...(ob.latar === true ? { latar: true } : {}),
       ...(typeof ob.urutan === 'number' && Number.isFinite(ob.urutan) ? { urutan: Math.round(ob.urutan) } : {}),
     })

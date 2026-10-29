@@ -11,13 +11,27 @@ import { ROOM_FIXED } from '../scene/types'
 // KAMERA: posisi tengah (CE, CW) + zoom Q. Posisi kamera disimpan otomatis
 // (isola-kamera-v1) sehingga pan/zoom tidak hilang saat reload / hot-reload.
 
-export const SCALE = 4
-export const IW = 640
-export const IH = 400
+// ---------------------------------------------------------------------------
+// RESOLUSI INTERNAL DINAIKKAN (permintaan user 2026-10-29: objek harus bisa
+// diedit/dianimasikan TETAPI sedekat mungkin dengan referensi).
+//
+// Dulu: kanvas 640x400 untuk 2560x1600 (x4). Gambar referensi 1135x711, jadi
+// 1 px referensi hanya 0,56 px kanvas -> detail referensi hilang ~44% dan
+// mustahil dibuat identik.
+//
+// Sekarang: kanvas 1136x710 (= 640x400 x 1,775). Skala dunia TIDAK berubah
+// (1 tile tetap 1 tile), yang berubah hanya kerapatan piksel: satu tile kini
+// 56,8 px internal, bukan 32 px. Jadi semua koordinat objek lama tetap sah,
+// tetapi detail sekecil ~0,02 tile (= 1 px) kini bisa digambar.
+// ---------------------------------------------------------------------------
+export const DENS = 1.775          // pengali kerapatan piksel
+export const IW = Math.round(640 * DENS)   // 1136
+export const IH = Math.round(400 * DENS)   // 710
+export const SCALE = 2560 / IW             // 2,25 (dulu 4)
 
-export const TILE_W = 32
-export const TILE_H = 16
-export const Z_PX = 16
+export const TILE_W = 32 * DENS    // 56,8 px internal
+export const TILE_H = 16 * DENS    // 28,4
+export const Z_PX = 16 * DENS      // 28,4
 
 // Dimensi ruangan = satu sumber kebenaran ROOM_FIXED (bebas diubah).
 export const ROOM = {
@@ -74,14 +88,16 @@ const initialView: ViewState = VIEW_FIXED
 
 export const CAM = { Q: initialView.q, CE: initialView.e, CW: initialView.w }
 
-export let HW = 32
-export let HH = 16
-export let ZH = 32
+// HW = setengah lebar satu tile di zoom x1 (dulu 16 px, kini 28,4 px)
+export const HW_BASE = 16 * DENS
+export let HW = HW_BASE
+export let HH = HW_BASE / 2
+export let ZH = HW_BASE
 
 function applyZoom(q: number) {
   CAM.Q = Math.min(Q_MAX, Math.max(Q_MIN, q))
-  HW = Math.min(160, Math.max(8, Math.round(16 * CAM.Q)))
-  HH = Math.round(HW / 2)
+  HW = HW_BASE * CAM.Q
+  HH = HW / 2
   ZH = HW
 }
 
@@ -91,7 +107,7 @@ export function setZoom(q: number) {
 
 // Level zoom saat ini (untuk tampilan tombol/chip)
 export function zoomValue(): number {
-  return Math.round((HW / 16) * 100) / 100
+  return Math.round((HW / HW_BASE) * 100) / 100
 }
 
 // Pan kamera TIDAK dibatasi: ruangan boleh digeser ke mana pun di kanvas

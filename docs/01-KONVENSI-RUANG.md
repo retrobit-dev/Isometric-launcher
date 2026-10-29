@@ -9,7 +9,7 @@
 |---|---|
 | Resolusi internal | 640 × 400 px |
 | Resolusi final | × 4 = **2560 × 1600** (MatePad Mini, landscape) |
-| 1 tile lantai | 32 × 16 px internal (rasio isometrik 2:1) |
+| 1 tile lantai | 56,8 × 28,4 px internal (rasio isometrik 2:1) — dulu 32 × 16 px; kanvas naik ke 1136×710 (DENS 1.775) pada 2026-10-29 |
 | 1 satuan tinggi (`z`) | 16 px internal |
 
 ## 1a. Skala fisik — TIDAK ADA ATURAN (dihapus 2026-10-28)

@@ -79,6 +79,14 @@ Aturan wajib:
 
 ## 3. Urutan gambar (algoritma bernomor)
 
+### Resolusi internal (2026-10-29)
+
+Kanvas internal naik dari **640×400** ke **1136×710** (`DENS = 1.775`) karena
+referensi user berukuran 1135×711: dulu 1 px referensi hanya 0,56 px kanvas
+sehingga detailnya hilang ~44%. Skala dunia tidak berubah (1 tile tetap 1
+tile, kini 56,8 px internal), jadi semua koordinat objek lama tetap sah.
+Final di tablet 2560×1600 = ×2,25.
+
 Wajib dieksekusi persis dalam urutan ini. Nomor tidak boleh ditukar.
 
 | # | Lapisan | Isi |
@@ -226,6 +234,23 @@ dan tidak boleh crash pada data lama.
 | Skema + katalog + urutan | `node tests/run-kontrak.mjs` | semua baris `OK` |
 | Tabel warna | `node tests/export-palet.mjs` | `docs/04-palet.json` diperbarui |
 | Visual | `docs/04-contoh-scene.json` | APK memuat scene contoh (96 objek: ruangan + semua preset) dan tampak sama dengan pratinjau web (uji berdampingan manual) |
+
+## 4b. Animasi
+
+Transform **hanya saat menggambar** (`ctx.save` → transform → gambar →
+`ctx.restore`). Titik tumpu = proyeksi `(pos.e + se/2, pos.w + sw/2, pos.z)`.
+`t = (performance.now()/1000) · laju · 2π + fase·2π`, `s = sin(t)`.
+
+| `jenis` | Transform |
+|---|---|
+| `naik-turun` | `translate(0, −besar · 4 · DENS · (0.5 + 0.5s))` |
+| `ayun` | `rotate(besar · 3.5° · s)` di titik tumpu |
+| `denyut` | `scale(1 + besar · 0.05 · s)` di titik tumpu |
+| `putar` | `rotate(besar · 8° · s)` di titik tumpu |
+| `kedip` | bila `s < −0.55` objek **tidak digambar** (30% siklus) |
+
+`DENS = 1.775` (lihat §0 di bawah). `refleksi` tetap memakai transform yang
+sama, jadi pantulan ikut bergerak.
 
 **Hash acuan urutan gambar:** `b1d32a86ae59`
 (dihitung dari urutan `meja,buku,lampu` pada scene uji di `tests/run-kontrak.mjs`).
