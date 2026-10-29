@@ -223,6 +223,22 @@ html, body, #root {
 .rinput::-webkit-outer-spin-button,
 .rinput::-webkit-inner-spin-button { -webkit-appearance: none; margin: 0; }
 
+/* angka derajat rotasi objek (kelipatan 30°) — ketuk untuk reset ke 0° */
+.rotdeg {
+  min-width: 46px;
+  text-align: center;
+  font-variant-numeric: tabular-nums;
+}
+/* keterangan kecil di dalam baris panel (mis. sprite tidak diputar 30°) */
+.row .hint {
+  flex: 1;
+  min-width: 0;
+  font-size: 9px;
+  line-height: 1.25;
+  color: #8a6a54;
+  text-transform: none;
+}
+
 .phint {
   margin-top: 2px;
   font-size: 9px;

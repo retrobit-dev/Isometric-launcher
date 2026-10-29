@@ -9,7 +9,7 @@ import { FLOOR_DEFAULT, FLOOR_KEYS, MATERIAL_KEYS, WALL_STYLE_KEYS } from './iso
 import PresetPicker from './ui/PresetPicker'
 import { muatAset, ukuranAset } from './scene/aset'
 import { PRESETS as PRESETS_EDIT, PRESETS_PIXEL, buatPixel, buatPreset, presetPixelOf, type Preset, type PresetPixel } from './scene/presets'
-import { UKURAN_MIN, ukuranSah } from './scene/types'
+import { ROTASI_LANGKAH, UKURAN_MIN, normalRotasi, ukuranSah } from './scene/types'
 import { LATAR_TAG, gabungLatar, geserTumpukan, hapusLatarImage, latarImageUrl, loadCandidates, loadDraft, loadLocked, loadSceneFile, normalisasiScene, objekBiasa, objekLatar, saveDraftGuarded, saveLatarImage, saveLocked, saveSceneFile, storageWorks, validateScene } from './scene/store'
 import { type JenisAnim, type Scene, type SceneObject } from './scene/types'
 import EditPanel from './ui/EditPanel'
@@ -1180,9 +1180,10 @@ export default function App() {
             const i = keys.indexOf(cur)
             patchObject(selected.id, { style: keys[(i + 1) % keys.length] })
           }}
-          onRotate={() => {
-            const cur = selected.rot ?? 0
-            patchObject(selected.id, { rot: (((cur + 1) % 4) as 0 | 1 | 2 | 3) })
+          onRotate={(arah: 1 | -1) => {
+            // ROTASI OBJEK kelipatan 30° (permintaan user 2026-10-29)
+            const cur = selected.rotasi ?? 0
+            patchObject(selected.id, { rotasi: normalRotasi(cur + arah * ROTASI_LANGKAH) })
           }}
           onCycleKunci={() => cycleKunci(selected.id)}
           onCycleAnim={() => cycleAnim(selected.id)}

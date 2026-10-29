@@ -98,10 +98,49 @@ function colorsOf(o: SceneObject) {
   return o.style
 }
 
-// Footprint setelah rotasi: rotasi 90/270 derajat menukar panjang <-> lebar.
+/**
+ * ROTASI OBJEK 2026-10-29 — kelipatan 30° (permintaan user).
+ * `sudutObjek()` mengembalikan sudut dalam RADIAN.
+ */
+export function sudutObjek(o: SceneObject): number {
+  const deg = o.rotasi ?? 0
+  return ((deg % 360) * Math.PI) / 180
+}
+
+/** 4 sudut alas objek di ruang dunia SETELAH rotasi (urut: -e-w, +e-w, +e+w, -e+w) */
+export function alasDunia(o: SceneObject): { e: number; w: number }[] {
+  const he = o.size.e / 2
+  const hw = o.size.w / 2
+  const ce = o.pos.e + he
+  const cw = o.pos.w + hw
+  const th = sudutObjek(o)
+  const co = Math.cos(th)
+  const si = Math.sin(th)
+  return ([[-he, -hw], [he, -hw], [he, hw], [-he, hw]] as [number, number][])
+    .map(([de, dw]) => ({ e: ce + de * co - dw * si, w: cw + de * si + dw * co }))
+}
+
+/** ukuran footprint setelah rotasi (untuk kedalaman & bbox) */
+export function sebaranFootprint(o: SceneObject): { se: number; sw: number } {
+  const th = sudutObjek(o)
+  const co = Math.abs(Math.cos(th))
+  const si = Math.abs(Math.sin(th))
+  return {
+    se: o.size.e * co + o.size.w * si,
+    sw: o.size.e * si + o.size.w * co,
+  }
+}
+
+/** true kalau rotasi masih kelipatan 90° (sprite PIXEL tetap tajam) */
+export function rotasiSegi90(o: SceneObject): boolean {
+  return (o.rotasi ?? 0) % 90 === 0
+}
+
+// Footprint kasar untuk bentuk bulat & sprite: rotasi 90/270 menukar
+// panjang <-> lebar. Untuk sudut lain dipakai ukuran asli (bentuk bulat tidak
+// berubah oleh rotasi).
 export function footprintOf(o: SceneObject): { se: number; sw: number } {
-  const rot = o.rot ?? 0
-  return rot % 2 === 1
+  return (o.rotasi ?? 0) % 180 === 90
     ? { se: o.size.w, sw: o.size.e }
     : { se: o.size.e, sw: o.size.w }
 }
@@ -113,7 +152,6 @@ export function footprintOf(o: SceneObject): { se: number; sw: number } {
 // kamera. Urutan gambar antar-wajah memakai kedalaman layar (jauh dulu).
 export function drawBox(ctx: CanvasRenderingContext2D, o: SceneObject) {
   const { e, w, z } = o.pos
-  const { se, sw } = footprintOf(o)
   const sz = o.size.z
   const c0 = colorsOf(o)
   // REFLEKSI objek = cermin: sisi kiri & kanan bertukar (arah cahaya terbalik)
@@ -121,26 +159,45 @@ export function drawBox(ctx: CanvasRenderingContext2D, o: SceneObject) {
   const g = tepiOf(o)
   const kam = arahKamera()
 
-  /** titik sudut balok; bit 1 = e+, bit 2 = w+, bit 4 = z+ */
-  const V = (i: number, zFrac = 1): P =>
-    px(e + (i & 1 ? se : 0), w + (i & 2 ? sw : 0), z + (i & 4 ? sz * zFrac : 0))
+  // --- footprint yang SUDAH DIPUTAR (kelipatan 30°) -----------------------
+  // Pusat footprint tidak berubah oleh rotasi; keempat sudutnya dihitung di
+  // ruang dunia lalu diproyeksikan, jadi balok tetap benar di sudut kamera
+  // mana pun DAN di rotasi objek mana pun.
+  const th = sudutObjek(o)
+  const co = Math.cos(th)
+  const si = Math.sin(th)
+  // sudut alas (-e-w, +e-w, +e+w, -e+w) sudah diputar di ruang dunia
+  const alas = alasDunia(o)
 
-  // [indeks sudut, normal e, normal w, normal z]
-  const WAJAH: [number[], number, number, number][] = [
-    [[1, 3, 7, 5], 1, 0, 0],    // +e
-    [[0, 2, 6, 4], -1, 0, 0],   // -e
-    [[2, 3, 7, 6], 0, 1, 0],    // +w
-    [[0, 1, 5, 4], 0, -1, 0],   // -w
-    [[4, 5, 7, 6], 0, 0, 1],    // atas
-  ]
-  const tampak = WAJAH.filter(([, ne, nw, nz]) =>
-    ne * kam.e + nw * kam.w + nz * kam.z > 0.001)
+  /** titik sudut; 0-3 alas, 4-7 atas (pasangan sama), zFrac memotong tinggi */
+  const V = (i: number, zFrac = 1): P => {
+    const t = alas[i & 3]
+    return px(t.e, t.w, z + (i >= 4 ? sz * zFrac : 0))
+  }
 
+  // Normal tiap sisi (lokal) diputar bersama objeknya.
+  const NORMAL: [number, number][] = [[0, -1], [1, 0], [0, 1], [-1, 0]]
+  const normalDunia = NORMAL.map(([de, dw]) => ({
+    e: de * co - dw * si,
+    w: de * si + dw * co,
+  }))
+
+  // sisi ke-k memakai sudut k, k+1 (alas & atas); atap memakai 4..7
+  type Wajah = { idx: number[]; ne: number; nw: number; nz: number }
+  const wajah: Wajah[] = [0, 1, 2, 3].map(k => ({
+    idx: [k, (k + 1) % 4, 4 + ((k + 1) % 4), 4 + k],
+    ne: normalDunia[k].e,
+    nw: normalDunia[k].w,
+    nz: 0,
+  }))
+  wajah.push({ idx: [4, 5, 6, 7], ne: 0, nw: 0, nz: 1 })
+
+  const tampak = wajah.filter(f => f.ne * kam.e + f.nw * kam.w + f.nz * kam.z > 0.001)
   const kedalaman = (idx: number[]) => idx.reduce((t, i) => t + V(i).y, 0) / idx.length
-  tampak.sort((a, b) => kedalaman(a[0]) - kedalaman(b[0]))
+  tampak.sort((a, b) => kedalaman(a.idx) - kedalaman(b.idx))
 
-  for (const [idx, ne, nw, nz] of tampak) {
-    poly(ctx, idx.map(i => V(i)), warnaWajah(c, ne, nw, nz), g)
+  for (const f of tampak) {
+    poly(ctx, f.idx.map(i => V(i)), warnaWajah(c, f.ne, f.nw, f.nz), g)
   }
 
   if (!g) return
@@ -148,21 +205,21 @@ export function drawBox(ctx: CanvasRenderingContext2D, o: SceneObject) {
   // PITA NADA: 26% kaki tiap sisi tegak digelapkan (menghilangkan kesan
   // "kotak dicat rata"). Dipotong ke bentuk wajahnya masing-masing.
   if (sz > 0.02) {
-    for (const [idx, ne, nw, nz] of tampak) {
-      if (nz !== 0) continue
-      poly(ctx, idx.map(i => V(i, 0.26)), gelapkan(warnaWajah(c, ne, nw, nz), 0.28), false)
+    for (const f of tampak) {
+      if (f.nz !== 0) continue
+      poly(ctx, f.idx.map(i => V(i, 0.26)), gelapkan(warnaWajah(c, f.ne, f.nw, f.nz), 0.28), false)
     }
 
     // RIM TERANG di rusuk bidang atas yang menjauhi kamera
     const warna = terangkan(c.top)
-    const rusuk: [number, number, number, number][] = [
-      [4, 5, 0, -1], [4, 6, -1, 0], [5, 7, 0, 1], [6, 7, 1, 0],
-    ]
     ctx.strokeStyle = warna
     ctx.lineWidth = TEBAL_TEPI
     ctx.lineJoin = 'round'
-    for (const [a, b, ne, nw] of rusuk) {
-      if (ne * kam.e + nw * kam.w > 0) continue
+    for (let k = 0; k < 4; k++) {
+      const n = normalDunia[k]
+      if (n.e * kam.e + n.w * kam.w > 0) continue   // sisi ini menghadap kamera
+      const a = 4 + k
+      const b = 4 + ((k + 1) % 4)
       ctx.beginPath()
       ctx.moveTo(Math.round(V(a).x), Math.round(V(a).y))
       ctx.lineTo(Math.round(V(b).x), Math.round(V(b).y))
@@ -177,10 +234,10 @@ function warnaWajah(
   ne: number, nw: number, nz: number,
 ): string {
   if (nz > 0.5) return c.top
-  if (ne > 0.5) return c.right     // sisi +e = kena cahaya
-  if (nw > 0.5) return c.left      // sisi +w = teduh
-  // sisi belakang (-e / -w): lebih gelap lagi supaya bentuk tetap terbaca
-  return gelapkan(c.left, 0.22)
+  // Rotasi objek 30° membuat normal tidak lagi 0/1, jadi wajah dipilih dari
+  // komponen yang DOMINAN (bukan ambang 0.5 yang hanya benar untuk 90°).
+  if (Math.abs(ne) >= Math.abs(nw)) return ne > 0 ? c.right : gelapkan(c.left, 0.22)
+  return nw > 0 ? c.left : gelapkan(c.left, 0.22)
 }
 
 // ---------------------------------------------------------------------------
@@ -487,7 +544,11 @@ function drawProfil(ctx: CanvasRenderingContext2D, o: SceneObject) {
 export function drawObject(ctx: CanvasRenderingContext2D, o: SceneObject) {
   const status = terapkanAnim(ctx, o)
   if (status === 'lewat') return
-  if (o.sprite && spriteSiap(o.sprite)) drawSprite(ctx, o)
+  // SPRITE PIXEL hanya digambar pada rotasi kelipatan 90° — memutar bitmap
+  // 30° membuat tepinya bergerigi dan melanggar aturan "sudut bersih tetap
+  // tajam". Di sudut lain objek digambar sebagai geometri EDIT (tetap bisa
+  // dilihat & diatur), sprite-nya muncul lagi saat rotasi dibulatkan ke 90°.
+  if (o.sprite && spriteSiap(o.sprite) && rotasiSegi90(o)) drawSprite(ctx, o)
   else if (o.bentuk === 'silinder') drawSilinder(ctx, o)
   else if (o.bentuk === 'kerucut') drawKerucut(ctx, o)
   else if (o.bentuk === 'bola') drawBola(ctx, o)
@@ -499,13 +560,11 @@ export function drawObject(ctx: CanvasRenderingContext2D, o: SceneObject) {
 }
 
 export function bboxOf(o: SceneObject): Box {
-  const { e, w, z } = o.pos
-  const { se, sw } = footprintOf(o)
-  const pts = [
-    px(e, w, z + o.size.z), px(e + se, w, z + o.size.z),
-    px(e + se, w + sw, z + o.size.z), px(e, w + sw, z + o.size.z),
-    px(e + se, w, z), px(e + se, w + sw, z), px(e, w + sw, z),
-  ]
+  // 8 titik sudut dari alas YANG SUDAH DIPUTAR — supaya garis seleksi &
+  // hit-test tetap pas pada rotasi 30° (dulu memakai kotak sejajar sumbu).
+  const alas = alasDunia(o)
+  const zAtas = o.pos.z + o.size.z
+  const pts = alas.flatMap(t => [px(t.e, t.w, zAtas), px(t.e, t.w, o.pos.z)])
   const xs = pts.map(p => p.x)
   const ys = pts.map(p => p.y)
   return { x0: Math.min(...xs), y0: Math.min(...ys), x1: Math.max(...xs), y1: Math.max(...ys) }
@@ -513,7 +572,7 @@ export function bboxOf(o: SceneObject): Box {
 
 // Kedalaman gambar: yang lebih dekat ke kamera (S) digambar terakhir
 export function depthOf(o: SceneObject): number {
-  const { se, sw } = footprintOf(o)
+  const { se, sw } = sebaranFootprint(o)
   return o.pos.e + se / 2 + o.pos.w + sw / 2
 }
 

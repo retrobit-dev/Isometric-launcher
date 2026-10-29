@@ -222,9 +222,17 @@ def tone(o):
     return {'top': c0['top'], 'left': c0.get('left', c0['left']), 'right': c0.get('right', c0.get('left'))}
 
 
+def sudut_objek(o):
+    """rotasi objek dalam radian; `rotasi` (kelipatan 30°) atau `rot` lama (0..3)."""
+    deg = o.get('rotasi')
+    if deg is None:
+        deg = (o.get('rot') or 0) * 90
+    return math.radians(deg % 360)
+
+
 def footing(o):
-    rot = o.get('rot', 0)
-    se, sw = (o['size']['w'], o['size']['e']) if rot % 2 == 1 else (o['size']['e'], o['size']['w'])
+    deg = (o.get('rotasi') if o.get('rotasi') is not None else (o.get('rot') or 0) * 90) % 360
+    se, sw = (o['size']['w'], o['size']['e']) if deg % 180 == 90 else (o['size']['e'], o['size']['w'])
     return se, sw
 
 
@@ -251,6 +259,8 @@ def draw_sprite(o):
     img = sprite_img(o['sprite'])
     if img is None:
         return draw_box(o)
+    if abs(sudut_objek(o) * 180 / math.pi) % 90 > 1e-6:
+        return draw_box(o)      # sprite tidak diputar 30° (tetap tajam)
     e, w, z = o['pos']['e'], o['pos']['w'], o['pos']['z']
     se, sw = footing(o)
     lebar = max(2, (se + sw) * HW)
@@ -265,33 +275,36 @@ def draw_sprite(o):
 def warnai_wajah(c, ne, nw, nz):
     if nz > 0.5:
         return c['top']
-    if ne > 0.5:
-        return c['right']
-    if nw > 0.5:
-        return c['left']
-    return gelapkan(c['left'], 0.22) or c['left']
+    if abs(ne) >= abs(nw):
+        return c['right'] if ne > 0 else (gelapkan(c['left'], 0.22) or c['left'])
+    return c['left'] if nw > 0 else (gelapkan(c['left'], 0.22) or c['left'])
 
 
 def draw_box(o):
     e, w, z = o['pos']['e'], o['pos']['w'], o['pos']['z']
-    se, sw = footing(o)
     sz = o['size']['z']
     c = tone(o)
     g = tepi(o)
     kam = arah_kamera()
 
-    def V(i, zf=1.0):
-        return px(e + (se if i & 1 else 0),
-                  w + (sw if i & 2 else 0),
-                  z + (sz * zf if i & 4 else 0))
+    # footprint SETELAH rotasi objek (kelipatan 30°)
+    he, hw = o['size']['e'] / 2, o['size']['w'] / 2
+    ce, cw = e + he, w + hw
+    th = sudut_objek(o)
+    co, si = math.cos(th), math.sin(th)
+    sudut_lokal = [(-he, -hw), (he, -hw), (he, hw), (-he, hw)]
+    alas = [(ce + de * co - dw * si, cw + de * si + dw * co) for de, dw in sudut_lokal]
 
-    wajah = [
-        ([1, 3, 7, 5], 1, 0, 0),
-        ([0, 2, 6, 4], -1, 0, 0),
-        ([2, 3, 7, 6], 0, 1, 0),
-        ([0, 1, 5, 4], 0, -1, 0),
-        ([4, 5, 7, 6], 0, 0, 1),
-    ]
+    def V(i, zf=1.0):
+        ae, aw = alas[i & 3]
+        return px(ae, aw, z + (sz * zf if i >= 4 else 0))
+
+    normal_lokal = [(0, -1), (1, 0), (0, 1), (-1, 0)]
+    normal = [(de * co - dw * si, de * si + dw * co) for de, dw in normal_lokal]
+
+    wajah = [([k, (k + 1) % 4, 4 + (k + 1) % 4, 4 + k], normal[k][0], normal[k][1], 0)
+             for k in range(4)]
+    wajah.append(([4, 5, 6, 7], 0, 0, 1))
     tampak = [x for x in wajah if x[1] * kam[0] + x[2] * kam[1] + x[3] * kam[2] > 0.001]
     tampak.sort(key=lambda x: sum(V(i)[1] for i in x[0]) / 4.0)
 
@@ -310,10 +323,12 @@ def draw_box(o):
 
         warna = terangkan(c['top'])
         if warna:
-            for a, b, ne, nw in ((4, 5, 0, -1), (4, 6, -1, 0), (5, 7, 0, 1), (6, 7, 1, 0)):
+            for k in range(4):
+                ne, nw = normal[k]
                 if ne * kam[0] + nw * kam[1] > 0:
                     continue
-                d.line([tuple(map(round, V(a))), tuple(map(round, V(b)))], fill=warna, width=2)
+                d.line([tuple(map(round, V(4 + k))), tuple(map(round, V(4 + (k + 1) % 4)))],
+                       fill=warna, width=2)
 
 
 def cincin(o):

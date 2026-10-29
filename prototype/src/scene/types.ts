@@ -52,6 +52,27 @@ export interface Animasi {
  * 2560×1600), jadi ini murni presisi data — bukan tombol ukuran piksel.
  */
 export const UKURAN_MIN = 0.001
+/**
+ * ROTASI OBJEK (permintaan user 2026-10-29: "rotasi pada editor objek buat
+ * dengan kelipatan 30 derajat").
+ *
+ * `rotasi` = derajat mengelilingi poros vertikal objek, selalu kelipatan 30
+ * (0..330) -> 12 posisi. Ini BUKAN rotasi kamera (itu `yaw`, kelipatan 15°),
+ * dan bukan pula rotasi sprite PIXEL (sprite hanya digambar di 0/90/180/270
+ * supaya tetap tajam, lihat iso/box.ts).
+ *
+ * Data lama memakai `rot` 0..3 (= 90° per langkah) dan tetap dibaca: saat
+ * normalisasi `rot` diubah menjadi `rotasi` = rot*90.
+ */
+export const ROTASI_LANGKAH = 30
+
+/** derajat rotasi yang sah: kelipatan 30, dibungkus ke 0..330 */
+export function normalRotasi(deg: number): number {
+  const n = Number.isFinite(deg) ? deg : 0
+  const b = Math.round(n / ROTASI_LANGKAH) * ROTASI_LANGKAH
+  return ((b % 360) + 360) % 360
+}
+
 /** jumlah desimal semua angka geometri (posisi & ukuran) */
 export const GEOMETRI_DESIMAL = 3
 /** pembulatan ke 0,001 */
@@ -83,6 +104,9 @@ export interface SceneObject {
   side?: 'kiri' | 'kanan'
   // rotasi terhadap sumbu z, kelipatan 90 derajat (0..3). Rotasi ganjil
   // menukar panjang/lebar (footprint) sehingga balok berputar 90/270 derajat.
+  /** derajat, kelipatan 30 (0..330) — lihat normalRotasi() */
+  rotasi?: number
+  /** LAMA: 0..3 (= 90° per langkah). Hanya dibaca, ditulis ulang jadi `rotasi`. */
   rot?: 0 | 1 | 2 | 3
   // REFLEKSI OBJEK = objek dicerminkan (mirror): warna sisi kiri & kanan
   // bertukar sehingga arah cahaya/bentuk objek terbalik. Berlaku untuk OBJEK

@@ -21,7 +21,7 @@ interface Props {
   onLower: () => void
   /** posisi tumpukan objek ini, mis. "3 / 6" */
   tumpukan: string
-  onRotate: () => void
+  onRotate: (arah: 1 | -1) => void
   onDuplicate: () => void
   onDelete: () => void
   onClose: () => void
@@ -156,7 +156,8 @@ export default function EditPanel(p: Props) {
   const styleName = typeof o.style === 'string' ? o.style : 'custom'
   const keys = isFloor ? FLOOR_KEYS : o.role === 'dinding' ? WALL_STYLE_KEYS : MATERIAL_KEYS
   const matIdx = keys.indexOf(styleName)
-  const rot = o.rot ?? 0
+  const sudut = o.rotasi ?? 0
+  const spriteKaku = !!o.sprite && sudut % 90 !== 0
   const cermin = o.refleksi === true          // objek dicerminkan (mirror)
   const pantul = o.pantulan !== false         // bayangan objek di lantai
   // KUNCI per objek (permintaan user): 'warna' = semua mati kecuali material,
@@ -277,14 +278,38 @@ export default function EditPanel(p: Props) {
       <div className="row">
         <span className="rl">rotasi</span>
         <button
-          className="sbtn wide"
+          className="sbtn"
           disabled={frozen}
-          onClick={p.onRotate}
-          title="memutar OBJEK INI 90° pada poros vertikalnya (bukan kamera/ruangan); rotasi ganjil menukar panjang & lebar"
+          onClick={() => p.onRotate(-1)}
+          title="putar OBJEK INI 30° ke kiri pada poros vertikalnya (bukan kamera)"
         >
-          {rot * 90}° ⟳
+          ⟲ 30°
+        </button>
+        <button
+          className={sudut === 0 ? 'sbtn rotdeg on' : 'sbtn rotdeg'}
+          disabled={frozen}
+          onClick={() => p.onChange({ rotasi: 0 })}
+          title="kembalikan rotasi objek ke 0° (ketuk angka untuk reset)"
+        >
+          {sudut}°
+        </button>
+        <button
+          className="sbtn"
+          disabled={frozen}
+          onClick={() => p.onRotate(1)}
+          title="putar OBJEK INI 30° ke kanan pada poros vertikalnya (bukan kamera)"
+        >
+          30° ⟳
         </button>
       </div>
+      {spriteKaku && (
+        <div className="row">
+          <span className="rl" />
+          <span className="hint" title="sprite piksel tidak diputar 30° supaya tetap tajam">
+            versi PIXEL tampil utuh di 0/90/180/270°
+          </span>
+        </div>
+      )}
       <div className="row">
         <span className="rl">refleksi</span>
         <button

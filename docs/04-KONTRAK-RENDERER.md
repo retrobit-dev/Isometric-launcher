@@ -188,6 +188,33 @@ Aturan wajib (harus identik di APK):
    Nilai dibulatkan ke 0.001 (sejak 2026-10-29; sebelumnya 0.01).
 7. Pantulan objek silinder/kerucut memakai fungsi yang sama (tinggi ×0.6).
 
+## 4e. Rotasi objek 30° (2026-10-29)
+
+Permintaan user: *"rotasi pada editor objek buat dengan kelipatan 30 derajat"*.
+
+Berbeda dari **orbit kamera** (docs/06, kelipatan 15°, memutar seluruh dunia),
+`rotasi` memutar SATU objek pada poros vertikalnya sendiri.
+
+1. `rotasi` = derajat, kelipatan 30, dibungkus ke `0..330` (`normalRotasi`).
+   `rot: 0..3` (data lama) dibaca sebagai `rot*90` lalu ditulis sebagai `rotasi`.
+2. Pusat footprint `C = (e + size.e/2, w + size.w/2)` **tidak berubah** oleh
+   rotasi. Keempat sudut alas (lokal `(-he,-hw) (he,-hw) (he,hw) (-he,hw)`)
+   diputar: `de' = de·cosθ − dw·sinθ`, `dw' = de·sinθ + dw·cosθ`.
+3. Delapan titik sudut: 4 alas + 4 atas. Wajah = 4 sisi + atap (alas tidak
+   pernah terlihat karena kamera selalu di atas).
+4. Normal sisi ikut diputar. Wajah tampak bila `n·kamera > 0,001`; urutan
+   gambar menurut rata-rata Y layar (jauh dulu). Warna wajah dipilih dari
+   komponen normal yang **dominan** (`|ne| ≥ |nw|` → kanan/kiri), bukan ambang
+   0,5 yang hanya benar untuk kelipatan 90°.
+5. Pita nada 26% kaki objek & rim terang di rusuk atas memakai indeks sudut
+   yang sama, jadi otomatis mengikuti rotasi.
+6. Sprite PIXEL tidak pernah diputar 30°. Bila `rotasi % 90 ≠ 0`, objek
+   digambar sebagai geometri EDIT (sprite muncul lagi saat kembali ke
+   kelipatan 90°).
+
+Paritas offline: `draw_box()` di `tools/render_scene.py` memakai rumus yang
+sama; diuji oleh `prototype/tests/run-rotasi.mjs`.
+
 ## 5. Yang TIDAK boleh dilakukan APK (sumber beda tafsir)
 
 1. Mengganti algoritma pengurutan (mis. mengurutkan ulang berdasarkan z saja).

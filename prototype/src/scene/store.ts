@@ -1,5 +1,5 @@
 import { FLOOR_DEFAULT, FLOOR_MATERIALS } from '../iso/palette'
-import { ROOM_FROM_FILE, ROOM_FIXED, ukuranSah, type Scene, type SceneObject } from './types'
+import { ROOM_FROM_FILE, ROOM_FIXED, normalRotasi, ukuranSah, type Scene, type SceneObject } from './types'
 
 // v4: ruangan saja (fase penyamaan ruangan dengan referensi; objek menyusul)
 // v5: objek bisa berperan sebagai LANTAI ruangan (role 'lantai')
@@ -188,6 +188,14 @@ export function normalisasiScene(scene: Scene): Scene {
         z: ukuranSah(o.size.z),
       },
       ...(o.urutan === undefined ? {} : { urutan: Math.round(o.urutan) }),
+      // ROTASI OBJEK (kelipatan 30°). Data lama `rot` 0..3 = 90° per langkah
+      // dimigrasi sekali di sini; `rot` lama tidak ditulis ulang.
+      ...(() => {
+        const lama = typeof o.rot === 'number' ? o.rot * 90 : 0
+        const deg = normalRotasi(typeof o.rotasi === 'number' ? o.rotasi : lama)
+        // `rot` lama tidak pernah ditulis ulang (hanya dibaca)
+        return deg === 0 ? {} : { rotasi: deg }
+      })(),
     }
   })
   objects.sort((a, b) =>
@@ -457,7 +465,13 @@ export function validateScene(data: unknown): Scene | null {
         ? ob.style as SceneObject['style']
         : 'wood',
       app: typeof ob.app === 'string' ? ob.app : null,
-      ...(ob.rot === 1 || ob.rot === 2 || ob.rot === 3 ? { rot: ob.rot } : { rot: 0 }),
+      // ROTASI: pakai `rotasi` (kelipatan 30). Data lama `rot` 0..3 = 90° per
+      // langkah tetap dibaca lalu diubah ke derajat.
+      ...(() => {
+        const lama = typeof ob.rot === 'number' ? ob.rot * 90 : 0
+        const deg = normalRotasi(typeof ob.rotasi === 'number' ? ob.rotasi : lama)
+        return deg === 0 ? {} : { rotasi: deg }
+      })(),
       ...(normalAnim(ob.anim) ? { anim: normalAnim(ob.anim)! } : {}),
       ...(typeof ob.refleksi === 'boolean' ? { refleksi: ob.refleksi } : {}),
       ...(typeof ob.pantulan === 'boolean' ? { pantulan: ob.pantulan } : {}),
@@ -579,9 +593,12 @@ export function geserTumpukan(scene: Scene, id: string, arah: 1 | -1): Scene {
 
 /** kedalaman isometrik kasar (sama seperti depthOf di iso/box.ts) */
 function dalamOf(o: SceneObject): number {
-  const swap = (o.rot ?? 0) % 2 === 1
-  const se = swap ? o.size.w : o.size.e
-  const sw = swap ? o.size.e : o.size.w
+  // pusat footprint tidak berubah karena rotasi, jadi cukup pusat + setengah
+  // diagonal; rotasi tidak lagi menukar panjang/lebar secara kasar di sini.
+  const deg = o.rotasi ?? 0
+  const rad = (deg * Math.PI) / 180
+  const se = Math.abs(o.size.e * Math.cos(rad)) + Math.abs(o.size.w * Math.sin(rad))
+  const sw = Math.abs(o.size.e * Math.sin(rad)) + Math.abs(o.size.w * Math.cos(rad))
   return o.pos.e + se / 2 + o.pos.w + sw / 2
 }
 
