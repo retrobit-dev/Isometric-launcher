@@ -1,5 +1,5 @@
 {
- "savedAt": "2026-10-29T09:30:30.089Z",
+ "savedAt": "2026-10-29T10:22:36.000Z",
  "scene": {
   "version": 1,
   "room": {
@@ -22,7 +22,7 @@
      "w": 20,
      "z": 0.2
     },
-    "style": "lantai-pastel-krem",
+    "style": "lantai-kayu-gelap",
     "app": null,
     "refleksi": false,
     "pantulan": false,
@@ -45,7 +45,7 @@
      "w": 20,
      "z": 25
     },
-    "style": "dinding-krem",
+    "style": "dinding-bata",
     "app": null,
     "role": "dinding",
     "side": "kiri",
@@ -66,7 +66,7 @@
      "w": 0.2,
      "z": 25
     },
-    "style": "dinding-krem",
+    "style": "dinding-bata",
     "app": null,
     "role": "dinding",
     "side": "kanan",
@@ -1104,11 +1104,11 @@
      "z": 4.82
     },
     "style": "kayu-tua",
-    "preset": "rak-buku",
     "app": null,
     "layer": "main",
     "grup": "grup-rak-buku",
     "grupNama": "RAK BUKU",
+    "preset": "rak-buku",
     "urutan": 37
    },
    {
@@ -1125,11 +1125,11 @@
      "z": 4.82
     },
     "style": "kayu-tua",
-    "preset": "rak-buku",
     "app": null,
     "layer": "main",
     "grup": "grup-rak-buku",
     "grupNama": "RAK BUKU",
+    "preset": "rak-buku",
     "urutan": 38
    },
    {
@@ -1146,11 +1146,11 @@
      "z": 4.82
     },
     "style": "kayu-tua",
-    "preset": "rak-buku",
     "app": null,
     "layer": "main",
     "grup": "grup-rak-buku",
     "grupNama": "RAK BUKU",
+    "preset": "rak-buku",
     "urutan": 39
    },
    {
@@ -1167,11 +1167,11 @@
      "z": 0.12
     },
     "style": "kayu-meja",
-    "preset": "rak-buku",
     "app": null,
     "layer": "main",
     "grup": "grup-rak-buku",
     "grupNama": "RAK BUKU",
+    "preset": "rak-buku",
     "urutan": 40
    },
    {
@@ -1188,11 +1188,11 @@
      "z": 0.12
     },
     "style": "kayu-meja",
-    "preset": "rak-buku",
     "app": null,
     "layer": "main",
     "grup": "grup-rak-buku",
     "grupNama": "RAK BUKU",
+    "preset": "rak-buku",
     "urutan": 41
    },
    {
@@ -1209,11 +1209,11 @@
      "z": 0.12
     },
     "style": "kayu-meja",
-    "preset": "rak-buku",
     "app": null,
     "layer": "main",
     "grup": "grup-rak-buku",
     "grupNama": "RAK BUKU",
+    "preset": "rak-buku",
     "urutan": 42
    },
    {
@@ -1230,11 +1230,11 @@
      "z": 0.14
     },
     "style": "kayu-meja",
-    "preset": "rak-buku",
     "app": null,
     "layer": "main",
     "grup": "grup-rak-buku",
     "grupNama": "RAK BUKU",
+    "preset": "rak-buku",
     "urutan": 43
    },
    {
@@ -1251,11 +1251,11 @@
      "z": 1.3
     },
     "style": "buku-bata",
-    "preset": "rak-buku",
     "app": null,
     "layer": "main",
     "grup": "grup-rak-buku",
     "grupNama": "RAK BUKU",
+    "preset": "rak-buku",
     "urutan": 44
    },
    {
@@ -1272,11 +1272,11 @@
      "z": 1.16
     },
     "style": "buku-biru",
-    "preset": "rak-buku",
     "app": null,
     "layer": "main",
     "grup": "grup-rak-buku",
     "grupNama": "RAK BUKU",
+    "preset": "rak-buku",
     "urutan": 45
    },
    {
@@ -1293,11 +1293,11 @@
      "z": 1.24
     },
     "style": "buku-zaitun",
-    "preset": "rak-buku",
     "app": null,
     "layer": "main",
     "grup": "grup-rak-buku",
     "grupNama": "RAK BUKU",
+    "preset": "rak-buku",
     "urutan": 46
    },
    {
@@ -1314,11 +1314,11 @@
      "z": 1.06
     },
     "style": "buku-krem",
-    "preset": "rak-buku",
     "app": null,
     "layer": "main",
     "grup": "grup-rak-buku",
     "grupNama": "RAK BUKU",
+    "preset": "rak-buku",
     "urutan": 47
    },
    {
@@ -1335,11 +1335,11 @@
      "z": 1.2
     },
     "style": "buku-lav",
-    "preset": "rak-buku",
     "app": null,
     "layer": "main",
     "grup": "grup-rak-buku",
     "grupNama": "RAK BUKU",
+    "preset": "rak-buku",
     "urutan": 48
    },
    {
@@ -1356,11 +1356,11 @@
      "z": 1.12
     },
     "style": "buku-salmon",
-    "preset": "rak-buku",
     "app": null,
     "layer": "main",
     "grup": "grup-rak-buku",
     "grupNama": "RAK BUKU",
+    "preset": "rak-buku",
     "urutan": 49
    },
    {
@@ -1377,11 +1377,11 @@
      "z": 1.28
     },
     "style": "buku-gelap",
-    "preset": "rak-buku",
     "app": null,
     "layer": "main",
     "grup": "grup-rak-buku",
     "grupNama": "RAK BUKU",
+    "preset": "rak-buku",
     "urutan": 50
    },
    {
@@ -1398,11 +1398,11 @@
      "z": 1.18
     },
     "style": "buku-bata",
-    "preset": "rak-buku",
     "app": null,
     "layer": "main",
     "grup": "grup-rak-buku",
     "grupNama": "RAK BUKU",
+    "preset": "rak-buku",
     "urutan": 51
    },
    {
@@ -1419,11 +1419,11 @@
      "z": 1.24
     },
     "style": "buku-zaitun",
-    "preset": "rak-buku",
     "app": null,
     "layer": "main",
     "grup": "grup-rak-buku",
     "grupNama": "RAK BUKU",
+    "preset": "rak-buku",
     "urutan": 52
    },
    {
@@ -1440,11 +1440,11 @@
      "z": 1.06
     },
     "style": "buku-krem",
-    "preset": "rak-buku",
     "app": null,
     "layer": "main",
     "grup": "grup-rak-buku",
     "grupNama": "RAK BUKU",
+    "preset": "rak-buku",
     "urutan": 53
    },
    {
@@ -1461,11 +1461,11 @@
      "z": 1.2
     },
     "style": "buku-lav",
-    "preset": "rak-buku",
     "app": null,
     "layer": "main",
     "grup": "grup-rak-buku",
     "grupNama": "RAK BUKU",
+    "preset": "rak-buku",
     "urutan": 54
    },
    {
@@ -1482,11 +1482,11 @@
      "z": 1.12
     },
     "style": "buku-salmon",
-    "preset": "rak-buku",
     "app": null,
     "layer": "main",
     "grup": "grup-rak-buku",
     "grupNama": "RAK BUKU",
+    "preset": "rak-buku",
     "urutan": 55
    },
    {
@@ -1503,11 +1503,11 @@
      "z": 1.28
     },
     "style": "buku-gelap",
-    "preset": "rak-buku",
     "app": null,
     "layer": "main",
     "grup": "grup-rak-buku",
     "grupNama": "RAK BUKU",
+    "preset": "rak-buku",
     "urutan": 56
    },
    {
@@ -1524,11 +1524,11 @@
      "z": 1.18
     },
     "style": "buku-bata",
-    "preset": "rak-buku",
     "app": null,
     "layer": "main",
     "grup": "grup-rak-buku",
     "grupNama": "RAK BUKU",
+    "preset": "rak-buku",
     "urutan": 57
    },
    {
@@ -1545,11 +1545,11 @@
      "z": 1.3
     },
     "style": "buku-biru",
-    "preset": "rak-buku",
     "app": null,
     "layer": "main",
     "grup": "grup-rak-buku",
     "grupNama": "RAK BUKU",
+    "preset": "rak-buku",
     "urutan": 58
    },
    {
@@ -1566,11 +1566,11 @@
      "z": 1.16
     },
     "style": "buku-zaitun",
-    "preset": "rak-buku",
     "app": null,
     "layer": "main",
     "grup": "grup-rak-buku",
     "grupNama": "RAK BUKU",
+    "preset": "rak-buku",
     "urutan": 59
    },
    {
@@ -1587,11 +1587,11 @@
      "z": 1.16
     },
     "style": "buku-biru",
-    "preset": "rak-buku",
     "app": null,
     "layer": "main",
     "grup": "grup-rak-buku",
     "grupNama": "RAK BUKU",
+    "preset": "rak-buku",
     "urutan": 60
    },
    {
@@ -1608,11 +1608,11 @@
      "z": 1.24
     },
     "style": "buku-zaitun",
-    "preset": "rak-buku",
     "app": null,
     "layer": "main",
     "grup": "grup-rak-buku",
     "grupNama": "RAK BUKU",
+    "preset": "rak-buku",
     "urutan": 61
    },
    {
@@ -1629,11 +1629,11 @@
      "z": 1.06
     },
     "style": "buku-krem",
-    "preset": "rak-buku",
     "app": null,
     "layer": "main",
     "grup": "grup-rak-buku",
     "grupNama": "RAK BUKU",
+    "preset": "rak-buku",
     "urutan": 62
    },
    {
@@ -1650,11 +1650,11 @@
      "z": 1.2
     },
     "style": "buku-lav",
-    "preset": "rak-buku",
     "app": null,
     "layer": "main",
     "grup": "grup-rak-buku",
     "grupNama": "RAK BUKU",
+    "preset": "rak-buku",
     "urutan": 63
    },
    {
@@ -1671,11 +1671,11 @@
      "z": 1.12
     },
     "style": "buku-salmon",
-    "preset": "rak-buku",
     "app": null,
     "layer": "main",
     "grup": "grup-rak-buku",
     "grupNama": "RAK BUKU",
+    "preset": "rak-buku",
     "urutan": 64
    },
    {
@@ -1692,11 +1692,11 @@
      "z": 1.28
     },
     "style": "buku-gelap",
-    "preset": "rak-buku",
     "app": null,
     "layer": "main",
     "grup": "grup-rak-buku",
     "grupNama": "RAK BUKU",
+    "preset": "rak-buku",
     "urutan": 65
    },
    {
@@ -1713,11 +1713,11 @@
      "z": 1.18
     },
     "style": "buku-bata",
-    "preset": "rak-buku",
     "app": null,
     "layer": "main",
     "grup": "grup-rak-buku",
     "grupNama": "RAK BUKU",
+    "preset": "rak-buku",
     "urutan": 66
    },
    {
@@ -1734,11 +1734,11 @@
      "z": 1.3
     },
     "style": "buku-biru",
-    "preset": "rak-buku",
     "app": null,
     "layer": "main",
     "grup": "grup-rak-buku",
     "grupNama": "RAK BUKU",
+    "preset": "rak-buku",
     "urutan": 67
    }
   ],
@@ -1746,7 +1746,7 @@
    "locked": true,
    "savedAt": "2026-10-29T09:19:22.575Z",
    "latarMigrasi": "latar-v1",
-   "updatedAt": "2026-10-29T09:31:00.088Z"
+   "updatedAt": "2026-10-29T10:21:54.901Z"
   }
  }
 }
