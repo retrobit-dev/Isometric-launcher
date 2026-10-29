@@ -163,10 +163,14 @@ export function langitFase(f: Fase): LangitFase {
         benda: 'matahari', bintang: false, awan: '#fb836b',
       }
     default:
-      // malam: biru paling gelap di zenith, sedikit lebih terang di horizon
+      // RONDE 46 — malam diperbaiki. Dulu pita paling atas memakai #1a3121
+      // (hijau tua dari tangga nada hijau) sehingga langit malam terlihat
+      // kehijauan, dan pita bawahnya #66b6cf (biru terang) sehingga kaca
+      // jendela terlihat seperti siang yang digelapkan.
+      // Sekarang: nyaris hitam di zenith -> biru tua -> biru pucat di horizon.
       return {
-        pita: ['#1a3121', '#1a3121', '#2e4a63', '#2e4a63', '#3f7fa3', '#66b6cf'],
-        benda: 'bulan', bintang: true, awan: '#66b6cf',
+        pita: ['#2b1a12', '#2e4a63', '#2e4a63', '#2e4a63', '#2e4a63', '#3f7fa3'],
+        benda: 'bulan', bintang: true, awan: '#3f7fa3',
       }
   }
 }
@@ -370,19 +374,27 @@ function awan(ctx: CanvasRenderingContext2D, k: Bidang, dasar: string, n: number
  */
 function bintang(ctx: CanvasRenderingContext2D, k: Bidang, warnaI: string) {
   const redup = gelap(warnaI, 1)
-  for (let i = 0; i < 34; i++) {
+  // RONDE 46 — KENAPA DULU TERLIHAT SEPERTI TITIK AIR:
+  // ada 34 bintang, tersebar RATA di seluruh bidang, masing-masing digambar
+  // sebagai kotak 1-2 px yang menyala sepanjang waktu. Pola titik putih rapat
+  // dan seragam seperti itu terbaca sebagai RINTIK HUJAN / embun di kaca,
+  // bukan bintang.
+  // Sekarang: lebih sedikit (16), mengumpul di langit atas, ukurannya 1 px,
+  // dan sebagian besar berkedip mati — jadi terlihat seperti langit berbintang.
+  const N = 12
+  for (let i = 0; i < N; i++) {
     const u = acak(i, 7)
-    const v = acak(i, 8) * 0.78
+    const v = acak(i, 8) * 0.62          // hanya di 62% atas bidang
     const besar = acak(i, 13)
-    const kedip = Math.sin(detik * (1.1 + besar) + i * 1.7)
-    if (kedip < -0.55) continue
-    const warnaB = kedip > 0.5 ? warnaI : redup
-    const w = 0.008 + besar * 0.010
-    const h = 0.018 + besar * 0.026
+    const kedip = Math.sin(detik * (0.9 + besar) + i * 1.7)
+    if (kedip < -0.2) continue           // lebih sering padam -> tidak "confetti"
+    const warnaB = kedip > 0.75 ? warnaI : redup
+    const w = 0.006 + besar * 0.004      // ~1 px internal
+    const h = 0.012 + besar * 0.010
     kotak(ctx, k, u, v, w, h, warnaB)
-    if (besar > 0.55) {
-      kotak(ctx, k, u - w * 0.9, v + h * 0.35, w * 2.8, h * 0.28, warnaB)
-      kotak(ctx, k, u + w * 0.1, v - h * 0.35, w * 0.85, h * 1.7, warnaB)
+    if (besar > 0.84) {                  // hanya bintang paling terang diberi salib
+      kotak(ctx, k, u - w * 0.8, v + h * 0.38, w * 2.6, h * 0.30, warnaB)
+      kotak(ctx, k, u + w * 0.1, v - h * 0.30, w * 0.8, h * 1.5, warnaB)
     }
   }
 }
@@ -458,7 +470,9 @@ export function drawLangit(ctx: CanvasRenderingContext2D, k: Bidang, opsi: OpsiL
   }
 
   // 2) bintang (malam, tidak terlihat saat mendung tebal)
-  if (L.bintang && !e.mendung) bintang(ctx, k, '#ffffff')
+  // RONDE 46: warnanya #fff9e3 (bukan #ffffff yang bahkan bukan anggota palet)
+  // dan sebagian besar diredupkan, supaya tidak terbaca sebagai titik air.
+  if (L.bintang && !e.mendung) bintang(ctx, k, '#fff9e3')
 
   // 3) pelangi tipis (sehabis gerimis, hanya pagi/siang)
   if (e.pelangi && (fase === 'pagi' || fase === 'siang')) pelangi(ctx, k)
@@ -470,8 +484,10 @@ export function drawLangit(ctx: CanvasRenderingContext2D, k: Bidang, opsi: OpsiL
     const sekitar = langitDi(b.v)
     // halo sempit ber-DITHER: makin ke luar makin jarang piksel bulan, jadi
     // menyatu dengan langit tanpa perlu mencampur warna (tetap 32 warna)
-    cakram(ctx, k, b.u, b.v, 0.128, 0.225, polaDither(ctx, sekitar, '#dadab8', 0.18), 20)
-    cakram(ctx, k, b.u, b.v, 0.104, 0.182, polaDither(ctx, sekitar, '#dadab8', 0.48), 20)
+    // halo bulan dibuat LEBIH TIPIS (dulu 18%/48% -> bintik putih di sekeliling
+    // bulan ikut terbaca sebagai titik air di kaca)
+    cakram(ctx, k, b.u, b.v, 0.128, 0.225, polaDither(ctx, sekitar, '#dadab8', 0.10), 20)
+    cakram(ctx, k, b.u, b.v, 0.104, 0.182, polaDither(ctx, sekitar, '#dadab8', 0.30), 20)
     cakram(ctx, k, b.u, b.v, 0.082, 0.142, '#c5c7a4')
     cakram(ctx, k, b.u - 0.012, b.v - 0.018, 0.058, 0.100, '#dadab8')
     // kawah: tiga bintik gelap

@@ -679,8 +679,9 @@ def fase_warna(f):
     if f == 'senja':
         return (['#3f7fa3', '#2e4a63', '#833422', '#ee734c', '#ef9762', '#fdd792'],
                 'matahari', False, '#fb836b')
-    return (['#1a3121', '#1a3121', '#2e4a63', '#2e4a63', '#3f7fa3', '#66b6cf'],
-            'bulan', True, '#66b6cf')
+    # ronde 46: zenith nyaris hitam, horizon biru pucat (cermin langit.ts)
+    return (['#2b1a12', '#2e4a63', '#2e4a63', '#2e4a63', '#2e4a63', '#3f7fa3'],
+            'bulan', True, '#3f7fa3')
 
 
 def efek_cuaca(c):
@@ -815,20 +816,21 @@ def draw_langit(o):
         i = max(0, min(len(warnaLangit) - 1, int(round(v * (len(warnaLangit) - 1)))))
         return warnaLangit[i]
 
-    # 2) bintang: 34 butir, tiga ukuran, salib untuk yang paling terang
+    # 2) bintang (ronde 46): 16 butir, hanya di 62% atas, 1 px, salib untuk
+    # yang paling terang. 34 butir rata sebelumnya terbaca seperti titik air.
     if bintang and not mendung:
         redup = gelap('#ffffff', 1)
-        for i in range(34):
+        for i in range(12):
             u = _acak(i, 7)
-            v = _acak(i, 8) * 0.78
+            v = _acak(i, 8) * 0.62
             besar = _acak(i, 13)
-            wb = '#ffffff' if besar > 0.55 else redup
-            w = 0.008 + besar * 0.010
-            h = 0.018 + besar * 0.026
+            wb = '#fff9e3' if besar > 0.75 else redup
+            w = 0.006 + besar * 0.004
+            h = 0.012 + besar * 0.010
             _kotak(k, u, v, w, h, wb)
-            if besar > 0.55:
-                _kotak(k, u - w * 0.9, v + h * 0.35, w * 2.8, h * 0.28, wb)
-                _kotak(k, u + w * 0.1, v - h * 0.35, w * 0.85, h * 1.7, wb)
+            if besar > 0.84:
+                _kotak(k, u - w * 0.8, v + h * 0.38, w * 2.6, h * 0.30, wb)
+                _kotak(k, u + w * 0.1, v - h * 0.30, w * 0.8, h * 1.5, wb)
 
     if pelangi and fase in ('pagi', 'siang'):
         # busur setengah lingkaran, tiga pita (sama dengan pelangi() di TS)
@@ -850,8 +852,8 @@ def draw_langit(o):
         t = (JAM - 18) / 11 if JAM >= 18 else (JAM + 6) / 11
         u, v = 0.14 + 0.72 * t, 0.62 - 0.42 * math.sin(math.pi * t)
         sekitar = langit_di(v)
-        _cakram(k, u, v, 0.128, 0.225, dither(sekitar, '#dadab8', 0.18), 20)
-        _cakram(k, u, v, 0.104, 0.182, dither(sekitar, '#dadab8', 0.48), 20)
+        _cakram(k, u, v, 0.128, 0.225, dither(sekitar, '#dadab8', 0.10), 20)
+        _cakram(k, u, v, 0.104, 0.182, dither(sekitar, '#dadab8', 0.30), 20)
         _cakram(k, u, v, 0.082, 0.142, '#c5c7a4')
         _cakram(k, u - 0.012, v - 0.018, 0.058, 0.100, '#dadab8')
         # kawah

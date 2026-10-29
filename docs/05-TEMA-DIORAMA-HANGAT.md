@@ -181,3 +181,21 @@ Yang tetap dipakai dari ronde 43–44:
 - `tools/render_scene.py` kini menggambar objek ber-peran lantai/dinding
   walaupun tanda `latar` tidak ada — dulu PNG uji bisa kosong padahal layar
   berisi ruangan.
+
+---
+
+## Ronde 46 — langit malam cerah dan "titik air"
+
+User: *"untuk malam cerah kenapa ada titik-titik air?"* Jawabannya: itu **bintang**,
+tetapi cara menggambarnya salah sehingga terbaca seperti embun/rintik:
+
+| Masalah | Sebelum | Sesudah |
+|---|---|---|
+| jumlah bintang | 34 butir tersebar rata seluruh bidang | 12 butir, hanya di 62% atas |
+| ukuran | kotak 1–2 px menyala terus | 1 px, sebagian besar berkedip padam |
+| warna | `#ffffff` (bukan anggota palet 51) | `#fff9e3` terang / `#dadab8` redup |
+| halo bulan | dither 18% + 48% (bintik putih di sekitar bulan) | dither 10% + 30% |
+| pita langit malam | `#1a3121` (hijau) di zenith, `#66b6cf` (biru terang) di horizon | `#2b1a12` → `#2e4a63` → `#3f7fa3` |
+
+Akibatnya kaca jendela pada malam cerah sekarang gelap dan tenang, bukan
+bertabur titik putih. Cuaca lain (gerimis/hujan/badai) tidak berubah.
