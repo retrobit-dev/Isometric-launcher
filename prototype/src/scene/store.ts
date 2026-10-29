@@ -1,6 +1,6 @@
 import { FLOOR_DEFAULT, FLOOR_MATERIALS } from '../iso/palette'
 import { ROOM_FROM_FILE, ROOM_FIXED, normalOpasitas, normalRotasi, ukuranSah, type Scene, type SceneObject } from './types'
-import { presetOf } from './presets'
+import { gayaLangit, presetOf } from './presets'
 
 // v4: ruangan saja (fase penyamaan ruangan dengan referensi; objek menyusul)
 // v5: objek bisa berperan sebagai LANTAI ruangan (role 'lantai')
@@ -150,6 +150,14 @@ export function storageWorks(): boolean {
  */
 const JENIS_ANIM = ['naik-turun', 'ayun', 'denyut', 'kedip', 'putar'] as const
 
+// MIGRASI KACA LANGIT (2026-10-29): scene yang dibuat SEBELUM fitur langit ada
+// belum punya `langit: true` pada bagian kacanya, sehingga jendela tampil biru
+// statis — matahari & awan tidak pernah muncul. Daftar gaya diambil dari
+// katalog (presets), jadi ikut berubah kalau objek langit baru ditambahkan.
+const GAYA_LANGIT = gayaLangit()
+const perluLangit = (o: { langit?: boolean; preset?: string; style?: unknown }) =>
+  o.langit !== true && o.preset !== undefined && GAYA_LANGIT.has(String(o.style))
+
 /** animasi yang sah saja yang boleh masuk file (jenis dikenal, angka dibatasi) */
 function normalAnim(a: SceneObject['anim']): SceneObject['anim'] | null {
   if (!a || typeof a !== 'object') return null
@@ -201,8 +209,9 @@ export function normalisasiScene(scene: Scene): Scene {
         z: ukuranSah(o.size.z),
       },
       ...(o.urutan === undefined ? {} : { urutan: Math.round(o.urutan) }),
-      // KACA LANGIT dinamis (jendela): hanya dibawa bila true
-      ...(o.langit === true ? { langit: true } : {}),
+      // KACA LANGIT dinamis (jendela): dibawa bila true, atau dinyalakan
+      // otomatis untuk scene lama yang bagian kacanya belum bertanda.
+      ...(o.langit === true || perluLangit(o) ? { langit: true } : {}),
       // TRANSPARANSI: dibatasi 0.05..1 dan dibulatkan 2 desimal; nilai 1
       // (pekat) tidak ditulis supaya file tetap ramping.
       ...(o.opasitas === undefined ? {} : { opasitas: normalOpasitas(o.opasitas) }),
@@ -524,7 +533,7 @@ export function validateScene(data: unknown): Scene | null {
       ...(typeof ob.preset === 'string' && /^[a-z0-9-]{1,40}$/.test(ob.preset)
         ? { preset: ob.preset } : {}),
       ...(ob.tepi === false ? { tepi: false } : {}),
-      ...(ob.langit === true ? { langit: true } : {}),
+      ...(ob.langit === true || perluLangit(ob) ? { langit: true } : {}),
       ...(normalAnim(ob.anim) ? { anim: normalAnim(ob.anim)! } : {}),
       ...(ob.latar === true ? { latar: true } : {}),
       ...(typeof ob.urutan === 'number' && Number.isFinite(ob.urutan) ? { urutan: Math.round(ob.urutan) } : {}),

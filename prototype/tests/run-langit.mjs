@@ -106,7 +106,33 @@ try {
   cek('posisi deterministik (bukan acak)',
     L.posisiBenda(12, 'siang').u === L.posisiBenda(12, 'siang').u)
 
-  console.log('6. keadaan global yang dipakai renderer')
+  console.log('6. migrasi scene lama (belum punya langit: true)')
+  const S = await bangun('src/scene/store.ts', 'store.mjs')
+  const lama = {
+    version: 1,
+    room: { e: 20, w: 20, wallZ: 9.5, palette: 'hangat' },
+    objects: [
+      // kaca jendela lama: preset benar, tapi TANPA field langit
+      { id: 'kaca', label: 'kaca', pos: { e: 12.26, w: 0.34, z: 2.46 },
+        size: { e: 3.68, w: 0.05, z: 3.88 }, style: 'kaca-langit', app: null,
+        layer: 'main', urutan: 5, preset: 'jendela', grup: 'g-j' },
+      // objek biasa dengan gaya lain tidak boleh ikut jadi langit
+      { id: 'kayu', label: 'kayu', pos: { e: 1, w: 1, z: 0 },
+        size: { e: 1, w: 1, z: 1 }, style: 'kayu-tepi', app: null, layer: 'main', urutan: 6 },
+    ],
+    meta: { locked: false, savedAt: null },
+  }
+  const hasil = S.normalisasiScene(lama)
+  cek('kaca scene lama otomatis memakai langit dinamis',
+    hasil.objects.find(o => o.id === 'kaca')?.langit === true)
+  cek('objek gaya lain tidak ikut jadi langit',
+    hasil.objects.find(o => o.id === 'kayu')?.langit === undefined)
+  const sudah = S.normalisasiScene({ ...lama, objects: [
+    { ...lama.objects[0], langit: undefined, preset: undefined, style: 'kaca-langit' },
+  ] })
+  cek('bagian kaca tanpa preset tidak dipaksa', sudah.objects[0].langit === undefined)
+
+  console.log('7. keadaan global yang dipakai renderer')
   L.setLangit({ jam: 20.5, cuaca: 'hujan' })
   const k = L.getLangit()
   cek('setLangit/getLangit menyimpan jam & cuaca', k.jam === 20.5 && k.cuaca === 'hujan',

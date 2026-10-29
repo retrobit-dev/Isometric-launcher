@@ -137,6 +137,18 @@ export const PRESETS: Preset[] = [
   },
 ]
 
+/**
+ * Gaya (material) yang dipakai bagian LANGIT pada katalog.
+ * Dipakai migrasi scene lama: objek yang tersimpan SEBELUM fitur langit ada
+ * belum punya field `langit`, jadi kacanya tergambar biru statis tanpa
+ * matahari/awan. normalisasiScene() memakai daftar ini untuk menyalakannya.
+ */
+export function gayaLangit(): Set<string> {
+  const out = new Set<string>()
+  for (const p of PRESETS) for (const b of p.bagian) if (b.langit) out.add(b.style)
+  return out
+}
+
 export function presetOf(id: string): Preset | undefined {
   return PRESETS.find(p => p.id === id)
 }
