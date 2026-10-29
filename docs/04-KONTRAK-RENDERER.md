@@ -185,7 +185,7 @@ Aturan wajib (harus identik di APK):
 5. `refleksi: true` menukar tone left ⇄ right seperti balok.
 6. `puncak` = perbandingan jari-jari atas terhadap alas: `0` runcing,
    `0.45` kap lampu, `1` sama dengan silinder, `1.15` pot bunga (melebar).
-   Nilai dibulatkan ke 0.01.
+   Nilai dibulatkan ke 0.001 (sejak 2026-10-29; sebelumnya 0.01).
 7. Pantulan objek silinder/kerucut memakai fungsi yang sama (tinggi ×0.6).
 
 ## 5. Yang TIDAK boleh dilakukan APK (sumber beda tafsir)

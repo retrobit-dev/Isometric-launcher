@@ -60,7 +60,9 @@ try {
   const bersih = store.normalisasiScene(kotor)
   const angka = bersih.objects.flatMap(o => [o.pos.e, o.pos.w, o.pos.z, o.size.e, o.size.w, o.size.z])
   cek('semua angka maksimal 3 desimal (bebas, bukan kelipatan 0.1)', angka.every(kelipatan01), angka.join(', '))
-  cek('ukuran minimal 0.01', bersih.objects.every(o => o.size.e >= 0.01 && o.size.w >= 0.01 && o.size.z >= 0.01))
+  // 2026-10-29: minimum ukuran 0.001 tile (permintaan user), bukan 0.01 lagi
+  cek('ukuran minimal 0.001', bersih.objects.every(o =>
+    o.size.e >= 0.001 && o.size.w >= 0.001 && o.size.z >= 0.001))
   cek('id unik', new Set(bersih.objects.map(o => o.id)).size === bersih.objects.length)
   cek('label tidak kosong', bersih.objects.every(o => o.label.length > 0))
   cek('urutan bulat', bersih.objects.every(o => o.urutan === undefined || Number.isInteger(o.urutan)))

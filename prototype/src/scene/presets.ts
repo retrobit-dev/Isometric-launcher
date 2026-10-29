@@ -14,6 +14,7 @@
 // prototipe web dan APK menghasilkan gambar yang sama
 // (lihat docs/04-KONTRAK-RENDERER.md).
 
+import { ukuranSah } from './types'
 import type { Animasi, SceneObject } from './types'
 
 type Bentuk = 'balok' | 'silinder' | 'kerucut' | 'bola' | 'cakram' | 'daun' | 'profil'
@@ -531,7 +532,7 @@ export function buatPixel(opts: {
     pos: { e: snap(opts.e), w: snap(opts.w), z: snap(opts.z ?? preset.zAwal) },
     // footprint = kotak pembungkus TAMPILAN sprite: lebar gambar dihitung
     // sebagai (lebar+dalam)·HW, jadi (lebar+dalam) sudah mencakup ukuran gambar
-    size: { e: Math.max(0.01, snap(preset.lebar)), w: Math.max(0.01, snap(preset.dalam)), z: 0.6 },
+    size: { e: ukuranSah(preset.lebar), w: ukuranSah(preset.dalam), z: 0.6 },
     style: 'wood',
     sprite: preset.sprite,
     preset: preset.id,
@@ -562,9 +563,9 @@ export function buatPreset(opts: {
     label: `${nama} ${i + 1}`,
     pos: { e: snap(e0 + bag.e), w: snap(w0 + bag.w), z: snap(z0 + bag.z) },
     size: {
-      e: Math.max(0.01, snap(bag.se)),
-      w: Math.max(0.01, snap(bag.sw)),
-      z: Math.max(0.01, snap(bag.sz)),
+      e: ukuranSah(bag.se),
+      w: ukuranSah(bag.sw),
+      z: ukuranSah(bag.sz),
     },
     style: bag.style,
     ...(bag.bentuk ? { bentuk: bag.bentuk } : {}),

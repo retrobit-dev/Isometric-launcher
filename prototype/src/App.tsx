@@ -9,6 +9,7 @@ import { FLOOR_DEFAULT, FLOOR_KEYS, MATERIAL_KEYS, WALL_STYLE_KEYS } from './iso
 import PresetPicker from './ui/PresetPicker'
 import { muatAset, ukuranAset } from './scene/aset'
 import { PRESETS as PRESETS_EDIT, PRESETS_PIXEL, buatPixel, buatPreset, presetPixelOf, type Preset, type PresetPixel } from './scene/presets'
+import { UKURAN_MIN, ukuranSah } from './scene/types'
 import { LATAR_TAG, gabungLatar, geserTumpukan, hapusLatarImage, latarImageUrl, loadCandidates, loadDraft, loadLocked, loadSceneFile, normalisasiScene, objekBiasa, objekLatar, saveDraftGuarded, saveLatarImage, saveLocked, saveSceneFile, storageWorks, validateScene } from './scene/store'
 import { type JenisAnim, type Scene, type SceneObject } from './scene/types'
 import EditPanel from './ui/EditPanel'
@@ -32,7 +33,7 @@ export default function App() {
   // preview SELALU dibuka dalam mode LIHAT (permintaan user 2026-10-28);
   // mode EDIT hanya aktif setelah user mengetuk tombol MODE.
   const [mode, setMode] = useState<'lihat' | 'edit'>('lihat')
-  const [, forceZoomLabel] = useState(0) // refresh chip KOORDINAT saat pinch zoom
+  const [kameraTick, forceZoomLabel] = useState(0) // refresh chip KOORDINAT saat pinch zoom / orbit
   const [selectedId, setSelectedId] = useState<string | null>(null)
   const [modal, setModal] = useState<'export' | 'import' | null>(null)
   const [showList, setShowList] = useState(false)
@@ -153,6 +154,7 @@ export default function App() {
     putarKamera(langkah)
     forceZoomLabel(v => v + 1)
   }
+
 
   // pesan gambar latar hilang sendiri setelah 4 detik
   useEffect(() => {
@@ -1047,7 +1049,7 @@ export default function App() {
                     ? simpan === 'browser' ? 'simpan: browser + file' : 'simpan: file saja (browser diblokir)'
                     : 'memuat…'}
                 </span>
-                <span>{`kamera ×${zoomValue()} (${CAM.CE.toFixed(1)}, ${CAM.CW.toFixed(1)}) · ${yawValue()}°`}</span>
+                <span>{`kamera ×${zoomValue()} (${CAM.CE.toFixed(3)}, ${CAM.CW.toFixed(3)}) · ${yawValue()}°`}</span>
                 {!yawBersih() && (
                   <span className="warn" title="pada sudut selain 0/90/180/270, ubin tidak lagi 2:1 (nat jadi bertangga). Tombol REFRESH mengembalikan ke 0°.">
                     orbit {yawValue()}° — grid bukan 2:1
@@ -1073,15 +1075,6 @@ export default function App() {
             {mode === 'edit' && (
               <button className="tbtn" onClick={() => setShowPreset(true)} title="tambah objek: pilih dari katalog atau balok kosong">
                 + TAMBAH
-              </button>
-            )}
-            {mode === 'edit' && (
-              <button
-                className="tbtn"
-                onClick={() => fileLatarRef.current?.click()}
-                title="pasang gambar ruangan (hasil Paint) sebagai latar/background kanvas"
-              >
-                {gambarLatar ? '🖼 GANTI LATAR' : '🖼 LATAR'}
               </button>
             )}
             {mode === 'edit' && gambarLatar && (
@@ -1137,13 +1130,7 @@ export default function App() {
         >
           15° ⟳
         </button>
-        <button
-          className="tbtn"
-          onClick={() => orbit(6)}
-          title="putar kamera 90° (tetap grid isometrik 2:1 yang tajam)"
-        >
-          90° ⟳
-        </button>
+
         <button
           className="tbtn"
           onClick={refreshKamera}
@@ -1171,9 +1158,9 @@ export default function App() {
           })}
           onResize={(de, dw, dz) => patchObject(selected.id, {
             size: {
-              e: Math.max(0.01, Math.round((selected.size.e + de) * 1000) / 1000),
-              w: Math.max(0.01, Math.round((selected.size.w + dw) * 1000) / 1000),
-              z: Math.max(0.01, Math.round((selected.size.z + dz) * 1000) / 1000),
+              e: ukuranSah(selected.size.e + de),
+              w: ukuranSah(selected.size.w + dw),
+              z: ukuranSah(selected.size.z + dz),
             },
           })}
           onCycleStyle={() => {

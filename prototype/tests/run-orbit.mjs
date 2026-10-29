@@ -25,9 +25,10 @@ try {
     '--platform=node', `--outfile=${out}`], { stdio: 'pipe' })
   const S = await import(pathToFileURL(out).href)
 
-  console.log('1. normalisasi sudut')
+  console.log('1. normalisasi sudut (kelipatan 15)')
   cek('15° tetap 15', S.normalYaw(15) === 15)
-  cek('370° -> 10 (dibulatkan ke 15)', S.normalYaw(370) === 15, String(S.normalYaw(370)))
+  cek('27.345 dibulatkan ke 30', S.normalYaw(27.345) === 30, String(S.normalYaw(27.345)))
+  cek('370° -> 15', S.normalYaw(370) === 15, String(S.normalYaw(370)))
   cek('-15° -> 345', S.normalYaw(-15) === 345, String(S.normalYaw(-15)))
   cek('7° dibulatkan ke 0', S.normalYaw(7) === 0)
   cek('23° dibulatkan ke 30', S.normalYaw(23) === 30)

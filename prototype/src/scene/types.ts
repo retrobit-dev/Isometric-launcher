@@ -42,6 +42,28 @@ export interface Animasi {
   fase?: number
 }
 
+/**
+ * PRESISI UKURAN OBJEK (permintaan user 2026-10-29).
+ *
+ * Dulu: minimum 0,01 tile dan angka dibulatkan 3 desimal.
+ * Sekarang: minimum **0,001 tile** dan semua ukuran memakai kelipatan 0,001.
+ *
+ * 0,001 tile = 0,0568 px internal saat zoom ×1 (dan 0,128 px di tablet
+ * 2560×1600), jadi ini murni presisi data — bukan tombol ukuran piksel.
+ */
+export const UKURAN_MIN = 0.001
+/** jumlah desimal semua angka geometri (posisi & ukuran) */
+export const GEOMETRI_DESIMAL = 3
+/** pembulatan ke 0,001 */
+export function bulatkan3(v: number): number {
+  const n = Math.round(v * 1000) / 1000
+  return Object.is(n, -0) ? 0 : n
+}
+/** ukuran yang sah: ≥ 0,001 dan kelipatan 0,001 */
+export function ukuranSah(v: number): number {
+  return Math.max(UKURAN_MIN, bulatkan3(v))
+}
+
 export interface SceneObject {
   id: string
   label: string

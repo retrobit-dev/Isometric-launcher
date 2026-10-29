@@ -54,7 +54,7 @@ Tombol **SIMPAN & KUNCI** mengunci **objek saja**: layout beku untuk diterapkan 
 | `label` | string | nama tampil untuk tooltip/panel |
 | `pos.e / pos.w` | number | koordinat grid (docs/01 §4). **Bebas, maks 3 desimal** — aturan kelipatan 0.1 dihapus 2026-10-29 |
 | `pos.z` | number | tinggi dasar dari lantai, satuan z, maks 3 desimal |
-| `size.e / size.w / size.z` | number | ukuran dalam tile & z, **minimum 0.01**, maks 3 desimal |
+| `size.e / size.w / size.z` | number | ukuran dalam tile & z, **minimum 0.001**, kelipatan **0.001** (3 desimal) |
 | `anim` | object / tidak ada | **animasi tampilan** (lihat §0e): `{ jenis, laju?, besar?, fase? }`. Tidak mengubah posisi/ukuran di data |
 | `style` | string \| {top,left,right} | nama material (daftar §2) atau 3 warna eksplisit |
 | `app` | string \| null | binding tindakan/app (null = dekorasi); diisi fase app |
@@ -96,6 +96,25 @@ ruangan — datanya tetap utuh dan muncul lagi begitu gambar latar dihapus.
 
 Batas ukuran unggah 16 MB base64 (≈12 MB gambar); UI preview menolak berkas
 > 8 MB lebih dulu.
+
+## 0d. Presisi ukuran — 2026-10-29
+
+Permintaan user: *"yang 0.001 itu ... ukuran objek"*. Minukuran objek turun
+dari `0.01` menjadi **`0.001` tile** dan semua angka ukuran selalu kelipatan
+`0.001` (3 desimal).
+
+- `0.001` tile = **0,057 px** internal saat zoom ×1 (0,128 px di tablet
+  2560×1600). Jadi ini presisi DATA, bukan tombol berukuran piksel: nilainya
+  bisa disetel halus, tetapi secara fisik tetap di bawah satu piksel.
+- Aturan dipusatkan di `scene/types.ts`: `UKURAN_MIN`, `GEOMETRI_DESIMAL`,
+  `bulatkan3()`, `ukuranSah()` — dipakai store, katalog preset, panel editor,
+  dan handler geser/ubah ukuran, jadi tidak ada lagi angka `0.01` yang
+  berserakan.
+- Panel editor menampilkan 3 desimal; tombol ± melangkah `0.001`.
+- Nilai lebih kecil dari `0.001` (termasuk 0 dan negatif) otomatis dinaikkan
+  ke `0.001` saat normalisasi, jadi file lama tetap aman.
+
+Diuji oleh `prototype/tests/run-ukuran.mjs`.
 
 ## 0e. Animasi objek — 2026-10-29
 

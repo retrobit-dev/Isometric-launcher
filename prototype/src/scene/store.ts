@@ -1,5 +1,5 @@
 import { FLOOR_DEFAULT, FLOOR_MATERIALS } from '../iso/palette'
-import { ROOM_FROM_FILE, ROOM_FIXED, type Scene, type SceneObject } from './types'
+import { ROOM_FROM_FILE, ROOM_FIXED, ukuranSah, type Scene, type SceneObject } from './types'
 
 // v4: ruangan saja (fase penyamaan ruangan dengan referensi; objek menyusul)
 // v5: objek bisa berperan sebagai LANTAI ruangan (role 'lantai')
@@ -143,7 +143,7 @@ export function storageWorks(): boolean {
  * NORMALISASI sebelum scene keluar dari editor (file .isola-scene.json,
  * EXPORT/UNDUH, dan salin JSON). Tujuannya supaya APK tidak pernah menerima
  * variasi liar: semua angka maks 3 desimal (aturan 32 px dihapus 2026-10-29),
- * ukuran minimal 0.01, id unik,
+ * ukuran minimal 0.001 (permintaan user 2026-10-29), id unik,
  * label terisi, urutan tumpukan bulat, dan urutan array stabil
  * (latar dulu, lalu urutan tumpukan). Lihat docs/04-KONTRAK-RENDERER.md.
  */
@@ -183,9 +183,9 @@ export function normalisasiScene(scene: Scene): Scene {
       label: (o.label ?? '').trim() || id,
       pos: { e: snap(o.pos.e), w: snap(o.pos.w), z: snap(o.pos.z) },
       size: {
-        e: Math.max(0.01, snap(o.size.e)),
-        w: Math.max(0.01, snap(o.size.w)),
-        z: Math.max(0.01, snap(o.size.z)),
+        e: ukuranSah(o.size.e),
+        w: ukuranSah(o.size.w),
+        z: ukuranSah(o.size.z),
       },
       ...(o.urutan === undefined ? {} : { urutan: Math.round(o.urutan) }),
     }
@@ -448,10 +448,10 @@ export function validateScene(data: unknown): Scene | null {
       label: typeof ob.label === 'string' ? ob.label : ob.id,
       pos: { e: num(ob.pos.e), w: num(ob.pos.w), z: num(ob.pos.z) },
       size: {
-        // ATURAN 32 PIKsel DIHAPUS (2026-10-29): ukuran boleh sekecil 0.01 tile
-        e: Math.max(0.01, num(ob.size.e)),
-        w: Math.max(0.01, num(ob.size.w)),
-        z: Math.max(0.01, num(ob.size.z)),
+        // 2026-10-29: minimum ukuran 0.001 tile, kelipatan 0.001
+        e: ukuranSah(num(ob.size.e)),
+        w: ukuranSah(num(ob.size.w)),
+        z: ukuranSah(num(ob.size.z)),
       },
       style: typeof ob.style === 'string' || (typeof ob.style === 'object' && ob.style !== null)
         ? ob.style as SceneObject['style']

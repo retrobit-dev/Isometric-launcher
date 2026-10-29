@@ -214,12 +214,14 @@ export interface P { x: number; y: number }
 // wajar dari kamera miring pada pixel-art, dan sengaja dibiarkan apa adanya
 // (tanpa anti-alias) supaya tetap pixel-art.
 // ---------------------------------------------------------------------------
-export const YAW_LANGKAH = 15
+export const YAW_LANGKAH = 15      // sudut kamera selalu kelipatan 15°
 export const YAW_MIN = 0
 export const YAW_MAX = 345
 export let YAW = 0
 
+/** bulatkan & normalkan sudut ke 0..345 kelipatan 15 */
 export function normalYaw(deg: number): number {
+  if (!Number.isFinite(deg)) return 0
   const n = Math.round(deg / YAW_LANGKAH) * YAW_LANGKAH
   return ((n % 360) + 360) % 360
 }
@@ -233,6 +235,7 @@ export function putarKamera(langkah: number) {
   setYaw(YAW + langkah * YAW_LANGKAH)
 }
 
+
 /** sudut kamera sekarang (derajat, kelipatan 15) */
 export function yawValue(): number {
   return YAW
@@ -240,7 +243,8 @@ export function yawValue(): number {
 
 /** true bila tampilan masih grid 2:1 murni (0/90/180/270) */
 export function yawBersih(): boolean {
-  return YAW % 90 === 0
+  const sisa = YAW % 90
+  return sisa < 0.0005 || sisa > 89.9995
 }
 
 function kosYaw() {

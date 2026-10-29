@@ -1,4 +1,5 @@
 import { useEffect, useRef, useState } from 'react'
+import { UKURAN_MIN } from '../scene/types'
 import { FLOOR_DEFAULT, FLOOR_KEYS, MATERIAL_KEYS, WALL_STYLE_KEYS, floorMat } from '../iso/palette'
 import type { SceneObject } from '../scene/types'
 
@@ -87,8 +88,14 @@ function NumField(p: {
   min: number
   onChange: (v: number) => void
   disabled?: boolean
+  /** langkah tombol ± (bawaan 0.1) */
+  step?: number
+  /** jumlah desimal yang ditampilkan (bawaan 3 = presisi 0,001) */
+  desimal?: number
 }) {
-  const [text, setText] = useState(p.value.toFixed(1))
+  const langkah = p.step ?? 0.1
+  const desimal = p.desimal ?? 3
+  const [text, setText] = useState(p.value.toFixed(desimal))
   const [focused, setFocused] = useState(false)
   // nilai acuan untuk penambahan berulang: prop bisa tertinggal satu render,
   // jadi langkah dihitung dari ref ini supaya tahan-tombol tidak "macet".
@@ -97,17 +104,17 @@ function NumField(p: {
   // sinkron dari luar (drag objek, tombol ±, ganti objek terpilih)
   useEffect(() => {
     nilaiRef.current = p.value
-    if (!focused) setText(p.value.toFixed(1))
-  }, [p.value, focused])
+    if (!focused) setText(p.value.toFixed(desimal))
+  }, [p.value, focused, desimal])
 
-  /** satu langkah 0.1 untuk tombol tahan */
+  /** satu langkah untuk tombol tahan (posisi 0.001, ukuran 0.001) */
   const step = (dir: 1 | -1) => {
     const diketik = parseFloat(text.replace(',', '.'))
     const dasar = focused && Number.isFinite(diketik) ? snap(diketik) : nilaiRef.current
-    const v = Math.max(p.min, snap(dasar + dir * 0.1))
+    const v = Math.max(p.min, snap(dasar + dir * langkah))
     nilaiRef.current = v
     p.onChange(v)
-    setText(v.toFixed(1))
+    setText(v.toFixed(desimal))
   }
 
   const commit = (raw?: string) => {
@@ -116,7 +123,7 @@ function NumField(p: {
     const v = Number.isFinite(n) ? snap(n) : p.value
     const clamped = Math.max(p.min, v)
     p.onChange(clamped)
-    setText(clamped.toFixed(1))
+    setText(clamped.toFixed(desimal))
   }
 
   return (
@@ -237,32 +244,32 @@ export default function EditPanel(p: Props) {
       <div className="pbody">
       <div className="pgrid">
         <NumField
-          label="posisi e" value={o.pos.e} min={-99}
+          label="posisi e" value={o.pos.e} min={-99} step={0.001} desimal={3}
           onChange={v => p.onChange({ pos: { ...o.pos, e: v } })}
           disabled={frozen}
         />
         <NumField
-          label="posisi w" value={o.pos.w} min={-99}
+          label="posisi w" value={o.pos.w} min={-99} step={0.001} desimal={3}
           onChange={v => p.onChange({ pos: { ...o.pos, w: v } })}
           disabled={frozen}
         />
         <NumField
-          label="posisi z" value={o.pos.z} min={0}
+          label="posisi z" value={o.pos.z} min={0} step={0.001} desimal={3}
           onChange={v => p.onChange({ pos: { ...o.pos, z: v } })}
           disabled={frozen}
         />
         <NumField
-          label="panjang" value={o.size.e} min={0.01}
+          label="panjang" value={o.size.e} min={UKURAN_MIN} step={0.001} desimal={3}
           onChange={v => p.onChange({ size: { ...o.size, e: v } })}
           disabled={frozen}
         />
         <NumField
-          label="lebar" value={o.size.w} min={0.01}
+          label="lebar" value={o.size.w} min={UKURAN_MIN} step={0.001} desimal={3}
           onChange={v => p.onChange({ size: { ...o.size, w: v } })}
           disabled={frozen}
         />
         <NumField
-          label="tinggi" value={o.size.z} min={0.01}
+          label="tinggi" value={o.size.z} min={UKURAN_MIN} step={0.001} desimal={3}
           onChange={v => p.onChange({ size: { ...o.size, z: v } })}
           disabled={frozen}
         />
