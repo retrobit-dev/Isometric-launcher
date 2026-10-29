@@ -134,10 +134,65 @@ export function drawKerucut(ctx: CanvasRenderingContext2D, o: SceneObject) {
   if (rasio > 0) poly(ctx, atas, c.top)
 }
 
+/**
+ * BOLA (permintaan user 2026-10-29): bulatan untuk matahari di kaca jendela,
+ * daun, atau bola lampu. Jari-jari dunia = min(size.e, size.w, size.z) / 2.
+ * Di layar bola tampak hampir bulat (skala proyeksi isometrik ±1.31 × HW),
+ * jadi digambar sebagai lingkaran bertone 3 lapis (gelap → dasar → sorot).
+ */
+export function drawBola(ctx: CanvasRenderingContext2D, o: SceneObject) {
+  const { e, w, z } = o.pos
+  const { se, sw } = footprintOf(o)
+  const r = Math.min(se, sw, o.size.z) / 2
+  if (r <= 0) return
+  const pusat = px(e + se / 2, w + sw / 2, z + o.size.z / 2)
+  const HWpiksel = px(e + 1, w, z).x - px(e, w, z).x
+  const R = r * HWpiksel * 1.31
+  const c = toneOf(o)
+  const bulat = (cx: number, cy: number, rad: number, warna: string) => {
+    ctx.fillStyle = warna
+    ctx.beginPath()
+    ctx.arc(cx, cy, rad, 0, Math.PI * 2)
+    ctx.fill()
+  }
+  bulat(pusat.x, pusat.y, R, c.right)                       // bayangan
+  bulat(pusat.x - R * 0.1, pusat.y - R * 0.1, R * 0.86, c.left)  // badan
+  bulat(pusat.x - R * 0.3, pusat.y - R * 0.3, R * 0.5, c.top)    // sorot
+}
+
+/**
+ * CAKRAM: bulatan DATAR yang menghadap ruangan (bidang e-z) — dipakai untuk
+ * matahari di kaca jendela, jam dinding, atau hiasan bulat. Digambar dari 24
+ * titik dunia lalu diproyeksikan, jadi bentuk elipsnya geometris benar.
+ */
+export function drawCakram(ctx: CanvasRenderingContext2D, o: SceneObject) {
+  const { e, w, z } = o.pos
+  const { se, sw } = footprintOf(o)
+  const ce = e + se / 2
+  const cw = w + sw / 2
+  const cz = z + o.size.z / 2
+  const re = se / 2
+  const rz = o.size.z / 2
+  const c = toneOf(o)
+  const titik = (re2: number, rz2: number, de = 0, dz = 0) => {
+    const out: P[] = []
+    for (let i = 0; i < SEGMEN; i++) {
+      const t = (i / SEGMEN) * Math.PI * 2
+      out.push(px(ce + de + re2 * Math.cos(t), cw, cz + dz + rz2 * Math.sin(t)))
+    }
+    return out
+  }
+  poly(ctx, titik(re, rz), c.left)
+  poly(ctx, titik(re * 0.82, rz * 0.82, -re * 0.08, rz * 0.1), c.top)
+  poly(ctx, titik(re * 0.34, rz * 0.34, -re * 0.3, rz * 0.3), c.right)
+}
+
 /** penggambar objek: pilih bentuk sesuai field `bentuk` */
 export function drawObject(ctx: CanvasRenderingContext2D, o: SceneObject) {
   if (o.bentuk === 'silinder') return drawSilinder(ctx, o)
   if (o.bentuk === 'kerucut') return drawKerucut(ctx, o)
+  if (o.bentuk === 'bola') return drawBola(ctx, o)
+  if (o.bentuk === 'cakram') return drawCakram(ctx, o)
   return drawBox(ctx, o)
 }
 

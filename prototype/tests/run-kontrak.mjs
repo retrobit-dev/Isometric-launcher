@@ -88,7 +88,8 @@ try {
       && new Set(bagian.map(o => o.id)).size === bagian.length
       && bagian.every(o => o.grup === 'grup-uji')
       // bentuk hanya boleh balok (tidak diisi) / silinder / kerucut
-      && bagian.every(o => o.bentuk === undefined || o.bentuk === 'silinder' || o.bentuk === 'kerucut')
+      && bagian.every(o => o.bentuk === undefined
+        || ['silinder', 'kerucut', 'bola', 'cakram'].includes(o.bentuk))
       // puncak hanya untuk kerucut, nilainya >= 0 dan 2 desimal
       && bagian.every(o => o.puncak === undefined
         || (o.bentuk === 'kerucut' && o.puncak >= 0

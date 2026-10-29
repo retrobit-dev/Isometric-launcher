@@ -25,7 +25,7 @@ interface Bahan {
   sw: number
   sz: number
   style: string
-  bentuk?: 'silinder' | 'kerucut'
+  bentuk?: 'silinder' | 'kerucut' | 'bola' | 'cakram'
   puncak?: number
 }
 
@@ -40,7 +40,7 @@ export interface Preset {
 }
 
 const b = (e: number, w: number, z: number, se: number, sw: number, sz: number,
-  style: string, bentuk?: 'silinder' | 'kerucut', puncak?: number): Bahan =>
+  style: string, bentuk?: 'silinder' | 'kerucut' | 'bola' | 'cakram', puncak?: number): Bahan =>
   ({ e, w, z, se, sw, sz, style, ...(bentuk ? { bentuk } : {}), ...(puncak !== undefined ? { puncak } : {}) })
 
 /** satu blok buku per rak (bukan puluhan buku kecil) supaya jumlah objek kecil */
@@ -126,38 +126,46 @@ export const PRESETS: Preset[] = [
   // ---------------------------------------------------------------- JENDELA --
   {
     id: 'jendela', nama: 'JENDELA',
-    ket: 'jendela 3×2 + tirai + batang (5.2, dinding kanan)',
+    ket: 'jendela putih 3×2, langit + matahari, tirai krem (5.2, dinding kanan)',
     pasang: 'dinding-kanan', lebar: 5.2, dalam: 0.5,
     bagian: [
-      // kusen luar (putih), tipis 0.14
-      b(0.6, 0, 1.8, 4.0, 0.14, 0.2, 'board'),              // ambang bawah
-      b(0.6, 0, 5.0, 4.0, 0.14, 0.2, 'board'),              // ambang atas
-      b(0.6, 0, 1.8, 0.2, 0.14, 3.4, 'board'),              // kusen kiri
-      b(4.4, 0, 1.8, 0.2, 0.14, 3.4, 'board'),              // kusen kanan
-      // kaca: 2 pita (bawah = horizon lebih terang, atas = langit lebih biru)
-      b(0.8, 0.02, 2.0, 3.6, 0.06, 1.44, 'pastel-blue'),
-      b(0.8, 0.02, 3.56, 3.6, 0.06, 1.44, 'book-blue'),
-      // matahari + awan
-      b(3.44, 0.09, 4.32, 0.48, 0.05, 0.48, 'pastel-butter'),
-      b(2.18, 0.09, 4.14, 0.72, 0.05, 0.22, 'paper'),
-      b(0.92, 0.09, 3.10, 0.58, 0.05, 0.18, 'paper'),
-      // palang kusen
-      b(1.92, 0.07, 2.0, 0.12, 0.09, 3.0, 'board'),
-      b(3.16, 0.07, 2.0, 0.12, 0.09, 3.0, 'board'),
-      b(0.8, 0.07, 3.44, 3.6, 0.09, 0.12, 'board'),
-      // ambang jendela
-      b(0.45, 0.14, 1.58, 4.3, 0.28, 0.22, 'paper'),
-      // tirai (menyempit di tengah) + tali
-      b(0.12, 0.18, 3.45, 0.8, 0.12, 1.85, 'curtain'),
-      b(0.2, 0.19, 1.7, 0.7, 0.11, 1.75, 'curtain'),
-      b(4.28, 0.18, 3.45, 0.8, 0.12, 1.85, 'curtain'),
-      b(4.3, 0.19, 1.7, 0.7, 0.11, 1.75, 'curtain'),
-      b(0.34, 0.16, 3.28, 0.36, 0.16, 0.2, 'paper'),
-      b(4.5, 0.16, 3.28, 0.36, 0.16, 0.2, 'paper'),
-      // batang tirai (silinder) + 2 cincin
-      b(0.05, 0.16, 5.34, 5.1, 0.14, 0.14, 'metal-light', 'silinder'),
-      b(0.35, 0.14, 5.32, 0.12, 0.18, 0.18, 'board'),
-      b(4.65, 0.14, 5.32, 0.12, 0.18, 0.18, 'board'),
+      // 1-4 KUSEN LUAR putih (bingkai tebal seperti referensi)
+      b(0.6, 0, 1.8, 4.0, 0.16, 0.25, 'board'),             // ambang bawah
+      b(0.6, 0, 4.95, 4.0, 0.16, 0.25, 'board'),            // ambang atas
+      b(0.6, 0, 1.8, 0.25, 0.16, 3.4, 'board'),             // kusen kiri
+      b(4.35, 0, 1.8, 0.25, 0.16, 3.4, 'board'),            // kusen kanan
+      // 5-6 KACA: dua pita (bawah lebih terang = ufuk, atas lebih biru)
+      b(0.85, 0.02, 2.05, 3.5, 0.06, 1.42, 'pastel-blue'),
+      b(0.85, 0.02, 3.59, 3.5, 0.06, 1.36, 'book-blue'),
+      // 7 MATAHARI bulat (cakram) di langit atas
+      b(3.35, 0.09, 4.30, 0.60, 0.05, 0.60, 'pastel-butter', 'cakram'),
+      // 8-10 AWAN: tiga cakram bertumpuk -> bentuk bergerombol
+      b(1.10, 0.09, 3.95, 0.55, 0.05, 0.55, 'paper', 'cakram'),
+      b(1.45, 0.09, 4.05, 0.65, 0.05, 0.65, 'paper', 'cakram'),
+      b(1.85, 0.09, 3.92, 0.50, 0.05, 0.50, 'paper', 'cakram'),
+      // 11-13 PALANG KUSEN (3 tegak + 1 datar dibuat dari 2 bagian)
+      b(1.90, 0.07, 2.05, 0.14, 0.09, 2.90, 'board'),
+      b(3.26, 0.07, 2.05, 0.14, 0.09, 2.90, 'board'),
+      b(0.85, 0.07, 3.47, 3.5, 0.09, 0.14, 'board'),
+      // 14 AMBANG JENDELA (meja) menonjol ke dalam ruangan
+      b(0.45, 0.16, 1.55, 4.3, 0.30, 0.25, 'paper'),
+      b(0.45, 0.44, 1.45, 4.3, 0.06, 0.12, 'paper-night'),  // bibir ambang
+      // 15-20 TIRAI KREM: lebar di atas & bawah, menyempit di tali
+      b(0.10, 0.20, 3.55, 0.85, 0.12, 1.70, 'paper'),       // atas kiri
+      b(0.28, 0.21, 3.05, 0.50, 0.11, 0.50, 'paper'),       // ikatan kiri
+      b(0.20, 0.20, 1.70, 0.70, 0.12, 1.35, 'paper'),       // bawah kiri
+      b(4.25, 0.20, 3.55, 0.85, 0.12, 1.70, 'paper'),       // atas kanan
+      b(4.42, 0.21, 3.05, 0.50, 0.11, 0.50, 'paper'),       // ikatan kanan
+      b(4.30, 0.20, 1.70, 0.70, 0.12, 1.35, 'paper'),       // bawah kanan
+      // 21-22 tali tirai
+      b(0.30, 0.17, 3.10, 0.44, 0.16, 0.16, 'paper-night'),
+      b(4.44, 0.17, 3.10, 0.44, 0.16, 0.16, 'paper-night'),
+      // 23-26 batang tirai (silinder) + 2 ujung bulat + 2 cincin
+      b(0.05, 0.16, 5.32, 5.1, 0.14, 0.14, 'metal-light', 'silinder'),
+      b(-0.0 + 0.05, 0.13, 5.30, 0.16, 0.2, 0.18, 'board'),
+      b(4.99, 0.13, 5.30, 0.16, 0.2, 0.18, 'board'),
+      b(0.45, 0.14, 5.30, 0.12, 0.18, 0.18, 'board'),
+      b(4.55, 0.14, 5.30, 0.12, 0.18, 0.18, 'board'),
     ],
   },
   // ------------------------------------------------------------ LAMPU MEJA --

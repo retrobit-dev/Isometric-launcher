@@ -144,7 +144,7 @@ Aturan wajib:
 
 ## 4a. Bentuk tambahan: silinder & kerucut
 
-Field `bentuk` pada objek: `balok` (default) · `silinder` · `kerucut`.
+Field `bentuk` pada objek: `balok` (default) · `silinder` · `kerucut` · `bola` · `cakram`.
 `bentuk` HANYA mengubah cara menggambar; footprint (`size.e × size.w`) tetap
 kotak pembatas, jadi hit-test, bbox, grup, tumpukan, dan kunci tidak berubah.
 
@@ -152,6 +152,8 @@ kotak pembatas, jadi hit-test, bbox, grup, tumpukan, dan kunci tidak berubah.
 |---|---|---|
 | `silinder` | alas & tutup elips (jari-jari `size.e/2`, `size.w/2`), tinggi `size.z` | 24 segmen trapesium + tutup elips |
 | `kerucut` | alas elips, atas elips berskala `puncak` (default `0` = runcing) | 24 segmen trapesium, tutup atas hanya bila `puncak > 0` |
+| `bola` | bulatan; jari-jari dunia $r = \min(size.e, size.w, size.z)/2$ | 3 lingkaran bertone: gelap (R), badan (0.86R, geser −0.1R), sorot (0.5R, geser −0.3R); R = 1.31·HW·r |
+| `cakram` | bulatan **datar** menghadap ruangan (bidang e-z) — matahari, jam, hiasan | 24 titik dunia (re = size.e/2, rz = size.z/2) → poligon; 3 lapis tone (left → top 0.82 + geser, right 0.34 + geser) |
 
 Aturan wajib (harus identik di APK):
 

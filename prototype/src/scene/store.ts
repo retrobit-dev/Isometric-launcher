@@ -388,7 +388,8 @@ export function validateScene(data: unknown): Scene | null {
       ...(typeof ob.grupNama === 'string' && ob.grupNama ? { grupNama: ob.grupNama } : {}),
       ...(typeof ob.grupInduk === 'string' && ob.grupInduk ? { grupInduk: ob.grupInduk } : {}),
       ...(ob.kunci === 'warna' || ob.kunci === 'semua' ? { kunci: ob.kunci } : {}),
-      ...(ob.bentuk === 'silinder' || ob.bentuk === 'kerucut' ? { bentuk: ob.bentuk } : {}),
+      ...(ob.bentuk === 'silinder' || ob.bentuk === 'kerucut' || ob.bentuk === 'bola'
+        || ob.bentuk === 'cakram' ? { bentuk: ob.bentuk } : {}),
       ...(typeof ob.puncak === 'number' && Number.isFinite(ob.puncak) && ob.puncak >= 0
         ? { puncak: Math.round(ob.puncak * 100) / 100 } : {}),
       ...(ob.latar === true ? { latar: true } : {}),

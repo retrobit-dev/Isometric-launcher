@@ -73,8 +73,11 @@ export interface SceneObject {
   //   balok    = kotak isometrik 3 sisi (perilaku lama)
   //   silinder = tabung tegak, alas & tutup elips, sisi 24 segmen
   //   kerucut  = kerucut tegak, alas elips, puncak di tengah atas
+  //   bola     = bulatan (daun, bola lampu); jari-jari = min(e,w,z)/2
+  //   cakram   = bulatan DATAR menghadap ruangan (matahari/langit di kaca
+  //              jendela, jam dinding, hiasan bulat); sumbu = bidang e-z
   // Footprint (size.e × size.w) tetap dipakai sebagai kotak pembatas.
-  bentuk?: 'balok' | 'silinder' | 'kerucut'
+  bentuk?: 'balok' | 'silinder' | 'kerucut' | 'bola' | 'cakram'
   // khusus bentuk 'kerucut': perbandingan jari-jari PUNCAK terhadap alas
   //   tidak diisi / 0 = kerucut runcing
   //   0.45        = kap lampu (frustum menyempit ke atas)
