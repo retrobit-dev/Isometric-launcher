@@ -160,8 +160,26 @@ objek di bawah ini tetap berlaku untuk objek yang Anda buat/import sendiri.
 
 ## 2. Material bawaan
 
-`wood`, `wood-dark`, `metal`, `paper`, `teal`, `cream`, `amber`, `slate`, `crimson`, `sage`
-(masing-masing = 3 tone: top / left / right, sesuai arah cahaya dari jendela DT)
+Daftar resmi ada di **`docs/04-palet.json`** (dibangkitkan dari
+`prototype/src/iso/palette.ts` dengan `node tools/gen_palet.mjs`):
+**74 material**, 11 material lantai, 13 material dinding. Setiap material =
+3 tone (`top` / `left` / `right`) mengikuti arah cahaya dari jendela DT.
+
+Keluarga material yang dipakai katalog objek (2026-10-29):
+
+| Keluarga | Nama |
+|---|---|
+| kayu | `kayu-meja`, `kayu-tepi`, `kayu-gelap`, `kayu-terakota`, `jati-muda` |
+| putih / kertas | `kusen-putih`, `papan-putih`, `kertas-putih`, `papan-krem` |
+| logam | `perak`, `perak-tua`, `metal-light` |
+| abu | `abu`, `abu-tua` |
+| buku | `buku-gelap`, `buku-krem`, `buku-biru`, `buku-bata`, `buku-zaitun`, `buku-lav`, `buku-salmon` |
+| tanaman | `daun-sage`, `daun-gelap` |
+| jendela | `kaca-langit`, `kaca-terang`, `matahari`, `tirai-gorden`, `tirai-lipat`, `pastel-awan` |
+| cahaya | `lamp-amber` |
+
+`style` yang tidak dikenal tetap dirender **magenta** (`#ff00cc`) sebagai
+penanda bug — jangan dipakai untuk warna sah.
 
 ## 3. Aturan zona (disepakati, direvisi sesuai skala referensi)
 

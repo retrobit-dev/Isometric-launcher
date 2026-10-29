@@ -150,17 +150,17 @@ export const MATERIALS: Record<string, Mat> = {
   'tirai-putih': M(Q('#f7e6c4')),    // tirai krem hangat
   'kaca-langit': M(Q('#9fc4d4')),    // langit siang (dingin, sedikit saja)
   'kaca-terang': M(Q('#f7d69c')),    // kaca kena cahaya matahari
-  'daun-sage': M(Q('#8a9a4a')),      // daun zaitun
-  'daun-gelap': M(Q('#6a7834')),
-  'buku-biru': M(Q('#577f7a')),
-  'buku-lav': M(Q('#9d6a56')),
-  'buku-salmon': M(Q('#cf8b5e')),
-  'buku-krem': M(Q('#f2ddae')),
-  'papan-krem': M(Q('#f7ecc8')),     // papan tulis putih hangat
-  'kertas-putih': M(Q('#fbeccb')),   // kertas (dulu putih dingin)
-  'gabus-tanah': M(Q('#c99259')),
-  'buku-bata': M(Q('#b04a2c')),
-  'buku-zaitun': M(Q('#7d8f3a')),    // papan gabus
+  'daun-sage': M('#669915'),      // daun zaitun
+  'daun-gelap': M('#436812'),
+  'buku-biru': M('#018055'),
+  'buku-lav': M('#dc9f6e'),
+  'buku-salmon': M('#deba9d'),
+  'buku-krem': M('#dec5af'),
+  'papan-krem': M('#ded1c9'),     // papan tulis putih hangat
+  'kertas-putih': M('#eeeeee'),   // kertas (dulu putih dingin)
+  'gabus-tanah': M('#dc9f6e'),
+  'buku-bata': M('#970433'),
+  'buku-zaitun': M('#7e8114'),    // papan gabus
 
   // --- material baru khusus tema hangat ---
   jati: M(Q('#a8611f')),
@@ -175,6 +175,17 @@ export const MATERIALS: Record<string, Mat> = {
   // pada gambar"): kusen/ambang/batang gorden/tirai PUTIH, langit biru,
   // matahari kuning pucat. Tetap dari palet referensi: #eeeeee = kolom abu-abu
   // baris 1, #fde7b5 = kolom kuning baris 3.
+  // --- MATERIAL BERSIH UNTUK KATALOG 2026-10-29 (semua dari palet) -------
+  'papan-putih': M('#eeeeee'),  // muka papan tulis putih
+  'perak': M('#dddddd'),        // bingkai papan tulis & bodi laptop
+  'perak-tua': M('#cdcdcd'),    // bayangan perak / layar
+  'abu-tua': M('#3c3c3c'),      // kursi, lampu, tempat sampah (referensi gelap)
+  'abu': M('#666666'),          // tombol kalkulator, kabel
+  'kayu-meja': M('#dfae86'),    // kayu terang meja & rak
+  'kayu-tepi': M('#dc9f6e'),    // rusuk/tepi kayu
+  'kayu-gelap': M('#aa5a1d'),   // rangka & bayangan kayu
+  'buku-gelap': M('#4d4d4d'),
+  'buku-zaitun-tepi': M('#146c1f'),
   'kusen-putih': M('#eeeeee'),
   'matahari': M('#fde7b5'),
   // tirai gorden: putih keabu-abuan, sedikit lebih gelap dari kusen supaya

@@ -214,34 +214,34 @@
    "right": "#deba9d"
   },
   "daun-sage": {
-   "top": "#83cd1b",
-   "left": "#669915",
-   "right": "#76b115"
-  },
-  "daun-gelap": {
    "top": "#669915",
    "left": "#436812",
    "right": "#568116"
   },
+  "daun-gelap": {
+   "top": "#436812",
+   "left": "#23380d",
+   "right": "#344e13"
+  },
   "buku-biru": {
-   "top": "#01cdcd",
-   "left": "#029899",
-   "right": "#01b4b3"
+   "top": "#018055",
+   "left": "#024d33",
+   "right": "#026644"
   },
   "buku-lav": {
-   "top": "#c26420",
-   "left": "#964d19",
-   "right": "#aa5a1d"
+   "top": "#dc9f6e",
+   "left": "#c57946",
+   "right": "#df9057"
   },
   "buku-salmon": {
-   "top": "#df9057",
-   "left": "#c26420",
-   "right": "#c57946"
+   "top": "#deba9d",
+   "left": "#dc9f6e",
+   "right": "#dfae86"
   },
   "buku-krem": {
-   "top": "#ded1c9",
-   "left": "#deba9d",
-   "right": "#dec5af"
+   "top": "#dec5af",
+   "left": "#dfae86",
+   "right": "#deba9d"
   },
   "papan-krem": {
    "top": "#ded1c9",
@@ -249,24 +249,24 @@
    "right": "#dec5af"
   },
   "kertas-putih": {
-   "top": "#ded1c9",
-   "left": "#deba9d",
-   "right": "#dec5af"
+   "top": "#eeeeee",
+   "left": "#cdcdcd",
+   "right": "#dddddd"
   },
   "gabus-tanah": {
-   "top": "#df9057",
-   "left": "#c26420",
-   "right": "#c57946"
+   "top": "#dc9f6e",
+   "left": "#c57946",
+   "right": "#df9057"
   },
   "buku-bata": {
-   "top": "#c26420",
-   "left": "#964d19",
-   "right": "#aa5a1d"
+   "top": "#970433",
+   "left": "#670221",
+   "right": "#81032b"
   },
   "buku-zaitun": {
-   "top": "#76b115",
-   "left": "#568116",
-   "right": "#669915"
+   "top": "#7e8114",
+   "left": "#4d4d10",
+   "right": "#656710"
   },
   "jati": {
    "top": "#cd4303",
@@ -307,6 +307,56 @@
    "top": "#ded1c9",
    "left": "#deba9d",
    "right": "#dec5af"
+  },
+  "papan-putih": {
+   "top": "#eeeeee",
+   "left": "#cdcdcd",
+   "right": "#dddddd"
+  },
+  "perak": {
+   "top": "#dddddd",
+   "left": "#bbbbbb",
+   "right": "#cdcdcd"
+  },
+  "perak-tua": {
+   "top": "#cdcdcd",
+   "left": "#ababab",
+   "right": "#bbbbbb"
+  },
+  "abu-tua": {
+   "top": "#3c3c3c",
+   "left": "#2b2b2b",
+   "right": "#343434"
+  },
+  "abu": {
+   "top": "#666666",
+   "left": "#4d4d4d",
+   "right": "#565656"
+  },
+  "kayu-meja": {
+   "top": "#dfae86",
+   "left": "#df9057",
+   "right": "#dc9f6e"
+  },
+  "kayu-tepi": {
+   "top": "#dc9f6e",
+   "left": "#c57946",
+   "right": "#df9057"
+  },
+  "kayu-gelap": {
+   "top": "#aa5a1d",
+   "left": "#894c20",
+   "right": "#964d19"
+  },
+  "buku-gelap": {
+   "top": "#4d4d4d",
+   "left": "#3c3c3c",
+   "right": "#454545"
+  },
+  "buku-zaitun-tepi": {
+   "top": "#0e810f",
+   "left": "#085006",
+   "right": "#0b670a"
   },
   "kusen-putih": {
    "top": "#eeeeee",

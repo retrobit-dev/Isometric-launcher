@@ -336,3 +336,41 @@ Bila hash berubah, urutan gambar berubah — periksa dulu apakah disengaja,
 baru perbarui angka di uji + dokumen ini bersamaan.
 
 Bila salah satu uji gagal, **jangan** rilis APK: beda tafsir sudah terjadi.
+
+## 4g. Penyegaran semua objek katalog (2026-10-29, ronde 16)
+
+Permintaan user: *"perbaiki dulu semua objek dari referensi — saya ingin clean
+dan lengkap."* Seluruh 14 preset ditulis ulang dengan konvensi yang sama.
+
+**Aturan arah (WAJIB):** kamera isometrik melihat dari arah `+w` dan `+e`.
+Muka yang dilihat pengguna (muka laci, papan tulis, layar kalkulator, layar
+laptop bagian dalam) diletakkan di **sisi w besar**, bukan w kecil. Salah sisi
+= detail tersembunyi di balik badan objek (bug yang diperbaiki di ronde ini).
+
+**Skala acuan** (1 tile ≈ 0,5 m, tinggi meja 1,68 tile ≈ 0,84 m):
+
+| Preset | lebar × dalam | Tinggi acuan |
+|---|---|---|
+| `meja-guru` | 4,8 × 2,0 | daun meja 1,52–1,68; pedestal 3 laci 0–1,28 |
+| `kursi-putar` | 2,2 × 2,2 | dudukan 1,02; sandaran 1,06–1,96 |
+| `papan-tulis` | 4,9 × 1,5 | papan 1,16–3,60; baki spidol 1,02 |
+| `papan-gabus` | 2,9 × 0,2 | tempel dinding `dinding-kanan` |
+| `rak-buku` | 4,2 × 1,0 | papan 0,18 / 1,62 / 3,22 |
+| `jendela` | 6,4 × 0,7 | lihat §4f |
+| `lampu-meja` | 1,2 × 1,2 | kap kerucut `puncak 0,42` di 1,56–2,08 |
+| `tanaman-pot` | 1,9 × 1,9 | pot 0–1,30, 9 daun |
+| `tempat-sampah` | 2,2 × 1,4 | tong 1,24 + 2 kertas remuk |
+| `laptop` | 2,0 × 1,7 | 4×10 tombol + layar berisi 3 jendela |
+| `tumpukan-buku` | 1,4 × 1,0 | 3 buku (teal / krem / bata) |
+| `kalkulator` | 1,0 × 0,95 | 3×4 tombol, layar di sisi w kecil |
+| `bingkai-foto` | 1,1 × 0,16 | foto langit + tanah + matahari |
+| `gelas-pensil` | 0,7 × 0,7 | gelas 0,60 + 4 pensil (**baru**) |
+
+**Kaidah "clean":** tidak ada bagian yang menutupi bagian lain secara tidak
+sengaja (mis. pelat dalam papan gabus yang dulu menutup seluruh gabus), tidak
+ada kotak yang menonjol keluar dari lingkarannya (bibir gelas kotak → silinder),
+dan tidak ada material di luar palet (`docs/07-PALET-REFERENSI.md`).
+
+Material baru: `papan-putih` (muka papan tulis `#ded1c9`), `perak`, `perak-tua`,
+`abu`, `abu-tua`, `kayu-meja`, `kayu-tepi`, `kayu-gelap`, `buku-gelap`.
+Total material: **74** (lihat `docs/04-palet.json`).
