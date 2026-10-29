@@ -21,6 +21,10 @@ import path from 'node:path'
  */
 function sceneStore(): Plugin {
   const FILE = path.resolve(__dirname, '.isola-scene.json')
+  // SALINAN KEDUA (perbaikan 2026-10-29): file utama + cadangan ditulis
+  // bersamaan. Keduanya TIDAK di-gitignore, jadi ikut snapshot workspace dan
+  // ikut commit - scene selamat walau sandbox restart atau repo di-clone ulang.
+  const CADANGAN = path.resolve(__dirname, 'scene-cadangan.json')
 
   const readBody = (req: any): Promise<string> =>
     new Promise((resolve, reject) => {
@@ -39,14 +43,16 @@ function sceneStore(): Plugin {
       server.middlewares.use('/api/scene', async (req, res) => {
         try {
           if (req.method === 'GET') {
-            if (!fs.existsSync(FILE)) {
+            // urutan pemulihan: file utama -> salinan cadangan
+            const sumber = [FILE, CADANGAN].find(f => fs.existsSync(f))
+            if (!sumber) {
               res.statusCode = 204
               res.end()
               return
             }
             res.setHeader('Content-Type', 'application/json')
             res.setHeader('Cache-Control', 'no-store')
-            res.end(fs.readFileSync(FILE, 'utf8'))
+            res.end(fs.readFileSync(sumber, 'utf8'))
             return
           }
           if (req.method === 'POST') {
@@ -71,6 +77,8 @@ function sceneStore(): Plugin {
               return
             }
             fs.writeFileSync(FILE, body, 'utf8')
+            // salinan kedua: jaring pengaman kalau file utama rusak/terhapus
+            try { fs.writeFileSync(CADANGAN, body, 'utf8') } catch { /* abaikan */ }
             res.statusCode = 200
             res.setHeader('Content-Type', 'application/json')
             res.end('{"ok":true}')

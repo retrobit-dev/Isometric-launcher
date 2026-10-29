@@ -55,6 +55,8 @@ interface Bahan {
   anim?: Animasi
   /** false = tanpa garis tepi (dipakai untuk lipatan kain supaya halus) */
   tepi?: boolean
+  /** true = bidang KACA LANGIT dinamis (langit + cuaca mengikuti jam) */
+  langit?: boolean
 }
 
 export interface Preset {
@@ -94,6 +96,13 @@ const bp = (
   style: string, titik: [number, number][],
 ): Bahan => ({ ...b(e, w, z, se, sw, sz, style, 'profil'), profil: titik })
 
+/** bagian KACA LANGIT: digambar sebagai langit dinamis, bukan warna statis */
+const bk = (
+  e: number, w: number, z: number,
+  se: number, sw: number, sz: number,
+  style: string,
+): Bahan => ({ ...b(e, w, z, se, sw, sz, style), langit: true })
+
 /** beri animasi ke satu bagian */
 const beranim = (x: Bahan, a: Animasi): Bahan => ({ ...x, anim: a })
 
@@ -114,7 +123,9 @@ export const PRESETS: Preset[] = [
     pasang: 'dinding-kanan', lebar: 4.2, dalam: 0.5,
     bagian: [
       // --- satu bidang kaca (paling belakang, digambar lebih dulu) ---
-      b(0.26, 0.12, 2.46, 3.68, 0.05, 3.88, 'kaca-langit'),
+      // KACA LANGIT DINAMIS: warna & isi kaca mengikuti jam perangkat
+      // (fajar/pagi/siang/senja/malam) dan cuaca (cerah s/d badai).
+      bk(0.26, 0.12, 2.46, 3.68, 0.05, 3.88, 'kaca-langit'),
       // --- empat batang kusen (di depan kaca) ---
       b(0.00, 0.04, 2.20, 0.26, 0.30, 4.40, 'kayu-tepi'),    // tiang kiri
       b(3.94, 0.04, 2.20, 0.26, 0.30, 4.40, 'kayu-tepi'),    // tiang kanan
@@ -163,6 +174,7 @@ export function buatPreset(opts: {
     ...(bag.profil ? { profil: bag.profil } : {}),
     ...(bag.anim ? { anim: bag.anim } : {}),
     ...(bag.tepi === false ? { tepi: false } : {}),
+    ...(bag.langit ? { langit: true } : {}),
     preset: preset.id,
     app: null,
     layer: 'main' as const,

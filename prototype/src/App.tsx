@@ -11,6 +11,8 @@ import { buatPreset, type Preset } from './scene/presets'
 import { ROTASI_LANGKAH, UKURAN_MIN, normalRotasi, ukuranSah } from './scene/types'
 import { LATAR_TAG, gabungLatar, geserTumpukan, hapusLatarImage, latarImageUrl, loadCandidates, loadDraft, loadLocked, loadSceneFile, normalisasiScene, objekBiasa, objekLatar, saveDraftGuarded, saveLatarImage, saveLocked, saveSceneFile, storageWorks, validateScene } from './scene/store'
 import { type JenisAnim, type Scene, type SceneObject } from './scene/types'
+import { SEMUA_CUACA, faseDariJam, getLangit, langitFase, efekCuaca, setLangit, type Cuaca } from './iso/langit'
+import { ambilCuacaNyata, jamPerangkat, muatPengaturanCuaca, simpanPengaturanCuaca, type PengaturanCuaca } from './scene/cuaca'
 import EditPanel from './ui/EditPanel'
 import ObjectList from './ui/ObjectList'
 import { anggotaFolder, bboxFolder, duplikatFolder, hapusFolder, opasitasFolder, opasitasRata, pindahFolder, putarFolder, skalaFolder, type Sumbu } from './scene/folder'
@@ -52,6 +54,15 @@ export default function App() {
   const [panelDirty, setPanelDirty] = useState(false) // perubahan panel editor belum disimpan eksplisit
   const [showPreset, setShowPreset] = useState(false) // pemilih objek (+ TAMBAH)
   const [geserGrup, setGeserGrup] = useState<{ gid: string; nama: string } | null>(null)
+
+  // ---- LANGIT & CUACA (permintaan user 2026-10-29) --------------------------
+  // Jam perangkat menentukan fase langit (fajar/pagi/siang/senja/malam) dan
+  // posisi matahari/bulan. Cuaca menentukan awan, hujan, kilat, pelangi.
+  const [cuacaSet, setCuacaSet] = useState<PengaturanCuaca>(() => muatPengaturanCuaca())
+  const [cuacaKini, setCuacaKini] = useState<Cuaca>(() => muatPengaturanCuaca().manual)
+  const cuacaRef = useRef<Cuaca>(cuacaKini)
+  const [jamKini, setJamKini] = useState(() => jamPerangkat())
+  const jamRef = useRef<number>(jamKini)
   const [dimuat, setDimuat] = useState(false)
   // GAMBAR LATAR (background kanvas) — permintaan user 2026-10-29.
   // `gambarLatar` untuk memicu render ulang tombol; `latarRef` dibaca loop
@@ -239,6 +250,58 @@ export default function App() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [])
 
+  // JAM: diperbarui tiap 30 detik supaya fase langit ikut berjalan.
+  useEffect(() => {
+    const tick = () => {
+      const j = jamPerangkat()
+      jamRef.current = j
+      setJamKini(j)
+    }
+    tick()
+    const t = window.setInterval(tick, 30_000)
+    return () => window.clearInterval(t)
+  }, [])
+
+  // CUACA: mode OTOMATIS mengambil cuaca nyata (Open-Meteo) tiap 10 menit;
+  // gagal -> pakai cuaca terakhir / manual. Mode MANUAL langsung dipakai.
+  useEffect(() => {
+    let batal = false
+    const tentukan = async () => {
+      if (cuacaSet.mode === 'manual') {
+        cuacaRef.current = cuacaSet.manual
+        setCuacaKini(cuacaSet.manual)
+        return
+      }
+      const c = await ambilCuacaNyata(cuacaSet)
+      if (batal) return
+      const pakai = c ?? cuacaSet.manual
+      cuacaRef.current = pakai
+      setCuacaKini(pakai)
+    }
+    void tentukan()
+    const t = window.setInterval(() => void tentukan(), 10 * 60_000)
+    return () => { batal = true; window.clearInterval(t) }
+  }, [cuacaSet])
+
+  // siklus cuaca untuk tombol toolbar: OTOMATIS -> CERAH -> ... -> OTOMATIS
+  const gantiCuaca = () => {
+    setCuacaSet(c => {
+      const urut: PengaturanCuaca['mode'][] = []
+      void urut
+      let next: PengaturanCuaca
+      if (c.mode === 'otomatis') {
+        next = { ...c, mode: 'manual', manual: 'cerah' }
+      } else {
+        const i = SEMUA_CUACA.indexOf(c.manual)
+        next = i < 0 || i === SEMUA_CUACA.length - 1
+          ? { ...c, mode: 'otomatis' }
+          : { ...c, manual: SEMUA_CUACA[i + 1] }
+      }
+      simpanPengaturanCuaca(next)
+      return next
+    })
+  }
+
   // ganti objek terpilih = mulai hitungan "belum disimpan" dari nol
   useEffect(() => { setPanelDirty(false) }, [selectedId])
 
@@ -283,6 +346,8 @@ export default function App() {
     if (!ctx) return
     let raf = 0
     const loop = () => {
+      // langit & cuaca: dibaca renderer saat mengisi bidang kaca jendela
+      setLangit({ jam: jamRef.current, cuaca: cuacaRef.current })
       drawScene(ctx, {
         grid: false,
         edit: modeRef.current === 'edit' && !lockedRef.current,
@@ -1025,6 +1090,15 @@ export default function App() {
               title="daftar semua objek yang sudah dibuat — ketuk untuk memilih"
             >
               OBJEK {objekBiasa(scene).length}{objekLatar(scene).length > 0 ? ` (+${objekLatar(scene).length} latar)` : ''}
+            </button>
+            <button
+              className={cuacaSet.mode === 'otomatis' ? 'tbtn on' : 'tbtn'}
+              onClick={gantiCuaca}
+              title={`langit mengikuti jam perangkat (${jamKini.toFixed(1)}). ketuk untuk ganti cuaca: OTOMATIS → CERAH → BERAWAN → GERIMIS → HUJAN → BADAI → OTOMATIS`}
+            >
+              {langitFase(faseDariJam(jamKini)).benda === 'bulan' ? '☾' : '☀'}{' '}
+              {faseDariJam(jamKini).toUpperCase()} · {efekCuaca(cuacaKini).label}
+              {cuacaSet.mode === 'otomatis' ? ' ⟳' : ''}
             </button>
           </>
         )}

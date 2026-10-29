@@ -1,5 +1,6 @@
-import { DENS, HW, arahKamera, px, type P } from './space'
+import { DENS, HW, ZH, arahKamera, px, type P } from './space'
 import { MATERIALS, UNKNOWN_STYLE } from './palette'
+import { drawLangit, setDetik, type Bidang } from './langit'
 import type { SceneObject } from '../scene/types'
 
 import { gelap as gelapPalet, kePalet, terang as terangPalet, warna } from './palet-referensi'
@@ -529,6 +530,44 @@ export function opasitasOf(o: SceneObject): number {
   return Math.min(1, Math.max(0.05, v))
 }
 
+/**
+ * BIDANG KACA — empat sudut muka kaca yang menghadap kamera.
+ * Dipakai objek ber-`langit: true` (kaca jendela) untuk menggambar langit
+ * dinamis. Sisi dipilih dari arah kamera supaya kaca tetap benar walau kamera
+ * diorbit; urutan sudut selalu kiri -> kanan agar u = 0 di kiri.
+ */
+export function bidangKaca(o: SceneObject): Bidang | null {
+  const { e, w, z } = o.pos
+  const { se, sw } = footprintOf(o)
+  const kam = arahKamera()
+  const z0 = z
+  const z1 = z + o.size.z
+  let a: P, b: P
+  if (Math.abs(kam.w) >= Math.abs(kam.e)) {
+    // muka tegak lurus sumbu w
+    const ww = kam.w >= 0 ? w + sw : w
+    a = px(e, ww, z0); b = px(e + se, ww, z0)
+  } else {
+    // muka tegak lurus sumbu e (bentang sepanjang w)
+    const ee = kam.e >= 0 ? e + se : e
+    a = px(ee, w, z0); b = px(ee, w + sw, z0)
+  }
+  if (a.x > b.x) { const t = a; a = b; b = t }
+  const atasKiri = { x: a.x, y: a.y - o.size.z * ZH }
+  const atasKanan = { x: b.x, y: b.y - o.size.z * ZH }
+  if (o.size.z <= 0 || Math.abs(b.x - a.x) < 1) return null
+  void z1
+  return { atasKiri, atasKanan, bawahKanan: b, bawahKiri: a }
+}
+
+/** gambar langit dinamis di bidang kaca (menggantikan warna biru statis) */
+function drawKacaLangit(ctx: CanvasRenderingContext2D, o: SceneObject) {
+  const bidang = bidangKaca(o)
+  if (!bidang) { drawBox(ctx, o); return }
+  setDetik(sekarang() / 1000)
+  drawLangit(ctx, bidang)
+}
+
 export function drawObject(ctx: CanvasRenderingContext2D, o: SceneObject) {
   const status = terapkanAnim(ctx, o)
   if (status === 'lewat') return
@@ -536,7 +575,8 @@ export function drawObject(ctx: CanvasRenderingContext2D, o: SceneObject) {
   const alphaAwal = ctx.globalAlpha
   const op = opasitasOf(o)
   if (op < 0.999) ctx.globalAlpha = alphaAwal * op
-  if (o.bentuk === 'silinder') drawSilinder(ctx, o)
+  if (o.langit) drawKacaLangit(ctx, o)
+  else if (o.bentuk === 'silinder') drawSilinder(ctx, o)
   else if (o.bentuk === 'kerucut') drawKerucut(ctx, o)
   else if (o.bentuk === 'bola') drawBola(ctx, o)
   else if (o.bentuk === 'cakram') drawCakram(ctx, o)

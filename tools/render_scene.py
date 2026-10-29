@@ -146,17 +146,19 @@ def ke_palet(warna):
 
 
 def _posisi(warna):
+    # 1-based, sama persis dengan posisi() di iso/palet-referensi.ts
     c = ke_palet(warna)
     for t in range(_TINGKAT):
         k = _BARIS[t].index(c) if c in _BARIS[t] else -1
         if k >= 0:
-            return k, t
-    return 0, 0
+            return k + 1, t + 1
+    return 1, 1
 
 
 def _warna(kolom, tingkat):
-    k = max(0, min(len(_BARIS[0]) - 1, kolom))   # 18 kolom != 19 tingkat
-    t = max(0, min(_TINGKAT - 1, tingkat))
+    # 1-based; 18 kolom != 19 tingkat -> batasi per dimensi (sama dengan TS)
+    k = max(0, min(len(_BARIS[0]) - 1, int(kolom) - 1))
+    t = max(0, min(len(_BARIS) - 1, int(tingkat) - 1))
     return _BARIS[t][k]
 
 
@@ -169,7 +171,7 @@ def gelap(warna, n=1):
     k, t = _posisi(warna)
     dasar = _luma(ke_palet(warna))
     t += max(0, int(round(n)))
-    while t < _TINGKAT - 1 and _luma(_warna(k, t)) >= dasar:
+    while t < _TINGKAT and _luma(_warna(k, t)) >= dasar:
         t += 1
     return _warna(k, t)
 
@@ -178,7 +180,7 @@ def terang(warna, n=1):
     k, t = _posisi(warna)
     dasar = _luma(ke_palet(warna))
     t -= max(0, int(round(n)))
-    while t > 0 and _luma(_warna(k, t)) <= dasar:
+    while t > 1 and _luma(_warna(k, t)) <= dasar:
         t -= 1
     return _warna(k, t)
 
@@ -479,7 +481,193 @@ def draw_profil(o):
     poly(dpn, c['left'], g)
 
 
+# --------------------------------------------------------------------------- #
+# LANGIT DINAMIS (cermin iso/langit.ts) — dipakai objek ber-langit: true
+# --------------------------------------------------------------------------- #
+JAM = float(os.environ.get('JAM', '12'))
+CUACA = os.environ.get('CUACA', 'cerah')
+
+
+# CATATAN: dulu ada _warna KEDUA di sini yang menimpa versi 0-based di atas.
+# Perbedaan indeks membuat gelap() bergeser satu kolom: cokelat #c57946
+# (kolom 17) menjadi merah-muda #fc4e8a (kolom 16) — muncul garis PINK di tepi
+# objek kayu. Sekarang hanya ada SATU _warna (1-based), sama dengan TS.
+
+
+def fase_dari_jam(j):
+    j = j % 24
+    if 4.5 <= j < 6:
+        return 'fajar'
+    if 6 <= j < 10:
+        return 'pagi'
+    if 10 <= j < 15:
+        return 'siang'
+    if 15 <= j < 18:
+        return 'senja'
+    return 'malam'
+
+
+def fase_warna(f):
+    """6 pita langit dari atas ke bawah (cermin langitFase di iso/langit.ts)."""
+    if f == 'fajar':
+        return ([_warna(12, 11), _warna(12, 9), _warna(13, 7), _warna(2, 4), _warna(3, 3), _warna(3, 2)],
+                'matahari', False, _warna(18, 3))
+    if f == 'pagi':
+        return ([_warna(11, 8), _warna(11, 6), _warna(10, 4), _warna(10, 3), _warna(9, 3), _warna(9, 2)],
+                'matahari', False, _warna(18, 1))
+    if f == 'siang':
+        return ([_warna(11, 7), _warna(11, 5), _warna(10, 4), _warna(10, 3), _warna(9, 3), _warna(9, 2)],
+                'matahari', False, _warna(18, 1))
+    if f == 'senja':
+        return ([_warna(11, 10), _warna(12, 8), _warna(2, 3), _warna(2, 2), _warna(3, 2), _warna(3, 1)],
+                'matahari', False, _warna(18, 3))
+    return ([_warna(12, 13), _warna(12, 12), _warna(11, 12), _warna(11, 11), _warna(10, 11), _warna(10, 10)],
+            'bulan', True, _warna(18, 6))
+
+
+def efek_cuaca(c):
+    """(awan, hujan, kilat, pelangi, mendung 6 pita|None)"""
+    if c == 'berawan':
+        return (3, 0, False, False, None)
+    if c == 'gerimis':
+        return (4, 20, False, True,
+                [_warna(18, 4), _warna(18, 5), _warna(18, 6), _warna(18, 7), _warna(18, 8), _warna(18, 8)])
+    if c == 'hujan':
+        return (5, 46, False, False,
+                [_warna(18, 5), _warna(18, 6), _warna(18, 7), _warna(18, 8), _warna(18, 9), _warna(18, 10)])
+    if c == 'badai':
+        return (6, 70, True, False,
+                [_warna(18, 6), _warna(18, 8), _warna(18, 9), _warna(18, 10), _warna(18, 11), _warna(18, 12)])
+    return (1, 0, False, False, None)
+
+
+def _acak(i, garam=0.0):
+    x = math.sin(i * 12.9898 + garam * 78.233) * 43758.5453
+    return x - math.floor(x)
+
+
+def _titik(k, u, v):
+    ax = k[0][0] + (k[1][0] - k[0][0]) * u
+    ay = k[0][1] + (k[1][1] - k[0][1]) * u
+    bx = k[3][0] + (k[2][0] - k[3][0]) * u
+    by = k[3][1] + (k[2][1] - k[3][1]) * u
+    return (ax + (bx - ax) * v, ay + (by - ay) * v)
+
+
+def _isi(pts, warn):
+    d.polygon([(round(x), round(y)) for x, y in pts], fill=warn)
+
+
+def _kotak(k, u0, v0, du, dv, warn):
+    # dipotong di tepi kaca supaya awan/hujan tidak menimpa kusen
+    u = max(0.0, min(1.0, u0))
+    v = max(0.0, min(1.0, v0))
+    du = min(du, 1.0 - u)
+    dv = min(dv, 1.0 - v)
+    if du <= 0 or dv <= 0:
+        return
+    _isi([_titik(k, u, v), _titik(k, u + du, v), _titik(k, u + du, v + dv), _titik(k, u, v + dv)], warn)
+
+
+def bidang_kaca(o):
+    e, w, z = o['pos']['e'], o['pos']['w'], o['pos']['z']
+    se, sw = footing(o)
+    kam = arah_kamera()
+    if abs(kam[1]) >= abs(kam[0]):
+        ww = w + sw if kam[1] >= 0 else w
+        a, b = px(e, ww, z), px(e + se, ww, z)
+    else:
+        ee = e + se if kam[0] >= 0 else e
+        a, b = px(ee, w, z), px(ee, w + sw, z)
+    if a[0] > b[0]:
+        a, b = b, a
+    if abs(b[0] - a[0]) < 1 or o['size']['z'] <= 0:
+        return None
+    dz = o['size']['z'] * ZH
+    return [(a[0], a[1] - dz), (b[0], b[1] - dz), b, a]
+
+
+def draw_langit(o):
+    k = bidang_kaca(o)
+    if not k:
+        return draw_box(o)
+    fase = fase_dari_jam(JAM)
+    pita_warna, benda, bintang, awan_warna = fase_warna(fase)
+    jml_awan, jml_hujan, kilat, pelangi, mendung = efek_cuaca(CUACA)
+    warna_pita = mendung if mendung else pita_warna
+
+    for i in range(6):
+        _isi([_titik(k, 0, i / 6), _titik(k, 1, i / 6), _titik(k, 1, (i + 1) / 6), _titik(k, 0, (i + 1) / 6)],
+             warna_pita[i])
+
+    if bintang and not mendung:
+        for i in range(22):
+            _kotak(k, _acak(i, 7), _acak(i, 8) * 0.72, 0.012, 0.03, _warna(18, 1))
+
+    if pelangi and fase in ('pagi', 'siang'):
+        # busur setengah lingkaran, tiga pita (sama dengan pelangi() di TS)
+        SEG = 9
+        for pi, c in enumerate([_warna(15, 5), _warna(3, 4), _warna(9, 5)]):
+            rl = 0.62 - pi * 0.05
+            rd = rl - 0.045
+            pts = []
+            for i in range(SEG + 1):
+                a = math.pi - (i / SEG) * math.pi
+                pts.append(_titik(k, 0.5 + math.cos(a) * rl, 1.05 - math.sin(a) * rl * 1.7))
+            for i in range(SEG, -1, -1):
+                a = math.pi - (i / SEG) * math.pi
+                pts.append(_titik(k, 0.5 + math.cos(a) * rd, 1.05 - math.sin(a) * rd * 1.7))
+            _isi(pts, c)
+
+    # matahari / bulan
+    if fase == 'malam':
+        t = (JAM - 18) / 11 if JAM >= 18 else (JAM + 6) / 11
+        u, v = 0.14 + 0.72 * t, 0.62 - 0.42 * math.sin(math.pi * t)
+        _isi([_titik(k, u + math.cos(x / 10 * 6.2832) * 0.075, v + math.sin(x / 10 * 6.2832) * 0.13) for x in range(10)], _warna(18, 2))
+        _isi([_titik(k, u - 0.015 + math.cos(x / 10 * 6.2832) * 0.052, v - 0.02 + math.sin(x / 10 * 6.2832) * 0.09) for x in range(10)], _warna(18, 1))
+    elif not mendung or jml_hujan == 0:
+        t = min(1.0, max(0.0, (JAM - 5) / 13))
+        u, v = 0.14 + 0.72 * t, 0.62 - 0.46 * math.sin(math.pi * t)
+        hangat = fase in ('fajar', 'senja')
+        tepi = _warna(2, 3) if hangat else _warna(3, 3)
+        inti = _warna(2, 2) if hangat else _warna(3, 2)
+        _isi([_titik(k, u + math.cos(x / 10 * 6.2832) * 0.085, v + math.sin(x / 10 * 6.2832) * 0.15) for x in range(10)], tepi)
+        _isi([_titik(k, u - 0.012 + math.cos(x / 10 * 6.2832) * 0.062, v - 0.02 + math.sin(x / 10 * 6.2832) * 0.11) for x in range(10)], inti)
+
+    # awan: tiga tumpuk balok, selalu di dalam kaca
+    if mendung:
+        awan_dasar = gelap(awan_warna, 5 if CUACA == 'badai' else 4 if CUACA == 'hujan' else 3)
+    else:
+        awan_dasar = awan_warna
+    for i in range(jml_awan):
+        lebar = 0.26 + _acak(i, 3) * 0.14
+        vv = 0.12 + _acak(i, 4) * 0.38
+        uu = _acak(i, 5)
+        bawah = gelap(awan_dasar, 1)
+        _kotak(k, uu, vv, lebar, 0.075, awan_dasar)
+        _kotak(k, uu + lebar * 0.14, vv + 0.07, lebar * 0.66, 0.055, bawah)
+        _kotak(k, uu + lebar * 0.30, vv - 0.055, lebar * 0.42, 0.065, awan_dasar)
+        _kotak(k, uu + lebar * 0.62, vv + 0.03, lebar * 0.26, 0.05, bawah)
+
+    # hujan (kerangka diam supaya PNG dapat diulang)
+    if jml_hujan:
+        lebat = jml_hujan > 40
+        tinggi = 0.07 if lebat else 0.045
+        lebar_tetes = 0.010 if lebat else 0.008
+        warna_hujan = _warna(18, 2) if mendung else _warna(10, 2)
+        for i in range(jml_hujan):
+            uu = _acak(i, 11)
+            fasa = _acak(i, 12)
+            _kotak(k, uu, fasa * (1 - tinggi), lebar_tetes, tinggi, warna_hujan)
+
+    if kilat:
+        _kotak(k, 0.5, 0.0, 0.02, 0.6, _warna(3, 1))
+
+
 def draw_obj(o):
+    # KACA LANGIT dinamis
+    if o.get('langit'):
+        return draw_langit(o)
     # TRANSPARANSI (permintaan user 2026-10-29): objek dengan opasitas < 1
     # digambar ke lapisan terpisah lalu dicampur, supaya warnanya benar-benar
     # tembus pandang (paritas dengan iso/box.ts di prototipe web).

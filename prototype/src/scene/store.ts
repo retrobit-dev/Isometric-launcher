@@ -201,6 +201,8 @@ export function normalisasiScene(scene: Scene): Scene {
         z: ukuranSah(o.size.z),
       },
       ...(o.urutan === undefined ? {} : { urutan: Math.round(o.urutan) }),
+      // KACA LANGIT dinamis (jendela): hanya dibawa bila true
+      ...(o.langit === true ? { langit: true } : {}),
       // TRANSPARANSI: dibatasi 0.05..1 dan dibulatkan 2 desimal; nilai 1
       // (pekat) tidak ditulis supaya file tetap ramping.
       ...(o.opasitas === undefined ? {} : { opasitas: normalOpasitas(o.opasitas) }),
@@ -522,6 +524,7 @@ export function validateScene(data: unknown): Scene | null {
       ...(typeof ob.preset === 'string' && /^[a-z0-9-]{1,40}$/.test(ob.preset)
         ? { preset: ob.preset } : {}),
       ...(ob.tepi === false ? { tepi: false } : {}),
+      ...(ob.langit === true ? { langit: true } : {}),
       ...(normalAnim(ob.anim) ? { anim: normalAnim(ob.anim)! } : {}),
       ...(ob.latar === true ? { latar: true } : {}),
       ...(typeof ob.urutan === 'number' && Number.isFinite(ob.urutan) ? { urutan: Math.round(ob.urutan) } : {}),

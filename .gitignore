@@ -1,1 +1,15 @@
-prototype/.isola-scene.json
+# SCENE TIDAK DIABAIKAN (perbaikan 2026-10-29).
+# Dulu `prototype/.isola-scene.json` di-ignore, dan itu membuat scene user
+# HILANG total setiap sandbox restart: snapshot workspace melewati file yang
+# di-ignore, sedangkan localStorage terikat ke origin preview yang berubah saat
+# sandbox berganti. Sekarang kedua file scene ikut snapshot DAN ikut commit.
+# (Jangan tambahkan pola apa pun untuk file scene di bawah ini.)
+
+# hasil build & dependensi
+node_modules/
+dist/
+.vite/
+
+# berkas sistem
+.DS_Store
+*.log

@@ -136,6 +136,12 @@ export interface SceneObject {
   /** derajat, kelipatan 30 (0..330) — lihat normalRotasi() */
   rotasi?: number
   /**
+   * KACA LANGIT dinamis (permintaan user 2026-10-29): bila true, objek ini
+   * digambar sebagai jendela berisi langit + cuaca (fase waktu dari jam
+   * perangkat, awan/hujan/kilat mengikuti cuaca), BUKAN warna bidang statis.
+   */
+  langit?: boolean
+  /**
    * transparansi 0.05..1 (1/tidak diisi = pekat). Berlaku saat digambar, jadi
    * data posisi/ukuran TIDAK berubah: hit-test, grup, kunci, dan file scene
    * tetap sama.
