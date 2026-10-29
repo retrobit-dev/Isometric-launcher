@@ -135,7 +135,46 @@ try {
   cek('objek terkunci tidak ikut diskalakan',
     denganKunci.find(x => x.id === 'uk').size.e === 1)
 
-  console.log('8. aman untuk nilai aneh')
+  console.log('8. duplikat folder (semua objek)')
+  const d0 = [
+    o('d1', { e: 1, w: 1, z: 1 }, { e: 1, w: 1, z: 1 }, { grup: 'g-d', grupNama: 'LEMARI', urutan: 4 }),
+    o('d2', { e: 3, w: 1, z: 1 }, { e: 1, w: 1, z: 1 },
+      { grup: 'g-d', grupNama: 'LEMARI', kunci: 'semua', urutan: 5 }),
+    o('d3', { e: 1, w: 1, z: 3 }, { e: 1, w: 1, z: 1 },
+      { grup: 'g-d-sub', grupNama: 'LEMARI / SUB 1', grupInduk: 'g-d', urutan: 6 }),
+    o('luar', { e: 9, w: 9, z: 0 }, { e: 1, w: 1, z: 1 }, { urutan: 7 }),
+  ]
+  const dup = F.duplikatFolder(d0, 'g-d', { gidBaru: 'g-baru', nama: 'LEMARI (salinan)' })
+  cek('semua anggota tersalin', dup.baru.length === 3, String(dup.baru.length))
+  cek('objek asli tetap utuh di daftar', dup.objects.filter(x => ['d1', 'd2', 'd3', 'luar'].includes(x.id)).length === 4)
+  cek('objek di luar folder tidak ikut tersalin', !dup.baru.some(x => x.id.startsWith('luar')))
+  cek('id salinan baru & unik',
+    new Set(dup.baru.map(x => x.id)).size === 3 && dup.baru.every(x => x.id.startsWith('g-baru-')),
+    dup.baru.map(x => x.id).join(','))
+  const utama = dup.baru.filter(x => x.grup === 'g-baru')
+  cek('anggota tingkat atas dapat grup baru', utama.length === 2, String(utama.length))
+  cek('nama folder salinan dipakai', utama.every(x => x.grupNama === 'LEMARI (salinan)'))
+  const subSalinan = dup.baru.find(x => x.grupNama === 'LEMARI / SUB 1')
+  cek('sub-folder dapat grup baru', subSalinan.grup === 'g-baru-sub-1', String(subSalinan.grup))
+  cek('induk sub-folder ikut dipetakan', subSalinan.grupInduk === 'g-baru', String(subSalinan.grupInduk))
+  cek('salinan digeser +1 e/w', subSalinan.pos.e === 2 && subSalinan.pos.w === 2,
+    `${subSalinan.pos.e},${subSalinan.pos.w}`)
+  cek('kunci objek asal tidak ikut', dup.baru.every(x => x.kunci === undefined))
+  cek('salinan di tumpukan paling atas',
+    Math.min(...dup.baru.map(x => x.urutan)) > 7, dup.baru.map(x => x.urutan).join(','))
+  cek('asal tidak berubah posisi', dup.objects.find(x => x.id === 'd1').pos.e === 1)
+
+  console.log('9. hapus folder (semua objek)')
+  const sisa = F.hapusFolder(d0, 'g-d')
+  cek('anggota folder terhapus semua', sisa.length === 1 && sisa[0].id === 'luar', sisa.map(x => x.id).join(','))
+  const sisaLatar = F.hapusFolder(
+    [...d0, o('lantai2', { e: 0, w: 0, z: 0 }, { e: 9, w: 9, z: 0.2 }, { role: 'lantai', latar: true, grup: 'g-d' })],
+    'g-d',
+  )
+  cek('latar tidak ikut terhapus', sisaLatar.some(x => x.id === 'lantai2'))
+  cek('folder tak dikenal -> tidak berubah', F.hapusFolder(d0, 'tidak-ada') === d0)
+
+  console.log('10. aman untuk nilai aneh')
   cek('delta 0 -> objek tidak berubah', F.pindahFolder(objects, 'g-j', 'z', 2.5) === objects)
   cek('folder tak dikenal -> tidak berubah', F.pindahFolder(objects, 'tidak-ada', 'z', 9) === objects)
 } catch (e) {

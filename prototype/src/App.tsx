@@ -13,7 +13,7 @@ import { LATAR_TAG, gabungLatar, geserTumpukan, hapusLatarImage, latarImageUrl, 
 import { type JenisAnim, type Scene, type SceneObject } from './scene/types'
 import EditPanel from './ui/EditPanel'
 import ObjectList from './ui/ObjectList'
-import { anggotaFolder, bboxFolder, pindahFolder, putarFolder, skalaFolder, type Sumbu } from './scene/folder'
+import { anggotaFolder, bboxFolder, duplikatFolder, hapusFolder, pindahFolder, putarFolder, skalaFolder, type Sumbu } from './scene/folder'
 import PosisiFolder from './ui/PosisiFolder'
 import Confirm, { type ConfirmReq } from './ui/Confirm'
 
@@ -612,21 +612,11 @@ export default function App() {
     setPanelDirty(true)
   }
 
-  // HAPUS FOLDER: semua anggota grup (dan sub-folder) dihapus setelah konfirmasi
-  const hapusFolder = (gid: string) => {
+  // HAPUS FOLDER: semua anggota grup (dan sub-folder) dihapus setelah konfirmasi.
+  // Logika penghapusan ada di scene/folder.ts (hapusFolder) supaya bisa diuji.
+  const hapusGrup = (gid: string) => {
     const nama = sceneRef.current.objects.find(o => o.grup === gid)?.grupNama ?? 'folder'
-    const kelompok = new Set<string>([gid])
-    let tambah = true
-    while (tambah) {
-      tambah = false
-      for (const o of sceneRef.current.objects) {
-        if (o.grupInduk && kelompok.has(o.grupInduk) && o.grup && !kelompok.has(o.grup)) {
-          kelompok.add(o.grup)
-          tambah = true
-        }
-      }
-    }
-    const anggota = sceneRef.current.objects.filter(o => o.grup && kelompok.has(o.grup) && !o.latar)
+    const anggota = anggotaFolder(sceneRef.current.objects, gid)
     if (anggota.length === 0) return
     setConfirm({
       title: `KONFIRMASI HAPUS FOLDER`,
@@ -640,13 +630,29 @@ export default function App() {
       onConfirm: () => {
         const before = sceneRef.current
         setUndo({ scene: before, label: `folder ${nama}` })
-        const ids = new Set(anggota.map(o => o.id))
-        setScene(sc => ({ ...sc, objects: sc.objects.filter(o => !ids.has(o.id)) }))
+        setScene(sc => ({ ...sc, objects: hapusFolder(sc.objects, gid) }))
         setSelectedId(null)
         setMulti([])
         setConfirm(null)
       },
     })
+  }
+
+  // DUPLIKAT FOLDER: seluruh isi folder disalin menjadi folder baru di atas.
+  // (permintaan user 2026-10-29: duplikat & hapus berlaku untuk SEMUA objek
+  // dalam folder). Salinan digeser 1 satuan e/w supaya tidak menumpuk.
+  const duplikatGrup = (gid: string) => {
+    const asal = sceneRef.current.objects.find(o => o.grup === gid)
+    if (!asal) return
+    const gidBaru = `grup-${Date.now().toString(36).slice(-4)}`
+    const nama = `${(asal.grupNama ?? 'FOLDER').replace(/ \(salinan\)$/, '')} (salinan)`
+    let jumlah = 0
+    setScene(sc => {
+      const hasil = duplikatFolder(sc.objects, gid, { gidBaru, nama })
+      jumlah = hasil.baru.length
+      return { ...sc, objects: hasil.objects }
+    })
+    if (jumlah > 0) setSelectedId(`${gidBaru}-1`)
   }
 
   // GABUNG GRUP: semua objek bercetang mendapat id grup yang sama, sehingga
@@ -1142,7 +1148,7 @@ export default function App() {
             const nama = scene.objects.find(o => o.grup === gid)?.grupNama ?? 'folder'
             setGeserGrup({ gid, nama })
           }}
-          onDeleteGroup={gid => hapusFolder(gid)}
+          onDeleteGroup={gid => hapusGrup(gid)}
           onRestore={sc => restoreScene(sc)}
           onClose={() => setShowList(false)}
         />
@@ -1170,6 +1176,8 @@ export default function App() {
             onSet={(sumbu, v) => posisiFolder(geserGrup.gid, sumbu, v)}
             onSetUkuran={(sumbu, v) => ukuranFolder(geserGrup.gid, sumbu, v)}
             onPutar={arah => putarGrup(geserGrup.gid, arah)}
+            onDuplikat={() => duplikatGrup(geserGrup.gid)}
+            onHapus={() => { hapusGrup(geserGrup.gid); setGeserGrup(null) }}
             onClose={() => setGeserGrup(null)}
           />
         )

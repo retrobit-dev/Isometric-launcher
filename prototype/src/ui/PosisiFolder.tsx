@@ -35,6 +35,10 @@ interface Props {
   onSetUkuran: (sumbu: 'e' | 'w' | 'z', nilai: number) => void
   /** putar seluruh isi folder 15° (arah −1 = kiri, +1 = kanan) */
   onPutar: (arah: 1 | -1) => void
+  /** salin SELURUH isi folder menjadi folder baru */
+  onDuplikat: () => void
+  /** hapus SELURUH isi folder (App meminta konfirmasi dulu) */
+  onHapus: () => void
   onClose: () => void
 }
 
@@ -165,6 +169,15 @@ export default function PosisiFolder(p: Props) {
             title="putar SELURUH isi folder 15° ke kanan mengelilingi poros tengah folder"
           >
             15° ⟳
+          </button>
+        </div>
+
+        <div className="row">
+          <button className="sbtn wide" onClick={p.onDuplikat} title="salin SELURUH isi folder menjadi folder baru">
+            DUPLIKAT
+          </button>
+          <button className="sbtn wide danger" onClick={p.onHapus} title="hapus SELURUH isi folder (diminta konfirmasi)">
+            HAPUS
           </button>
         </div>
 

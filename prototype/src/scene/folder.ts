@@ -180,6 +180,87 @@ export function skalaFolder(
   })
 }
 
+/**
+ * HAPUS FOLDER — membuang SEMUA anggota (termasuk sub-folder bersarang).
+ * Dipisah dari App supaya bisa diuji tanpa React; konfirmasi & URUNGKAN tetap
+ * diurus App.
+ */
+export function hapusFolder(objects: SceneObject[], gid: string): SceneObject[] {
+  const ids = new Set(anggotaFolder(objects, gid).map(o => o.id))
+  if (ids.size === 0) return objects
+  return objects.filter(o => !ids.has(o.id))
+}
+
+export interface OpsiDuplikat {
+  /** id grup baru untuk salinan (wajib unik) */
+  gidBaru: string
+  /** nama folder salinan (bawaan: nama asli) */
+  nama?: string
+  /** geser salinan pada sumbu e/w supaya tidak menumpuk persis di aslinya */
+  de?: number
+  dw?: number
+}
+
+/**
+ * DUPLIKAT FOLDER — menyalin SEMUA anggota (termasuk sub-folder bersarang)
+ * menjadi folder BARU yang berdiri sendiri (permintaan user 2026-10-29:
+ * "tambahkan juga fitur duplikat dan hapus folder, yang artinya untuk semua
+ * objek dalam folder").
+ *
+ * Salinan:
+ *   • dapat id baru (`gidBaru-1`, `gidBaru-2`, …) dan grup baru;
+ *   • sub-folder di dalamnya juga dapat id grup baru (struktur bersarang tetap);
+ *   • digeser `de`/`dw` dari aslinya supaya kelihatan;
+ *   • dilepas dari kunci objek asal (sama seperti duplikat satu objek);
+ *   • ditaruh paling atas (`urutan` di atas semua objek yang ada).
+ */
+export function duplikatFolder(
+  objects: SceneObject[],
+  gid: string,
+  opsi: OpsiDuplikat,
+): { objects: SceneObject[]; baru: SceneObject[] } {
+  const anggota = anggotaFolder(objects, gid)
+  if (anggota.length === 0) return { objects, baru: [] }
+  const de = opsi.de ?? 1
+  const dw = opsi.dw ?? 1
+
+  // peta id grup lama -> id grup baru (folder utama + sub-folder bersarang)
+  const petaGrup = new Map<string, string>([[gid, opsi.gidBaru]])
+  let anak = 0
+  for (const o of anggota) {
+    if (!o.grup || petaGrup.has(o.grup)) continue
+    anak += 1
+    petaGrup.set(o.grup, `${opsi.gidBaru}-sub-${anak}`)
+  }
+
+  const urutanAwal = objects.reduce((m, o) => Math.max(m, o.urutan ?? 0), 0) + 1
+
+  const baru: SceneObject[] = anggota.map((o, i) => {
+    const grupBaru = (o.grup && petaGrup.get(o.grup)) || opsi.gidBaru
+    const indukBaru = o.grupInduk ? petaGrup.get(o.grupInduk) ?? o.grupInduk : undefined
+    return {
+      ...o,
+      id: `${opsi.gidBaru}-${i + 1}`,
+      label: `${o.label} (salinan)`,
+      pos: {
+        ...o.pos,
+        e: bulat(o.pos.e + de),
+        w: bulat(o.pos.w + dw),
+      },
+      grup: grupBaru,
+      // nama folder utama memakai `opsi.nama`; sub-folder memakai nama aslinya
+      grupNama: grupBaru === opsi.gidBaru
+        ? (opsi.nama ?? o.grupNama)
+        : o.grupNama,
+      grupInduk: indukBaru,
+      kunci: undefined,
+      layer: 'main',
+      urutan: urutanAwal + i,
+    }
+  })
+  return { objects: [...objects, ...baru], baru }
+}
+
 /** gabungkan dua daftar (nilai sudut minimum semua anggota, tanpa melihat kunci) */
 export function titikFolder(objects: SceneObject[], gid: string): Record<Sumbu, number> {
   return bboxFolder(objects, gid).nilai
