@@ -1,8 +1,11 @@
 * { margin: 0; padding: 0; box-sizing: border-box; }
 
+/* LATAR BELAKANG HITAM OLED — permintaan user 2026-10-29.
+   #000000 = piksel benar-benar mati di panel OLED MatePad, jadi bingkai di
+   sekitar diorama menyatu dengan bezel dan diorama yang menyala. */
 html, body, #root {
   height: 100%;
-  background: #140d0b;
+  background: #000000;
   overflow: hidden;
 }
 
@@ -25,11 +28,11 @@ html, body, #root {
 
 .tablet {
   position: relative;
-  background: #0b0706;
+  background: #000000;
   border-radius: 22px;
   box-shadow:
     0 0 0 1px #1c2130,
-    0 0 0 3px #0b0706,
+    0 0 0 3px #000000,
     0 18px 50px rgba(0, 0, 0, 0.7);
   flex: none;
 }
@@ -42,7 +45,7 @@ html, body, #root {
   height: 5px;
   margin-left: -2.5px;
   border-radius: 50%;
-  background: #1b1210;
+  background: #000000;
   box-shadow: inset 0 0 1px #2c3a55;
 }
 
@@ -50,7 +53,7 @@ html, body, #root {
   position: absolute;
   border-radius: 6px;
   overflow: hidden;
-  background: #241714;
+  background: #000000;
 }
 
 .scene {
@@ -107,16 +110,16 @@ html, body, #root {
   color: #f2dcc2;
   background: #241816;
   border: 1px solid #2c3348;
-  border-bottom-color: #140d0b;
+  border-bottom-color: #000000;
   border-radius: 3px;
-  box-shadow: 0 1px 0 #140d0b;
+  box-shadow: 0 1px 0 #000000;
   cursor: pointer;
   touch-action: manipulation;
   -webkit-tap-highlight-color: transparent;
   user-select: none;
 }
 
-.tbtn:active { transform: translateY(1px); box-shadow: 0 0 0 #140d0b; }
+.tbtn:active { transform: translateY(1px); box-shadow: 0 0 0 #000000; }
 
 .tbtn.on {
   color: #241714;
@@ -316,7 +319,7 @@ html, body, #root {
   width: 22px;
   height: 12px;
   flex: none;
-  border: 1px solid #140d0b;
+  border: 1px solid #000000;
   border-radius: 2px;
 }
 
@@ -425,7 +428,7 @@ html, body, #root {
   width: 10px;
   height: 10px;
   flex: none;
-  border: 1px solid #140d0b;
+  border: 1px solid #000000;
   border-radius: 2px;
 }
 

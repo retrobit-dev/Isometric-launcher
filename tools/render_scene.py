@@ -18,6 +18,12 @@ from PIL import Image, ImageDraw
 
 AKAR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 PALET = json.load(open(os.path.join(AKAR, 'docs', '04-palet.json')))
+# Palet referensi 16x12 (192 warna) — cermin iso/palet-referensi.ts
+REF = json.load(open(os.path.join(AKAR, 'docs', '04-palet-referensi.json')))
+_BARIS = REF['baris']
+_TINGKAT = REF['tingkat']
+SEMUA = [c for baris in _BARIS for c in baris]
+SEMUA_SET = set(SEMUA)
 MAT = PALET['materi']
 FLOOR = PALET['lantai']
 WALL = PALET['dinding']
@@ -104,20 +110,94 @@ def _hex(c):
     return int(c[0:2], 16), int(c[2:4], 16), int(c[4:6], 16)
 
 
+# --- palet referensi: warna terdekat + tangga gelap/terang (paritas TS) ----- #
+def _lab(hexs):
+    r, g, b = (v / 255 for v in _hex(hexs))
+    lin = lambda v: v / 12.92 if v <= 0.04045 else ((v + 0.055) / 1.055) ** 2.4
+    r, g, b = lin(r), lin(g), lin(b)
+    x = (r * 0.4124 + g * 0.3576 + b * 0.1805) / 0.95047
+    y = r * 0.2126 + g * 0.7152 + b * 0.0722
+    z = (r * 0.0193 + g * 0.1192 + b * 0.9505) / 1.08883
+    f = lambda t: t ** (1 / 3) if t > 0.008856 else 7.787 * t + 16 / 116
+    fx, fy, fz = f(x), f(y), f(z)
+    return (116 * fy - 16, 500 * (fx - fy), 200 * (fy - fz))
+
+
+_LAB = [_lab(c) for c in SEMUA]
+_CACHE = {}
+
+
+def ke_palet(warna):
+    if not (isinstance(warna, str) and len(warna) == 7 and warna.startswith('#')):
+        return warna
+    w = warna.lower()
+    if w in SEMUA_SET:
+        return w
+    if w in _CACHE:
+        return _CACHE[w]
+    la, lb, lc = _lab(w)
+    jarak, terbaik = 1e18, SEMUA[0]
+    for i, (a, b, c) in enumerate(_LAB):
+        dd = (a - la) ** 2 + (b - lb) ** 2 + (c - lc) ** 2
+        if dd < jarak:
+            jarak, terbaik = dd, SEMUA[i]
+    _CACHE[w] = terbaik
+    return terbaik
+
+
+def _posisi(warna):
+    c = ke_palet(warna)
+    for t in range(_TINGKAT):
+        k = _BARIS[t].index(c) if c in _BARIS[t] else -1
+        if k >= 0:
+            return k, t
+    return 0, 0
+
+
+def _warna(kolom, tingkat):
+    k = max(0, min(len(_BARIS[0]) - 1, kolom))   # 18 kolom != 19 tingkat
+    t = max(0, min(_TINGKAT - 1, tingkat))
+    return _BARIS[t][k]
+
+
+def _luma(hexs):
+    r, g, b = _hex(hexs)
+    return r * 0.299 + g * 0.587 + b * 0.114
+
+
+def gelap(warna, n=1):
+    k, t = _posisi(warna)
+    dasar = _luma(ke_palet(warna))
+    t += max(0, int(round(n)))
+    while t < _TINGKAT - 1 and _luma(_warna(k, t)) >= dasar:
+        t += 1
+    return _warna(k, t)
+
+
+def terang(warna, n=1):
+    k, t = _posisi(warna)
+    dasar = _luma(ke_palet(warna))
+    t -= max(0, int(round(n)))
+    while t > 0 and _luma(_warna(k, t)) <= dasar:
+        t -= 1
+    return _warna(k, t)
+
+
+TINTA = BASE.get('tinta') or '#341b10'   # cokelat sangat tua dari palet
+
+
 def gelapkan(warna, f=CAMPUR):
     if not (isinstance(warna, str) and len(warna) == 7 and warna.startswith('#')):
         return None
-    r, g, b = _hex(warna)
-    mix = lambda a, b2: round(a + (b2 - a) * f)
-    return (mix(r, INK[0]), mix(g, INK[1]), mix(b, INK[2]))
+    if f >= 0.4:                       # garis tepi: tinta tetap
+        return _hex(TINTA)
+    return _hex(gelap(warna, max(1, round(f * 5))))
 
 
 def terangkan(warna, f=0.30):
     if not (isinstance(warna, str) and len(warna) == 7 and warna.startswith('#')):
         return None
-    r, g, b = _hex(warna)
-    mix = lambda a, b2: round(a + (b2 - a) * f)
-    return (mix(r, 255), mix(g, 232), mix(b, 190))
+    return _hex(terang(warna, max(1, round(f * 4))))
 
 
 def poly(pts, warna, garis=True):

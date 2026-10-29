@@ -30,7 +30,8 @@ try {
   const K = await bangun('src/scene/presets.ts', 'presets.mjs')
 
   console.log('1. warna dasar')
-  cek('void = marun-tua hangat', P.PAL.void === '#48100f', P.PAL.void)
+  // 2026-10-29: latar belakang = HITAM OLED murni (permintaan user)
+  cek('void = hitam OLED #000000', P.PAL.void === '#000000', P.PAL.void)
   cek('dinding teduh lebih gelap dari muka cahaya',
     lum(P.PAL.wallB) < lum(P.PAL.wallT), `${P.PAL.wallB} < ${P.PAL.wallT}`)
   cek('tidak ada biru/ungu dingin di warna dasar',

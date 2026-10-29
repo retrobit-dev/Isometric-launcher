@@ -2,6 +2,8 @@ import { DENS, HW, arahKamera, px, type P } from './space'
 import { MATERIALS, UNKNOWN_STYLE } from './palette'
 import type { SceneObject } from '../scene/types'
 
+import { gelap as gelapPalet, kePalet, terang as terangPalet, warna } from './palet-referensi'
+
 export interface Box { x0: number; y0: number; x1: number; y1: number }
 
 // ---------------------------------------------------------------------------
@@ -41,28 +43,30 @@ function drawSprite(ctx: CanvasRenderingContext2D, o: SceneObject) {
 // ---------------------------------------------------------------------------
 // Tinta gelap HANGAT (cokelat-marun) — diambil dari garis tepi pada gambar
 // referensi tema diorama. Tinta ungu dingin tidak dipakai lagi.
-const INK = { r: 0x4a, g: 0x1e, b: 0x0a }
-const CAMPUR = 0.42        // 0 = tanpa garis, 1 = tinta penuh
+const CAMPUR = 0.42        // 0 = tanpa garis, 1 = banyak tingkat turun
 const TEBAL_TEPI = 2       // piksel internal (resolusi naik 1,775x 2026-10-29)
 
+/**
+ * GARIS TEPI & SHADING — 2026-10-29
+ * Dulu: campur warna dengan tinta cokelat / dengan putih (menghasilkan warna di
+ * luar palet). Sekarang: turun/naik beberapa TINGKAT di kolom hue yang sama
+ * pada palet referensi 16x12, jadi SEMUA warna tetap anggota palet dan
+ * bayangannya bergaya cell-shading (tangga, bukan gradasi).
+ */
+/** tinta garis tepi: cokelat sangat tua dari palet (bukan warna turunan) */
+const TINTA = warna(17, 18)   // #341b10
+
 function gelapkan(warna: string, f = CAMPUR): string {
-  const m = /^#([0-9a-f]{6})$/i.exec(warna)
-  if (!m) return warna
-  const n = parseInt(m[1], 16)
-  const r = (n >> 16) & 255
-  const g = (n >> 8) & 255
-  const b = n & 255
-  const mix = (a: number, b2: number) => Math.round(a + (b2 - a) * f)
-  return `rgb(${mix(r, INK.r)},${mix(g, INK.g)},${mix(b, INK.b)})`
+  // f >= 0.4 dipakai oleh GARIS TEPI: selalu tinta gelap yang sama, supaya
+  // tepi tetap terbaca di atas bidang terang maupun gelap (dan tidak pernah
+  // berubah jadi pink/salmon seperti saat memakai "turun 2 tingkat").
+  if (f >= 0.4) return TINTA
+  return gelapPalet(kePalet(warna), Math.max(1, Math.round(f * 5)))
 }
 
 /** versi terang dari sebuah warna (untuk bibir/sorot) */
 function terangkan(warna: string, f = 0.30): string {
-  const m = /^#([0-9a-f]{6})$/i.exec(warna)
-  if (!m) return warna
-  const n = parseInt(m[1], 16)
-  const mix = (a: number, b2: number) => Math.round(a + (b2 - a) * f)
-  return `rgb(${mix((n >> 16) & 255, 255)},${mix((n >> 8) & 255, 232)},${mix(n & 255, 190)})`
+  return terangPalet(kePalet(warna), Math.max(1, Math.round(f * 4)))
 }
 
 function poly(ctx: CanvasRenderingContext2D, pts: P[], color: string, garis = true) {

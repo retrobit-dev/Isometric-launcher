@@ -1,5 +1,11 @@
 # 05 — TEMA "DIORAMA HANGAT" (pixel-art, 32-bit)
 
+> **PEMBARUAN 2026-10-29 — dokumen ini sebagian sudah tidak berlaku.**
+> Seluruh warna sekarang WAJIB berasal dari palet referensi 342 warna dan
+> latar belakang memakai hitam OLED `#000000`. Hex "diorama hangat" di bawah
+> tetap disimpan sebagai catatan niat desain, tetapi hasil akhirnya dipetakan
+> ke palet. Lihat **docs/07-PALET-REFERENSI.md**.
+
 Ditulis 2026-10-29 atas permintaan user: *"saya ingin style dan gaya dan tema
 pixelnya seperti pada gambar referensi"* (`6d39f1fadb95515d53d2f48449d4c809.jpg`
 — tiga diorama: toko roti, toko ramuan, kedai).
