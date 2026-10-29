@@ -230,11 +230,10 @@ export const FLOOR_MATERIALS: Record<string, FloorMat> = {
     // nada SAMA untuk semua papan (referensi: lantai nyaris rata); variasi
     // hanya dari garis serat + nat, bukan dari papan yang belang-belang.
     tones: ['#8a5a3a', '#8a5a3a', '#8a5a3a'],
-    grout: '#452d1e',
-    grain: '#5f3d28',
+    grout: '#5f3d28',
     skirtL: '#5f3d28',
     skirtR: '#452d1e',
-    plank: 3,
+    plank: 8,
   },
   'lantai-papan-batu': {
     pattern: 'papan',

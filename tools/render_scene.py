@@ -1060,8 +1060,9 @@ def draw_floor(o):
         for dalam, wnav in ((leb, gelap1), (leb * 0.34, gelap2)):
             poly([px(e0, w0, z), px(e0, w1, z),
                   px(e0 + dalam, w1, z), px(e0 + dalam, w0, z)], wnav, False)
-            poly([px(e0, w0, z), px(e1, w0, z),
-                  px(e1, w0 + dalam, z), px(e0, w0 + dalam, z)], wnav, False)
+            if not PROYEKSI_DATAR:   # ronde 44: hanya tepi belakang
+                poly([px(e0, w0, z), px(e1, w0, z),
+                      px(e1, w0 + dalam, z), px(e0, w0 + dalam, z)], wnav, False)
 
     SK = 10
     bL, bR, tR = px(e0, w1, z), px(e1, w1, z), px(e1, w0, z)
@@ -1134,45 +1135,19 @@ def draw_wall(o):
         poly([at(t0, zA), at(t1, zA), at(t1, zB), at(t0, zB)], warna, False)
 
     # =====================================================================
-    # GAYA INTERIOR "POKÉMON NDS" (ronde 41, cermin room.ts)
-    # warna rata + batas nada KERAS + wainscot kayu; tanpa dither di bidang.
+    # DINDING GAYA INTERIOR POKÉMON NDS — RONDE 44 (cermin room.ts)
+    # bidang atas polos + satu pita nada lebih gelap + plint + garis puncak.
     # =====================================================================
     kotak(0, 1, sz, 0, face)
-    z_w = min(1.7, sz * 0.34)
-    z_batas = z_w + (sz - z_w) * 0.78
-    kotak(0, 1, sz, z_batas, face)
-    kotak(0, 1, z_batas, z_w, gelap(face, 1))
-    d.line([tuple(map(round, at(0, z_batas))), tuple(map(round, at(1, z_batas)))],
+
+    z_plint = min(0.6, sz * 0.14)
+    kotak(0, 1, z_plint, 0, trim)
+    kotak(0, 1, z_plint, z_plint - min(0.06, sz * 0.015), gelap(trim, 2))
+    d.line([tuple(map(round, at(0, z_plint))), tuple(map(round, at(1, z_plint)))],
            fill=gelap(face, 2), width=1)
 
-    kotak(0, 1, z_w, 0, trim)
-    n_papan = max(2, round(panj / 0.85))
-    for i_p in range(1, n_papan):
-        t_p = i_p / n_papan
-        d.line([tuple(map(round, at(t_p, z_w))), tuple(map(round, at(t_p, 0)))],
-               fill=BASE['beamDark'], width=1)
-    kotak(0, 1, z_w, z_w - min(0.22, z_w * 0.22), BASE['post'])
-    kotak(0, 1, z_w + 0.16, z_w, BASE['beamTop'])
-    kotak(0, 1, z_w + 0.16, z_w + 0.11, BASE['peg'])
-    d.line([tuple(map(round, at(0, z_w))), tuple(map(round, at(1, z_w)))],
-           fill=BASE['beamDark'], width=1)
-    kotak(0, 1, min(0.14, z_w * 0.2), 0, BASE['beamDark'])
-
-    hb = min(0.5, sz * 0.4)
-    if sz > 1:
-        kotak(0, 1, sz, sz - hb, BASE['beam'])
-        kotak(0, 1, sz, sz - min(0.07, hb * 0.3), BASE['beamTop'])
-        kotak(0, 1, sz - hb, sz - hb - min(0.05, hb * 0.2), BASE['beamDark'])
-
-    tp = min(0.5, 0.42 / panj)
-    for t0, t1 in ((0, tp), (1 - tp, 1)):
-        kotak(t0, t1, sz, 0, BASE['post'])
-        kotak(t0, t0 + (t1 - t0) * 0.45, sz, 0, BASE['postLit'])
-        d.line([tuple(map(round, at(t1, sz))), tuple(map(round, at(t1, 0)))], fill=BASE['beamDark'], width=1)
-        if sz > 1.2:
-            p = at((t0 + t1) / 2, sz - min(0.75, sz * 0.35))
-            r = 1.6 * DENS * 0.6
-            d.ellipse([p[0] - r, p[1] - r, p[0] + r, p[1] + r], fill=BASE['peg'])
+    z_puncak = min(0.16, sz * 0.06)
+    kotak(0, 1, sz, sz - z_puncak, gelap(face, 2))
 
     d.line([tuple(map(round, at(0, 0))), tuple(map(round, at(1, 0)))], fill=BASE['beamDark'], width=1)
 

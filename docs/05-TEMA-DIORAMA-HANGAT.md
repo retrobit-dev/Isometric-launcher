@@ -142,3 +142,25 @@ lantainya."* Tindakan:
   lama di tab browser yang masih terbuka.
 - Yang **tidak** berubah: ukuran kanvas 568×355, `PIKSEL`, `DENS`, `SCALE`,
   serta seluruh sistem koordinat (`TILE_W/H`, `Z_PX`, origin `(e,w,z)`).
+
+---
+
+## Ronde 44 — tampilan diperbaiki, semua alat tetap
+
+Arahan user: *"pertahankan semua alat di sandbox, perbaiki tampilannya saja."*
+Tidak ada fitur yang dibuang; yang berubah hanya rupa ruangan.
+
+1. **Proyeksi datar** (`PROYEKSI_DATAR` di `space.ts`): nat lantai mendatar &
+   tegak seperti interior Pokémon NDS; dinding belakang satu bidang tegak.
+   Satu saklar untuk kembali ke isometrik lama.
+2. **Dinding disederhanakan**: percobaan ronde 41–43 (wainscot berpapan +
+   tiang + pasak) terbaca seperti *pagar*, bukan dinding kamar. Sekarang:
+   bidang polos + plint kayu + garis nada tipis + garis puncak.
+3. **Lantai** `lantai-kayu-nds`: papan panjang (8 ubin) satu nada
+   `#8a5a3a`, nat `#5f3d28`, tanpa garis serat — sebelumnya terbaca seperti
+   bata karena papan pendek dan garis serat menumpuk.
+4. **Bayangan kaki dinding** dipersempit ke 1 ubin dan hanya di tepi belakang
+   (di proyeksi datar pita samping terbaca sebagai garis gelap).
+5. Scene: 3 objek latar (lantai 14×20 + dinding belakang + dinding samping).
+   Perabot, tokoh, dan hiasan sengaja belum ada — tinggal ditambah dari panel
+   editor.
