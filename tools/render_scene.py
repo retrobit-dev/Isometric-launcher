@@ -207,6 +207,9 @@ def terang(warna, n=1):
 # DITHERING (cermin iso/dither.ts) — pola Bayer 4x4
 # ---------------------------------------------------------------------------
 BAYER4 = [[0, 8, 2, 10], [12, 4, 14, 6], [3, 11, 1, 9], [15, 7, 13, 5]]
+# SKALA sel pola (cermin SKALA di iso/dither.ts): 2 = blok 2x2 piksel internal,
+# jadi tekstur kotaknya lebih kasar / lebih kelihatan.
+SKALA_DITHER = 2
 
 
 def ambang_bayer(x, y):
@@ -244,17 +247,21 @@ def _lapis_pola(spec):
     per = max(0, min(16, round(level * 16)))
     dasar = (0, 0, 0, 0) if mode == 'bayang' else _hex(warna1) + (255,)
     tint = _hex(warna2) + (255,)
-    ubin = Image.new('RGBA', (4, 4), dasar)
+    sisi = 4 * SKALA_DITHER
+    ubin = Image.new('RGBA', (sisi, sisi), dasar)
     up = ubin.load()
     for y in range(4):
         for x in range(4):
-            if per and piksel_kedua(x, y, per / 16):
-                up[x, y] = tint
-    baris = Image.new('RGBA', (IW, 4), dasar)
-    for x0 in range(0, IW, 4):
+            if not (per and piksel_kedua(x, y, per / 16)):
+                continue
+            for dy in range(SKALA_DITHER):
+                for dx in range(SKALA_DITHER):
+                    up[x * SKALA_DITHER + dx, y * SKALA_DITHER + dy] = tint
+    baris = Image.new('RGBA', (IW, sisi), dasar)
+    for x0 in range(0, IW, sisi):
         baris.paste(ubin, (x0, 0))
     penuh = Image.new('RGBA', (IW, IH), dasar)
-    for y0 in range(0, IH, 4):
+    for y0 in range(0, IH, sisi):
         penuh.paste(baris, (0, y0))
     hasil = (penuh.convert('RGB'), penuh.split()[3])
     _POLA[kunci] = hasil

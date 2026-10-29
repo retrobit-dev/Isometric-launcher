@@ -92,11 +92,16 @@ matriks ambang (0..15)          level 25%          level 50%
  12  4 14  6                    X . X .            X . X .
   3 11  1  9                    . X . X            . X . X
  15  7 13  5                    X . X .            X . X .
+(tiap . / X = blok 2x2 piksel internal)
 ```
 
 * `level` dibulatkan ke **1/16** → pola sama di semua perangkat.
-* Ukuran 4×4 piksel internal = kotak **9×9 px** di layar (kanvas diperbesar
-  ×2,25) → tegas, bukan gradasi buram.
+* Satu sel matriks digambar sebagai **blok `SKALA`×`SKALA` piksel internal**.
+  `SKALA = 2` (pilihan user ronde 38: *tekstur kotaknya lebih kasar / lebih
+  kelihatan*) → ubin pola **8×8 piksel internal** = **18×18 px di layar**
+  (kanvas diperbesar ×2,25). `SKALA = 1` akan kembali ke pola halus.
+  Nilai ini ada di `dither.ts` (`SKALA`) dan `render_scene.py`
+  (`SKALA_DITHER`) dan **harus sama**.
 * Modul: `prototype/src/iso/dither.ts`
   * `polaDither(ctx, a, b, level)` — isian dua warna (boleh jadi `fillStyle`).
   * `polaBayang(ctx, warna, level)` — dither **bertumpuk** (sebagian piksel

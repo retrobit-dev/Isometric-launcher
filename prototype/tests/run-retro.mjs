@@ -68,6 +68,11 @@ try {
   cek('BAYER4 sama di renderer Python', bayer(py))
   cek('level dibulatkan ke 1/16 (pola identik antar perangkat)',
     /round\(t \* 16\)/.test(dither) && /round\(level \* 16\)/.test(py))
+  const skalaTs = Number((dither.match(/export const SKALA = (\d+)/) || [])[1])
+  const skalaPy = Number((py.match(/SKALA_DITHER = (\d+)/) || [])[1])
+  cek('skala sel pola 2x2 (diminta user: lebih kasar)', skalaTs === 2, String(skalaTs))
+  cek('skala sel pola sama di TS & Python', skalaTs === skalaPy,
+    `TS ${skalaTs} vs PY ${skalaPy}`)
 
   console.log('4. renderer offline ikut aturan')
   cek('Python punya pola dither bertumpuk (_isi_pola)', /def _isi_pola/.test(py))

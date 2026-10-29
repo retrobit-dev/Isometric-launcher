@@ -338,6 +338,7 @@ hasil `campur()` bukan anggota palet. Kontrak lengkap: `docs/08`.
 |---|---|
 | warna kendali | **6 warna palet Endesga** per fase (§ `langitFase`); tidak ada warna baru sebagai kendali |
 | pita langit | **6 pita KERAS** = warna kendali apa adanya (`rencanaLangit().pita`) |
+| dither | matriks **Bayer 4×4**, satu sel = blok **2×2 piksel internal** (`SKALA`/`SKALA_DITHER`) — dibulatkan 1/16 |
 | peralihan pita | **2 jalur dither per batas pita**: `level` 0,25 di atas batas, 0,75 di bawahnya, tinggi `TINGGI_DITHER = 0,028` (bagian tinggi kaca). Rumus: `rencanaLangit(kendali)` / `_rencana_langit(kendali)` |
 | matahari | 4 lapis: halo luar (dither `sekitar→tepi` 14%, r 0,138×0,238, 20 segmen), halo dalam (42%, 0,110×0,190, 20 segmen), tepi pekat (0,082×0,144), inti (0,058×0,102). Siang `#feae34`/`#fee761`; fajar-senja `#f77622`/`#feae34` |
 | bulan | halo 2 lapis **dither** (`sekitar→#c0cbdc` 18% dan 48%) + bola `#8b9bb4` + sorotan `#c0cbdc` + **3 kawah** `#5a6988` |

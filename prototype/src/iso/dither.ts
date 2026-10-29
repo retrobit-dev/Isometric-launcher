@@ -12,9 +12,11 @@
 //   nada antara — inilah yang dipakai game 16-bit untuk langit, dinding,
 //   dan bayangan.
 //
-// Pola memakai matriks Bayer 4x4 (ambang 0..15). Ukurannya 4x4 PIKSEL
-// INTERNAL, jadi saat kanvas diperbesar 2,25x pola terlihat sebagai kotak
-// 9x9 di layar — tegas, bukan gradasi buram.
+// Pola memakai matriks Bayer 4x4 (ambang 0..15). Satu SEL matriks digambar
+// sebagai blok SKALA x SKALA piksel internal. Dengan SKALA = 2 ubin polanya
+// 8x8 piksel internal -> 18x18 piksel di layar (kanvas diperbesar 2,25x).
+// User ronde 38 meminta tekstur kotaknya LEBIH KASAR/LEBIH KELIHATAN, jadi
+// SKALA dinaikkan dari 1 ke 2.
 //
 // Renderer offline (tools/render_scene.py) memakai matriks yang SAMA PERSIS,
 // sehingga PNG uji = kanvas.
@@ -23,6 +25,13 @@
 // tunggal (level >= 0,5 -> warna kedua) supaya uji geometri/animasi tetap
 // bisa dijalankan tanpa browser.
 // ===========================================================================
+
+/**
+ * SKALA sel pola: 1 = satu sel = 1 piksel internal (halus), 2 = satu sel =
+ * 2x2 piksel internal (kasar / lebih kelihatan). Ubah di sini + di
+ * `tools/render_scene.py` (`SKALA_DITHER`) supaya dua renderer tetap sama.
+ */
+export const SKALA = 2
 
 /** matriks ambang Bayer 4x4 (nilai 0..15) */
 export const BAYER4: readonly (readonly number[])[] = [
@@ -78,13 +87,13 @@ export function polaDither(
   if (sudah) return sudah
 
   const ubin = ctx.canvas.ownerDocument!.createElement('canvas')
-  ubin.width = 4
-  ubin.height = 4
+  ubin.width = 4 * SKALA
+  ubin.height = 4 * SKALA
   const u = ubin.getContext('2d')!
   for (let y = 0; y < 4; y++) {
     for (let x = 0; x < 4; x++) {
       u.fillStyle = pikselB(x, y, per / 16) ? b : a
-      u.fillRect(x, y, 1, 1)
+      u.fillRect(x * SKALA, y * SKALA, SKALA, SKALA)
     }
   }
   const pola = ctx.createPattern(ubin, 'repeat')!
@@ -114,14 +123,14 @@ export function polaBayang(
   if (sudah) return sudah
 
   const ubin = ctx.canvas.ownerDocument!.createElement('canvas')
-  ubin.width = 4
-  ubin.height = 4
+  ubin.width = 4 * SKALA
+  ubin.height = 4 * SKALA
   const u = ubin.getContext('2d')!
   for (let y = 0; y < 4; y++) {
     for (let x = 0; x < 4; x++) {
       if (!pikselB(x, y, per / 16)) continue
       u.fillStyle = warna
-      u.fillRect(x, y, 1, 1)
+      u.fillRect(x * SKALA, y * SKALA, SKALA, SKALA)
     }
   }
   const pola = ctx.createPattern(ubin, 'repeat')!
