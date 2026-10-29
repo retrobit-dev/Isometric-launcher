@@ -326,8 +326,12 @@ export async function loadSceneFile(): Promise<Scene | null> {
  */
 export async function saveSceneFile(scene: Scene, izinkanKosong = false): Promise<boolean> {
   if (scene.objects.length === 0 && !izinkanKosong) return false
+  // RONDE 43: scene kosong yang DISENGAJA (user menghapus semua objek) tetap
+  // boleh ditulis. Tanpa ?allowEmpty=1 server menolak (409) dan objek lama
+  // akan "hidup lagi" setiap kali halaman dimuat ulang.
+  const url = scene.objects.length === 0 ? `${API_SCENE}?allowEmpty=1` : API_SCENE
   try {
-    const r = await fetch(API_SCENE, {
+    const r = await fetch(url, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       // file selalu NORMAL: APK tidak boleh menerima angka kotor

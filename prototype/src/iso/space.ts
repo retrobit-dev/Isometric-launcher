@@ -35,9 +35,33 @@ export const IW = Math.round(640 * DENS)   // 568
 export const IH = Math.round(400 * DENS)   // 355
 export const SCALE = 2560 / IW             // 4,5 (dulu 2,25)
 
-export const TILE_W = 32 * DENS    // 56,8 px internal
+export const TILE_W = 32 * DENS    // 56,8 px internal (lebar ubin)
 export const TILE_H = 16 * DENS    // 28,4
 export const Z_PX = 16 * DENS      // 28,4
+
+// ---------------------------------------------------------------------------
+// PROYEKSI — RONDE 43 (2026-10-29)
+// ---------------------------------------------------------------------------
+// Permintaan user: "saya mau yang seperti ini" (tangkapan layar interior
+// Pokémon NDS/Gen 5) dan "saya ijinkan untuk mengubah semuanya".
+//
+// Di referensi, lantai adalah KISI PERSEGI menghadap layar (garis nat
+// mendatar & tegak, TIDAK ada diagonal), dinding belakang satu bidang tegak,
+// dan perabot menghadap depan dengan atap terlihat sedikit. Itu bukan
+// isometrik belah ketupat 2:1.
+//
+// `PROYEKSI_DATAR = true` -> proyeksi sumbu-sejajar ("datar"):
+//     x = (w - CW) * 2HW
+//     y = (e - CE) * 2HH - z * ZH      dengan 2HH = 0,72 * 2HW
+// Sumbu e = KEDALAMAN (0 = dinding belakang, makin besar makin dekat ke
+// pemain), sumbu w = MENDATAR. Sistem koordinat dunia TIDAK berubah, jadi
+// semua posisi objek di scene lama tetap sah dan hanya berubah cara
+// memproyeksikannya.
+//
+// Set false untuk kembali ke isometrik 2:1 lama (kode jalur lama tetap ada).
+export const PROYEKSI_DATAR = true
+/** kedalaman satu ubin relatif terhadap lebarnya (1 = persegi di layar) */
+export const RASIO_DATAR = 0.72
 
 // Dimensi ruangan = satu sumber kebenaran ROOM_FIXED (bebas diubah).
 export const ROOM = {
@@ -103,7 +127,7 @@ export let ZH = HW_BASE
 function applyZoom(q: number) {
   CAM.Q = Math.min(Q_MAX, Math.max(Q_MIN, q))
   HW = HW_BASE * CAM.Q
-  HH = HW / 2
+  HH = PROYEKSI_DATAR ? HW * RASIO_DATAR : HW / 2
   ZH = HW
 }
 
@@ -159,37 +183,36 @@ export function fitToScene(objs: KotakObjek[], margin = 0.95) {
   }
   const ce0 = (e0 + e1) / 2
   const cw0 = (w0 + w1) / 2
+  const zc = zmax / 2
   const { c, s } = kosYaw()
 
-  // Proyeksikan 8 titik sudut kotak pembungkus DENGAN HW = 1, lalu ukur
-  // sebarannya di layar. Cara ini benar untuk sudut kamera mana pun
-  // (sebelumnya memakai pendekatan yang hanya pas di 0°).
+  // Ukur sebaran di layar pada zoom x1 dengan kamera tepat di pusat bbox.
+  applyZoom(1)
+  CAM.CE = ce0
+  CAM.CW = cw0
   let xmin = Infinity, xmax = -Infinity, ymin = Infinity, ymax = -Infinity
-  for (const ex of [e0 - ce0, e1 - ce0]) {
-    for (const wx of [w0 - cw0, w1 - cw0]) {
+  for (const ex of [e0, e1]) {
+    for (const wx of [w0, w1]) {
       for (const zz of [0, zmax]) {
-        const re = ex * c - wx * s
-        const rw = ex * s + wx * c
-        const x = re - rw
-        const y = (re + rw) / 2 - zz
-        xmin = Math.min(xmin, x); xmax = Math.max(xmax, x)
-        ymin = Math.min(ymin, y); ymax = Math.max(ymax, y)
+        const p = px(ex, wx, zz)
+        xmin = Math.min(xmin, p.x); xmax = Math.max(xmax, p.x)
+        ymin = Math.min(ymin, p.y); ymax = Math.max(ymax, p.y)
       }
     }
   }
   const wLebar = Math.max(0.001, xmax - xmin)
   const wTinggi = Math.max(0.001, ymax - ymin)
-  const hw = Math.min((IW * margin) / wLebar, (IH * margin) / wTinggi)
-  applyZoom(hw / HW_BASE)
+  applyZoom(Math.min((IW * margin) / wLebar, (IH * margin) / wTinggi))
 
-  // geser supaya PUSAT bbox proyeksi jatuh di tengah kanvas.
-  // x = (re-rw)·HW, y = (re+rw)·HH ; selesaikan Δre, Δrw lalu balik rotasi.
-  const dx = ((xmin + xmax) / 2) * hw
-  const dy = ((ymin + ymax) / 2) * hw
-  const dRe = (dx / hw + dy / (hw / 2)) / 2
-  const dRw = (dy / (hw / 2) - dx / hw) / 2
-  CAM.CE = ce0 + (dRe * c + dRw * s)
-  CAM.CW = cw0 + (-dRe * s + dRw * c)
+  // Geser supaya titik tengah bbox proyeksi jatuh di tengah kanvas.
+  // Proyeksi linear terhadap (e,w), jadi satu koreksi sudah pasti pas.
+  const p = px(ce0, cw0, zc)
+  const dx = p.x - OX
+  const dy = p.y - CY
+  const rw = PROYEKSI_DATAR ? dx / (HW * 2) : (dy / HH - dx / HW) / 2
+  const re = PROYEKSI_DATAR ? dy / (HH * 2) : (dy / HH + dx / HW) / 2
+  CAM.CE = ce0 + (re * c + rw * s)
+  CAM.CW = cw0 + (-re * s + rw * c)
 }
 
 /** Dinding mana yang harus disembunyikan (muka dalamnya membelakangi kamera) */
@@ -254,7 +277,11 @@ export function yawBersih(): boolean {
 }
 
 function kosYaw() {
-  const a = (YAW * Math.PI) / 180
+  // Proyeksi datar hanya masuk akal pada kelipatan 90°: sudut lain membuat
+  // nat lantai jadi bertangga. Jadi di mode datar sudutnya DIBULATKAN ke
+  // 90° terdekat (orbit tetap berfungsi, dalam 4 arah).
+  const deg = PROYEKSI_DATAR ? Math.round(YAW / 90) * 90 : YAW
+  const a = (deg * Math.PI) / 180
   return { c: Math.cos(a), s: Math.sin(a) }
 }
 
@@ -265,6 +292,11 @@ function kosYaw() {
  */
 export function arahKamera(): { e: number; w: number; z: number } {
   const { c, s } = kosYaw()
+  if (PROYEKSI_DATAR) {
+    // Kamera tepat di depan (+e) dan sedikit di atas. Komponen w = 0 supaya
+    // sisi samping balok TIDAK digambar (di proyeksi datar lebarnya nol).
+    return { e: Math.round(c), w: Math.round(s), z: 1 }
+  }
   return { e: c + s, w: c - s, z: 1 }
 }
 
@@ -277,6 +309,12 @@ export function putarRelatif(de: number, dw: number): { e: number; w: number } {
 // Proyeksi grid (e, w, z) -> piksel internal, relatif terhadap tengah kamera
 export function px(e: number, w: number, z = 0): P {
   const r = putarRelatif(e - CAM.CE, w - CAM.CW)
+  if (PROYEKSI_DATAR) {
+    return {
+      x: OX + r.w * HW * 2,
+      y: CY + r.e * HH * 2 - z * ZH,
+    }
+  }
   return {
     x: OX + (r.e - r.w) * HW,
     y: CY + (r.e + r.w) * HH - z * ZH,
@@ -287,8 +325,8 @@ export function px(e: number, w: number, z = 0): P {
 export function unpx(sx: number, sy: number): { e: number; w: number } {
   const dx = (sx - OX) / HW
   const dy = (sy - CY) / HH
-  const re = (dy + dx) / 2
-  const rw = (dy - dx) / 2
+  const re = PROYEKSI_DATAR ? dy / 2 : (dy + dx) / 2
+  const rw = PROYEKSI_DATAR ? dx / 2 : (dy - dx) / 2
   const { c, s } = kosYaw()
   // rotasi balik (invers): pakai sudut negatif
   return { e: CAM.CE + (re * c + rw * s), w: CAM.CW + (-re * s + rw * c) }

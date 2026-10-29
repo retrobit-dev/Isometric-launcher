@@ -221,6 +221,21 @@ export const FLOOR_MATERIALS: Record<string, FloorMat> = {
     pola: 'cek',
     ubinUkuran: 2,
   },
+  // RONDE 43 (gaya interior Pokémon NDS): PAPAN KAYU GELAP yang membentang
+  // dari dinding belakang ke arah pemain, nat gelap tipis, tanpa dither.
+  // Diambil dari tangkapan layar referensi (#775b43) tetapi dibulatkan ke
+  // tangga nada kayu palet 51 warna supaya tetap di dalam palet.
+  'lantai-kayu-nds': {
+    pattern: 'papan',
+    // nada SAMA untuk semua papan (referensi: lantai nyaris rata); variasi
+    // hanya dari garis serat + nat, bukan dari papan yang belang-belang.
+    tones: ['#8a5a3a', '#8a5a3a', '#8a5a3a'],
+    grout: '#452d1e',
+    grain: '#5f3d28',
+    skirtL: '#5f3d28',
+    skirtR: '#452d1e',
+    plank: 3,
+  },
   'lantai-papan-batu': {
     pattern: 'papan',
     tones: ['#c99b6a', '#e4b98a', '#c99b6a'],
@@ -313,7 +328,7 @@ export const FLOOR_MATERIALS: Record<string, FloorMat> = {
   },
 }
 export const FLOOR_KEYS = Object.keys(FLOOR_MATERIALS)
-export const FLOOR_DEFAULT = 'lantai-ubin-nds'
+export const FLOOR_DEFAULT = 'lantai-kayu-nds'
 
 export function floorMat(name: unknown): FloorMat {
   return (typeof name === 'string' && FLOOR_MATERIALS[name]) || FLOOR_MATERIALS[FLOOR_DEFAULT]

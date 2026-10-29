@@ -417,6 +417,19 @@
    "pola": "cek",
    "ubinUkuran": 2
   },
+  "lantai-kayu-nds": {
+   "pattern": "papan",
+   "tones": [
+    "#8a5a3a",
+    "#8a5a3a",
+    "#8a5a3a"
+   ],
+   "grout": "#452d1e",
+   "grain": "#5f3d28",
+   "skirtL": "#5f3d28",
+   "skirtR": "#452d1e",
+   "plank": 3
+  },
   "lantai-papan-batu": {
    "pattern": "papan",
    "tones": [
@@ -672,6 +685,6 @@
    "trimKanan": "#ef9762"
   }
  },
- "lantaiBawaan": "lantai-ubin-nds",
+ "lantaiBawaan": "lantai-kayu-nds",
  "dindingBawaan": "dinding-nds"
 }

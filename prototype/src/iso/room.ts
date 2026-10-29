@@ -279,7 +279,9 @@ function drawFloorObjects(ctx: CanvasRenderingContext2D, objects: SceneObject[])
     // ---- BAYANGAN AMBIENT di kaki dinding (dua tepi belakang lantai) ----
     // Gambar referensi menggelapkan lantai dekat dinding. Gradien halus ini
     // yang membuat lantai terasa "masuk" ke dalam ruangan.
-    const AO = Math.min(1.8, (e1 - e0) * 0.22, (w1 - w0) * 0.22)
+    // RONDE 43: bayangan kaki dinding dipersempit (1 tile) — di proyeksi datar
+    // pita lebar terbaca sebagai lantai yang berganti warna, bukan bayangan.
+    const AO = Math.min(1.0, (e1 - e0) * 0.22, (w1 - w0) * 0.22)
     if (AO > 0.15) {
       // RONDE 38: bayangan di kaki dinding = DITHER pola Bayer 4x4 (dulu rgba
       // semi-transparan = warna di luar palet). Tiga langkah, makin rapat ke

@@ -182,7 +182,12 @@ export function drawBox(ctx: CanvasRenderingContext2D, o: SceneObject) {
   }))
   wajah.push({ idx: [4, 5, 6, 7], ne: 0, nw: 0, nz: 1 })
 
-  const tampak = wajah.filter(f => f.ne * kam.e + f.nw * kam.w + f.nz * kam.z > 0.001)
+  // Proyeksi datar: sisi samping (normal sejajar sumbu w) lebarnya NOL di
+  // layar, jadi harus dibuang — kalau tidak, garis tepinya jadi garis nyasar.
+  const tampak = wajah.filter(f => {
+    if (!(f.ne * kam.e + f.nw * kam.w + f.nz * kam.z > 0.001)) return false
+    return luasPoli(f.idx.map(i => V(i))) >= 2
+  })
   const kedalaman = (idx: number[]) => idx.reduce((t, i) => t + V(i).y, 0) / idx.length
   tampak.sort((a, b) => kedalaman(a.idx) - kedalaman(b.idx))
 
@@ -646,10 +651,13 @@ export function bboxOf(o: SceneObject): Box {
   return { x0: Math.min(...xs), y0: Math.min(...ys), x1: Math.max(...xs), y1: Math.max(...ys) }
 }
 
-// Kedalaman gambar: yang lebih dekat ke kamera (S) digambar terakhir
+// Kedalaman gambar: yang lebih dekat ke kamera digambar terakhir.
+// RONDE 43: dipakai KOORDINAT LAYAR (bukan e+w isometrik) supaya urutan tetap
+// benar di proyeksi datar maupun isometrik: makin besar y layar = makin dekat.
 export function depthOf(o: SceneObject): number {
   const { se, sw } = sebaranFootprint(o)
-  return o.pos.e + se / 2 + o.pos.w + sw / 2
+  const p = px(o.pos.e + se / 2, o.pos.w + sw / 2, 0)
+  return p.y + p.x * 0.001
 }
 
 /**

@@ -223,7 +223,8 @@ export default function App() {
     }
     saveDraftGuarded(stamped)
     setSimpan(storageWorks() ? 'browser' : 'file')
-    const t = setTimeout(() => { void saveSceneFile(stamped) }, 600)
+    // scene kosong = hasil hapus-semuanya yang disengaja -> izinkan ditulis
+    const t = setTimeout(() => { void saveSceneFile(stamped, stamped.objects.length === 0) }, 600)
     return () => clearTimeout(t)
   }, [scene, dimuat])
 
@@ -271,7 +272,11 @@ export default function App() {
       // cap waktunya. Penanda dibuang setelah dimuat (autosave berikutnya
       // menulis scene baru tanpa penanda), jadi hanya berlaku sekali.
       const paksaMuat = dariFile?.meta?.paksaMuat === true
-      if (dariFile && dariFile.objects.length > 0 && (paksaMuat || fileLebihBaru)) {
+      // RONDE 43: file yang ditandai `paksaMuat` boleh membawa scene KOSONG
+      // (mulai dari nol). Tanpa penanda, scene kosong tetap diabaikan supaya
+      // draf kosong tidak menghapus isi ruangan.
+      const bolehKosong = paksaMuat === true
+      if (dariFile && (bolehKosong || (dariFile.objects.length > 0 && fileLebihBaru))) {
         setUndo({ scene: lokal, label: 'scene sebelum dimuat dari file' })
         setLocked(false)
         const sc = gabungLatar(dariFile, lokal)

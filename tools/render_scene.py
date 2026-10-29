@@ -42,10 +42,15 @@ PIKSEL = 2
 DENS = 1.775 / PIKSEL
 IW, IH = round(640 * DENS), round(400 * DENS)
 HW = 16 * DENS
-HH = HW / 2
+# RONDE 43 — cermin PROYEKSI_DATAR di space.ts: lantai kisi persegi.
+PROYEKSI_DATAR = True
+RASIO_DATAR = 0.72
+HH = HW * RASIO_DATAR if PROYEKSI_DATAR else HW / 2
 ZH = HW
 CE, CW = 10.0, 10.0
 YAW = float(os.environ.get('YAW', '0'))      # orbit kamera, kelipatan 15
+if PROYEKSI_DATAR:                            # mode datar: hanya 4 arah
+    YAW = round(YAW / 90) * 90
 _Y = math.radians(YAW)
 _KOS = (math.cos(_Y), math.sin(_Y))
 TAU = math.pi * 2
@@ -60,6 +65,8 @@ scene = json.load(open('/tmp/ruang.json'))['scene']
 def arah_kamera():
     """vektor arah kamera di ruang dunia (sama dengan arahKamera() di space.ts)"""
     c, sn = _KOS
+    if PROYEKSI_DATAR:
+        return (round(c), round(sn), 1.0)
     return (c + sn, c - sn, 1.0)
 
 
@@ -70,6 +77,8 @@ def putar_relatif(de, dw):
 
 def px(e, w, z=0.0):
     re, rw = putar_relatif(e - CE, w - CW)
+    if PROYEKSI_DATAR:
+        return (IW / 2 + rw * HW * 2, IH / 2 + re * HH * 2 - z * ZH)
     return (IW / 2 + (re - rw) * HW, IH / 2 + (re + rw) * HH - z * ZH)
 
 
@@ -85,23 +94,27 @@ def fit_scene(objs, margin=0.95):
     zmax = max(o['pos']['z'] + o['size']['z'] for o in objs)
     ce0, cw0 = (e0 + e1) / 2, (w0 + w1) / 2
     c, sn = _KOS
-    xmin = ymin = 1e9
-    xmax = ymax = -1e9
-    for ex in (e0 - ce0, e1 - ce0):
-        for wx in (w0 - cw0, w1 - cw0):
+    # ukur pada zoom x1 dengan kamera di pusat bbox
+    HW, ZH = 16 * DENS, 16 * DENS
+    HH = HW * RASIO_DATAR if PROYEKSI_DATAR else HW / 2
+    CE, CW = ce0, cw0
+    xs, ys = [], []
+    for ex in (e0, e1):
+        for wx in (w0, w1):
             for zz in (0.0, zmax):
-                re = ex * c - wx * sn
-                rw = ex * sn + wx * c
-                x = re - rw
-                y = (re + rw) / 2 - zz
-                xmin, xmax = min(xmin, x), max(xmax, x)
-                ymin, ymax = min(ymin, y), max(ymax, y)
-    hw = min((IW * margin) / max(1e-3, xmax - xmin), (IH * margin) / max(1e-3, ymax - ymin))
-    HW, HH, ZH = hw, hw / 2, hw
-    dx = ((xmin + xmax) / 2) * hw
-    dy = ((ymin + ymax) / 2) * hw
-    d_re = (dx / hw + dy / (hw / 2)) / 2
-    d_rw = (dy / (hw / 2) - dx / hw) / 2
+                p = px(ex, wx, zz)
+                xs.append(p[0]); ys.append(p[1])
+    # q = pengali zoom (cermin applyZoom(q): HW = HW_BASE * q), bukan HW itu sendiri
+    q = min((IW * margin) / max(1e-3, max(xs) - min(xs)),
+            (IH * margin) / max(1e-3, max(ys) - min(ys)))
+    HW, ZH = 16 * DENS * q, 16 * DENS * q
+    HH = HW * RASIO_DATAR if PROYEKSI_DATAR else HW / 2
+    p = px(ce0, cw0, zmax / 2)
+    dx, dy = p[0] - IW / 2, p[1] - IH / 2
+    if PROYEKSI_DATAR:
+        d_rw, d_re = dx / (HW * 2), dy / (HH * 2)
+    else:
+        d_rw, d_re = (dy / HH - dx / HW) / 2, (dy / HH + dx / HW) / 2
     CE = ce0 + (d_re * c + d_rw * sn)
     CW = cw0 + (-d_re * sn + d_rw * c)
 
@@ -1039,7 +1052,7 @@ def draw_floor(o):
             ww += U
 
     # BAYANGAN di kaki dinding = DITHER Bayer 4x4 (cermin room.ts).
-    leb = min(1.8, (e1 - e0) * 0.22, (w1 - w0) * 0.22)
+    leb = min(1.0, (e1 - e0) * 0.22, (w1 - w0) * 0.22)   # ronde 43: 1 tile
     if leb > 0.15:
         # RONDE 41 (cermin room.ts): dua pita bayangan WARNA KERAS, tanpa dither.
         gelap1 = gelap(tones[0], 1)
