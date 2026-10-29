@@ -71,6 +71,8 @@ interface Props {
   /** jumlah anggota yang terkunci (tidak ikut bergeser) */
   terkunci: number
   onSet: (sumbu: 'e' | 'w' | 'z', nilai: number) => void
+  /** putar seluruh isi folder 30° (arah −1 = kiri, +1 = kanan) */
+  onPutar: (arah: 1 | -1) => void
   onClose: () => void
 }
 
@@ -97,6 +99,23 @@ export default function PosisiFolder(p: Props) {
         <Kolom label="e" nilai={p.nilai.e} onSet={v => p.onSet('e', v)} />
         <Kolom label="w" nilai={p.nilai.w} onSet={v => p.onSet('w', v)} />
         <Kolom label="z" nilai={p.nilai.z} onSet={v => p.onSet('z', v)} />
+        <div className="row">
+          <span className="rl">rotasi</span>
+          <button
+            className="sbtn wide"
+            onClick={() => p.onPutar(-1)}
+            title="putar SELURUH isi folder 30° ke kiri mengelilingi poros tengah folder"
+          >
+            ⟲ 30°
+          </button>
+          <button
+            className="sbtn wide"
+            onClick={() => p.onPutar(1)}
+            title="putar SELURUH isi folder 30° ke kanan mengelilingi poros tengah folder"
+          >
+            30° ⟳
+          </button>
+        </div>
         <div className="phint">
           ukuran folder: {p.ukuran.e.toFixed(2)} × {p.ukuran.w.toFixed(2)} ×{' '}
           {p.ukuran.z.toFixed(2)} (e × w × z)

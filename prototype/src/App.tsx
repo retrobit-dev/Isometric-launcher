@@ -13,7 +13,7 @@ import { LATAR_TAG, gabungLatar, geserTumpukan, hapusLatarImage, latarImageUrl, 
 import { type JenisAnim, type Scene, type SceneObject } from './scene/types'
 import EditPanel from './ui/EditPanel'
 import ObjectList from './ui/ObjectList'
-import { bboxFolder, pindahFolder, type Sumbu } from './scene/folder'
+import { bboxFolder, pindahFolder, putarFolder, type Sumbu } from './scene/folder'
 import PosisiFolder from './ui/PosisiFolder'
 import Confirm, { type ConfirmReq } from './ui/Confirm'
 
@@ -598,6 +598,12 @@ export default function App() {
     setPanelDirty(true)
   }
 
+  // PUTAR FOLDER: seluruh isi folder berputar 30° mengelilingi poros tengahnya.
+  const putarGrup = (gid: string, arah: 1 | -1) => {
+    setScene(sc => ({ ...sc, objects: putarFolder(sc.objects, gid, arah) }))
+    setPanelDirty(true)
+  }
+
   // HAPUS FOLDER: semua anggota grup (dan sub-folder) dihapus setelah konfirmasi
   const hapusFolder = (gid: string) => {
     const nama = sceneRef.current.objects.find(o => o.grup === gid)?.grupNama ?? 'folder'
@@ -1153,6 +1159,7 @@ export default function App() {
             ukuran={info.ukuran}
             terkunci={info.terkunci}
             onSet={(sumbu, v) => posisiFolder(geserGrup.gid, sumbu, v)}
+            onPutar={arah => putarGrup(geserGrup.gid, arah)}
             onClose={() => setGeserGrup(null)}
           />
         )

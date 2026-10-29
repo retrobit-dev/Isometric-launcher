@@ -1,4 +1,4 @@
-import type { SceneObject } from './types'
+import { ROTASI_LANGKAH, normalRotasi, type SceneObject } from './types'
 
 /**
  * OPERASI FOLDER (grup) — dipisah dari App.tsx supaya bisa diuji tanpa React.
@@ -94,6 +94,51 @@ export function pindahFolder(
     const baru = bulat(o.pos[sumbu] + delta)
     if (sumbu === 'z' && baru < 0) return o
     return { ...o, pos: { ...o.pos, [sumbu]: baru } }
+  })
+}
+
+/**
+ * PUTAR FOLDER — kelipatan 30° (permintaan user 2026-10-29, setelah memilih
+ * "rotasi folder" dengan "langkah 30°").
+ *
+ * Seluruh anggota diputar mengelilingi POROS TENGAH folder (titik tengah kotak
+ * pembatas): posisi tiap objek mengorbit poros itu, dan `rotasi` tiap objek
+ * sendiri ikut ditambah 30° supaya bentuknya tetap sejajar dengan folder.
+ * Objek terkunci dan latar tidak ikut. Ketinggian (z) tidak berubah.
+ */
+export function putarFolder(
+  objects: SceneObject[],
+  gid: string,
+  arah: 1 | -1 = 1,
+): SceneObject[] {
+  const bb = bboxFolder(objects, gid)
+  if (bb.ukuran.e === 0 && bb.ukuran.w === 0) return objects
+  const pe = bulat(bb.nilai.e + bb.ukuran.e / 2)
+  const pw = bulat(bb.nilai.w + bb.ukuran.w / 2)
+  const th = (arah * ROTASI_LANGKAH * Math.PI) / 180
+  const co = Math.cos(th)
+  const si = Math.sin(th)
+  const ids = new Set(
+    anggotaFolder(objects, gid).filter(o => !o.kunci).map(o => o.id),
+  )
+  if (ids.size === 0) return objects
+  return objects.map(o => {
+    if (!ids.has(o.id)) return o
+    const ce = o.pos.e + o.size.e / 2
+    const cw = o.pos.w + o.size.w / 2
+    const de = ce - pe
+    const dw = cw - pw
+    const ne = pe + de * co - dw * si
+    const nw = pw + de * si + dw * co
+    return {
+      ...o,
+      pos: {
+        ...o.pos,
+        e: bulat(ne - o.size.e / 2),
+        w: bulat(nw - o.size.w / 2),
+      },
+      rotasi: normalRotasi((o.rotasi ?? 0) + arah * ROTASI_LANGKAH),
+    }
   })
 }
 

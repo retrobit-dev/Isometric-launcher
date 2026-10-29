@@ -76,7 +76,38 @@ try {
   cek('bagian yang akan < 0 tetap di tempatnya', zOf(bawah, 'w1') === 2.5, String(zOf(bawah, 'w1')))
   cek('tidak ada nilai z negatif', bawah.every(x => x.pos.z >= 0))
 
-  console.log('6. aman untuk nilai aneh')
+  console.log('6. putar folder 30 derajat')
+  // dua objek berjarak 2 satuan pada sumbu e, poros di tengah kotak pembatas
+  const p0 = [
+    o('a', { e: -1, w: -0.5, z: 1 }, { e: 2, w: 1, z: 1 }, { grup: 'g-p' }),
+    o('b', { e: 1, w: -0.5, z: 1 }, { e: 2, w: 1, z: 1 }, { grup: 'g-p' }),
+    o('k', { e: 5, w: 0, z: 0 }, { e: 1, w: 1, z: 1 }, { grup: 'g-p', kunci: 'semua' }),
+  ]
+  const p1 = F.putarFolder(p0, 'g-p', 1)
+  const pA = p1.find(x => x.id === 'a')
+  const pB = p1.find(x => x.id === 'b')
+  cek('rotasi tiap anggota +30', pA.rotasi === 30 && pB.rotasi === 30, `${pA.rotasi},${pB.rotasi}`)
+  // jarak antar pusat harus tetap sama walau diputar
+  const jarak = (x, y) => Math.hypot(
+    (x.pos.e + x.size.e / 2) - (y.pos.e + y.size.e / 2),
+    (x.pos.w + x.size.w / 2) - (y.pos.w + y.size.w / 2),
+  )
+  cek('jarak antar objek tetap', Math.abs(jarak(pA, pB) - jarak(p0[0], p0[1])) < 0.002,
+    `${jarak(pA, pB).toFixed(3)} vs ${jarak(p0[0], p0[1]).toFixed(3)}`)
+  cek('objek terkunci tidak berputar/bergeser',
+    p1.find(x => x.id === 'k').pos.e === 5 && p1.find(x => x.id === 'k').rotasi === undefined)
+  cek('z tidak berubah', pA.pos.z === 1)
+  // 12 langkah = kembali ke posisi awal (toleransi pembulatan 0,001)
+  let p2 = p0
+  for (let i = 0; i < 12; i++) p2 = F.putarFolder(p2, 'g-p', 1)
+  const p2a = p2.find(x => x.id === 'a')
+  cek('12 x 30 derajat kembali ke awal',
+    Math.abs(p2a.pos.e - (-1)) < 0.002 && Math.abs(p2a.pos.w - (-0.5)) < 0.002,
+    `${p2a.pos.e},${p2a.pos.w}`)
+  cek('rotasi kembali 0 setelah 12 langkah', p2a.rotasi === undefined || p2a.rotasi === 0,
+    String(p2a.rotasi))
+
+  console.log('7. aman untuk nilai aneh')
   cek('delta 0 -> objek tidak berubah', F.pindahFolder(objects, 'g-j', 'z', 2.5) === objects)
   cek('folder tak dikenal -> tidak berubah', F.pindahFolder(objects, 'tidak-ada', 'z', 9) === objects)
 } catch (e) {
