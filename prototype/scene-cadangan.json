@@ -1,5 +1,5 @@
 {
- "savedAt": "2026-10-29T08:44:39.380Z",
+ "savedAt": "2026-10-29T08:45:18.797Z",
  "scene": {
   "version": 1,
   "room": {
@@ -402,6 +402,10 @@
      "z": 1.1
     },
     "style": "krem-hangat",
+    "app": null,
+    "layer": "main",
+    "grup": "grup-tanaman-pot",
+    "grupNama": "TANAMAN POT",
     "bentuk": "profil",
     "profil": [
      [
@@ -446,10 +450,6 @@
      ]
     ],
     "preset": "tanaman-pot",
-    "app": null,
-    "layer": "main",
-    "grup": "grup-tanaman-pot",
-    "grupNama": "TANAMAN POT",
     "urutan": 15
    },
    {
@@ -466,11 +466,11 @@
      "z": 0.18
     },
     "style": "krem-hangat",
-    "preset": "tanaman-pot",
     "app": null,
     "layer": "main",
     "grup": "grup-tanaman-pot",
     "grupNama": "TANAMAN POT",
+    "preset": "tanaman-pot",
     "urutan": 16
    },
    {
@@ -487,11 +487,11 @@
      "z": 0.12
     },
     "style": "walnut",
-    "preset": "tanaman-pot",
     "app": null,
     "layer": "main",
     "grup": "grup-tanaman-pot",
     "grupNama": "TANAMAN POT",
+    "preset": "tanaman-pot",
     "urutan": 17
    },
    {
@@ -508,11 +508,11 @@
      "z": 1.2
     },
     "style": "kayu-tua",
-    "preset": "tanaman-pot",
     "app": null,
     "layer": "main",
     "grup": "grup-tanaman-pot",
     "grupNama": "TANAMAN POT",
+    "preset": "tanaman-pot",
     "urutan": 18
    },
    {
@@ -529,19 +529,19 @@
      "z": 0.6
     },
     "style": "daun-gelap",
-    "bentuk": "daun",
-    "miring": 130,
+    "app": null,
     "anim": {
      "jenis": "ayun",
      "laju": 0.18,
      "besar": 0.8,
      "fase": 0.55
     },
-    "preset": "tanaman-pot",
-    "app": null,
     "layer": "main",
     "grup": "grup-tanaman-pot",
     "grupNama": "TANAMAN POT",
+    "bentuk": "daun",
+    "miring": 130,
+    "preset": "tanaman-pot",
     "urutan": 19
    },
    {
@@ -558,19 +558,19 @@
      "z": 0.55
     },
     "style": "daun-sage",
-    "bentuk": "daun",
-    "miring": 145,
+    "app": null,
     "anim": {
      "jenis": "ayun",
      "laju": 0.18,
      "besar": 0.8,
      "fase": 0.7
     },
-    "preset": "tanaman-pot",
-    "app": null,
     "layer": "main",
     "grup": "grup-tanaman-pot",
     "grupNama": "TANAMAN POT",
+    "bentuk": "daun",
+    "miring": 145,
+    "preset": "tanaman-pot",
     "urutan": 20
    },
    {
@@ -587,19 +587,19 @@
      "z": 0.66
     },
     "style": "daun-gelap",
-    "bentuk": "daun",
-    "miring": 108,
+    "app": null,
     "anim": {
      "jenis": "ayun",
      "laju": 0.18,
      "besar": 0.8,
      "fase": 0.85
     },
-    "preset": "tanaman-pot",
-    "app": null,
     "layer": "main",
     "grup": "grup-tanaman-pot",
     "grupNama": "TANAMAN POT",
+    "bentuk": "daun",
+    "miring": 108,
+    "preset": "tanaman-pot",
     "urutan": 21
    },
    {
@@ -616,19 +616,19 @@
      "z": 0.7
     },
     "style": "daun-sage",
-    "bentuk": "daun",
-    "miring": 92,
+    "app": null,
     "anim": {
      "jenis": "ayun",
      "laju": 0.18,
      "besar": 0.8,
      "fase": 0
     },
-    "preset": "tanaman-pot",
-    "app": null,
     "layer": "main",
     "grup": "grup-tanaman-pot",
     "grupNama": "TANAMAN POT",
+    "bentuk": "daun",
+    "miring": 92,
+    "preset": "tanaman-pot",
     "urutan": 22
    },
    {
@@ -645,19 +645,19 @@
      "z": 0.58
     },
     "style": "daun-gelap",
-    "bentuk": "daun",
-    "miring": 118,
+    "app": null,
     "anim": {
      "jenis": "ayun",
      "laju": 0.18,
      "besar": 0.8,
      "fase": 0.3
     },
-    "preset": "tanaman-pot",
-    "app": null,
     "layer": "main",
     "grup": "grup-tanaman-pot",
     "grupNama": "TANAMAN POT",
+    "bentuk": "daun",
+    "miring": 118,
+    "preset": "tanaman-pot",
     "urutan": 23
    },
    {
@@ -674,19 +674,19 @@
      "z": 0.62
     },
     "style": "daun-sage",
-    "bentuk": "daun",
-    "miring": 72,
+    "app": null,
     "anim": {
      "jenis": "ayun",
      "laju": 0.18,
      "besar": 0.8,
      "fase": 0.15
     },
-    "preset": "tanaman-pot",
-    "app": null,
     "layer": "main",
     "grup": "grup-tanaman-pot",
     "grupNama": "TANAMAN POT",
+    "bentuk": "daun",
+    "miring": 72,
+    "preset": "tanaman-pot",
     "urutan": 24
    },
    {
@@ -703,19 +703,19 @@
      "z": 0.54
     },
     "style": "daun-gelap",
-    "bentuk": "daun",
-    "miring": 48,
+    "app": null,
     "anim": {
      "jenis": "ayun",
      "laju": 0.18,
      "besar": 0.8,
      "fase": 0.42
     },
-    "preset": "tanaman-pot",
-    "app": null,
     "layer": "main",
     "grup": "grup-tanaman-pot",
     "grupNama": "TANAMAN POT",
+    "bentuk": "daun",
+    "miring": 48,
+    "preset": "tanaman-pot",
     "urutan": 25
    },
    {
@@ -732,19 +732,19 @@
      "z": 0.5
     },
     "style": "daun-sage",
-    "bentuk": "daun",
-    "miring": 30,
+    "app": null,
     "anim": {
      "jenis": "ayun",
      "laju": 0.18,
      "besar": 0.8,
      "fase": 0.62
     },
-    "preset": "tanaman-pot",
-    "app": null,
     "layer": "main",
     "grup": "grup-tanaman-pot",
     "grupNama": "TANAMAN POT",
+    "bentuk": "daun",
+    "miring": 30,
+    "preset": "tanaman-pot",
     "urutan": 26
    },
    {
@@ -761,19 +761,19 @@
      "z": 0.48
     },
     "style": "daun-gelap",
-    "bentuk": "daun",
-    "miring": 60,
+    "app": null,
     "anim": {
      "jenis": "ayun",
      "laju": 0.18,
      "besar": 0.8,
      "fase": 0.78
     },
-    "preset": "tanaman-pot",
-    "app": null,
     "layer": "main",
     "grup": "grup-tanaman-pot",
     "grupNama": "TANAMAN POT",
+    "bentuk": "daun",
+    "miring": 60,
+    "preset": "tanaman-pot",
     "urutan": 27
    }
   ],
@@ -781,7 +781,7 @@
    "locked": false,
    "savedAt": "2026-10-29T07:13:13.254Z",
    "latarMigrasi": "latar-v1",
-   "updatedAt": "2026-10-29T08:44:39.379Z"
+   "updatedAt": "2026-10-29T08:45:18.124Z"
   }
  }
 }
