@@ -110,3 +110,14 @@ Belum (butuh iterasi bentuk per objek): meja guru masih terbaca sebagai
 "konter L", kursi putar kecil dan tertutup meja, tirai jendela terlalu tipis,
 warna punggung buku masih terlalu biru, dan ruangan masih terasa lengang
 dibanding referensi yang padat perabot.
+
+
+---
+
+## Ronde 41 — tema aktif: interior POKÉMON NDS
+
+Tema "diorama hangat" dan "Tudor" digantikan arahan user 2026-10-29: *"saya
+hanya ingin style, warna, dan tema seperti gambar referensi atau buat saja
+seperti game Pokémon NDS"*. Yang dipakai sekarang: plester krem rata, wainscot
+kayu, lantai papan, batas nada keras, outline 2 px, kanvas 568×355.
+Lihat `docs/08` §4.

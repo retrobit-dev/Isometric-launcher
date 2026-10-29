@@ -1,5 +1,5 @@
 {
-  "savedAt": "2026-10-29T10:55:48.119Z",
+  "savedAt": "2026-10-29T11:02:09.136Z",
   "scene": {
     "version": 1,
     "room": {
@@ -44,7 +44,7 @@
           "w": 20,
           "z": 25
         },
-        "style": "dinding-tudor",
+        "style": "dinding-nds",
         "app": null,
         "role": "dinding",
         "side": "kiri",
@@ -65,7 +65,7 @@
           "w": 0.2,
           "z": 25
         },
-        "style": "dinding-tudor",
+        "style": "dinding-nds",
         "app": null,
         "role": "dinding",
         "side": "kanan",
@@ -1713,7 +1713,7 @@
       "locked": true,
       "savedAt": "2026-10-29T09:19:22.575Z",
       "latarMigrasi": "latar-v1",
-      "updatedAt": "2026-10-29T10:55:48.119Z"
+      "updatedAt": "2026-10-29T11:02:09.136Z"
     }
   }
 }

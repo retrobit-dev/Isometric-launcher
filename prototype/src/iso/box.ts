@@ -190,16 +190,9 @@ export function drawBox(ctx: CanvasRenderingContext2D, o: SceneObject) {
     poly(ctx, f.idx.map(i => V(i)), warnaWajah(c, f.ne, f.nw, f.nz), g)
   }
 
-  // TEKSTUR BINTIK (ronde 40 — "rasa retronya masih kurang").
-  // Bidang yang cukup luas diberi bintik dither 14% warna nada lebih gelap.
-  // Dulu permukaan besar dicat rata -> terasa seperti 3D modern; pola bintik
-  // inilah yang membuatnya terbaca sebagai pixel-art 2.5D.
-  for (const f of tampak) {
-    const pts = f.idx.map(i => V(i))
-    if (luasPoli(pts) < 900) continue
-    const dasar = warnaWajah(c, f.ne, f.nw, f.nz)
-    poly(ctx, pts, polaDither(ctx, dasar, gelapkan(dasar, 0.16), 0.14), false)
-  }
+  // RONDE 41: bintik dither dihapus. Gaya interior Pokémon NDS memakai warna
+  // RATA + batas nada keras, bukan tekstur bintik (bintik justru terasa berisik).
+  void luasPoli
 
   // PITA NADA: 26% kaki tiap sisi tegak digelapkan (menghilangkan kesan
   // "kotak dicat rata"). Ini SHADING, bukan outline -> tetap digambar walau
@@ -210,14 +203,15 @@ export function drawBox(ctx: CanvasRenderingContext2D, o: SceneObject) {
       const atas = warnaWajah(c, f.ne, f.nw, f.nz)
       const bawah = gelapkan(atas, 0.28)
       poly(ctx, f.idx.map(i => V(i, 0.26)), bawah, false)
-      // RONDE 38: batas pita nada ber-DITHER (pola Bayer 4x4) supaya peralihan
-      // terang -> teduh di kaki objek tidak berupa garis lurus.
-      const tipis = Math.min(0.16, 0.42 / Math.max(0.25, sz))
-      const pita = [
-        V(f.idx[0], 0.26), V(f.idx[1], 0.26),
-        V(f.idx[1], 0.26 + tipis), V(f.idx[0], 0.26 + tipis),
-      ]
-      poly(ctx, pita, polaDither(ctx, atas, bawah, 0.5), false)
+      // RONDE 41: batas pita nada = GARIS KERAS (gaya NDS), bukan dither.
+      const qa = V(f.idx[0], 0.26)
+      const qb = V(f.idx[1], 0.26)
+      ctx.strokeStyle = gelapkan(atas, 0.28)
+      ctx.lineWidth = TEBAL_TEPI
+      ctx.beginPath()
+      ctx.moveTo(Math.round(qa.x), Math.round(qa.y))
+      ctx.lineTo(Math.round(qb.x), Math.round(qb.y))
+      ctx.stroke()
     }
 
     // RIM TERANG di rusuk bidang atas yang menjauhi kamera (garis -> hanya

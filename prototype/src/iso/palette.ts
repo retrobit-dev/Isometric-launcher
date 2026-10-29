@@ -338,7 +338,10 @@ export const WALL_MATERIALS: Record<string, WallMat> = {
   // ---- RONDE 39: DINDING TUDOR (permintaan user) ----
   // Plester krem (#f7f2cd kena cahaya, #dadab8 teduh) + rangka balok kayu
   // gelap (#5f3d28 / #452d1e) yang digambar `walls()` & `drawWallObjects()`.
-  'dinding-tudor': { kiri: '#f1e1bb', kanan: '#f7f2cd', trimKiri: '#5f3d28', trimKanan: '#8a5a3a' },
+  // RONDE 41 — gaya interior Pokémon NDS (plester rata + wainscot kayu).
+  'dinding-nds': { kiri: '#f1e1bb', kanan: '#f7f2cd', trimKiri: '#8a5a3a', trimKanan: '#a8764f' },
+  // nama lama dipertahankan agar scene/data lama tetap terbaca (gambar sama)
+  'dinding-tudor': { kiri: '#f1e1bb', kanan: '#f7f2cd', trimKiri: '#8a5a3a', trimKanan: '#a8764f' },
   // tema lama
   'dinding-hangat': { kiri: '#f1e1bb', kanan: '#f7f2cd', trimKiri: PAL.trimB, trimKanan: PAL.trimT },
   'dinding-bata': { kiri: '#c95b3f', kanan: '#ee734c', trimKiri: '#833422', trimKanan: '#a8412b' },
@@ -356,7 +359,7 @@ export const WALL_MATERIALS: Record<string, WallMat> = {
   'dinding-pastel-kuning': { kiri: '#f0ce92', kanan: '#fdd792', trimKiri: '#d8894a', trimKanan: '#ef9762' },
 }
 export const WALL_KEYS = Object.keys(WALL_MATERIALS)
-export const WALL_DEFAULT = 'dinding-tudor'
+export const WALL_DEFAULT = 'dinding-nds'
 
 /**
  * RONDE 39: apakah dinding ini memakai gaya TUDOR (plester krem + rangka balok

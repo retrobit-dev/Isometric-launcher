@@ -277,15 +277,17 @@ function drawFloorObjects(ctx: CanvasRenderingContext2D, objects: SceneObject[])
       // RONDE 38: bayangan di kaki dinding = DITHER pola Bayer 4x4 (dulu rgba
       // semi-transparan = warna di luar palet). Tiga langkah, makin rapat ke
       // dinding. Warna bayangan diambil dari nat lantai material itu.
-      const pita: [number, number][] = [
-        [AO * 0.33, 0.60], [AO * 0.66, 0.34], [AO, 0.14],
-      ]
-      for (const [leb, kuat] of pita) {
-        const dalam = Math.max(0, leb - AO * 0.33)
-        const pola = polaBayang(ctx, mat.grout, kuat)
-        poly(ctx, [px(e0, w0, z), px(e0, w1, z), px(e0 + dalam, w1, z), px(e0 + dalam, w0, z)], pola)
-        poly(ctx, [px(e0, w0, z), px(e1, w0, z), px(e1, w0 + dalam, z), px(e0, w0 + dalam, z)], pola)
-      }
+      // RONDE 41 (gaya NDS): bayangan kaki dinding = DUA PITA WARNA KERAS,
+      // bukan bintik dither. Warna diambil dari tangga nada lantai itu sendiri
+      // (2 langkah & 1 langkah lebih gelap), jadi tetap di dalam palet.
+      const gelap2 = gelap(mat.tones[0], 2)
+      const gelap1 = gelap(mat.tones[0], 1)
+      const dalam2 = AO * 0.34
+      const dalam1 = AO
+      poly(ctx, [px(e0, w0, z), px(e0, w1, z), px(e0 + dalam1, w1, z), px(e0 + dalam1, w0, z)], gelap1)
+      poly(ctx, [px(e0, w0, z), px(e1, w0, z), px(e1, w0 + dalam1, z), px(e0, w0 + dalam1, z)], gelap1)
+      poly(ctx, [px(e0, w0, z), px(e0, w1, z), px(e0 + dalam2, w1, z), px(e0 + dalam2, w0, z)], gelap2)
+      poly(ctx, [px(e0, w0, z), px(e1, w0, z), px(e1, w0 + dalam2, z), px(e0, w0 + dalam2, z)], gelap2)
     }
 
     // ---- TEPI SLAB = DECK PAPAN (ciri paling khas diorama referensi) ----
@@ -367,80 +369,48 @@ export function drawWallObjects(ctx: CanvasRenderingContext2D, objects: SceneObj
     ) =>
       poly(ctx, [at(t0, zA), at(t1, zA), at(t1, zB), at(t0, zB)], warna)
 
-    // 1) MUKA DINDING — pita nada (bukan gradien halus): terang di atas,
-    //    makin teduh ke bawah. Pita keras = ciri pixel-art referensi, dan
-    //    hasilnya sama di renderer mana pun (mudah ditiru renderer offline).
+    // =====================================================================
+    // GAYA INTERIOR "POKÉMON NDS" (ronde 41)
+    // ---------------------------------------------------------------------
+    // Permintaan user: "saya hanya ingin style, warna, dan tema seperti
+    // gambar referensi atau buat saja seperti game pokemon nds".
+    // Ciri yang ditiru dari interior Pokémon Generasi 4/5 (NDS):
+    //   • warna RATA dan cerah, tanpa bintik/dither di bidang dinding;
+    //   • dua nada saja per bidang, batasnya GARIS KERAS 1 px;
+    //   • wainscot (panel kayu) di bawah + lis kayu terang di atasnya;
+    //   • bayangan hanya satu pita gelap tipis di kaki dinding.
+    // =====================================================================
     kotak(0, 1, Z, 0, face)
-    // TEKSTUR PLESTER (ronde 40): bintik dither 12% menutup seluruh bidang.
-    // Tanpa ini bidang krem seluas 25 z terlihat seperti cat digital rata.
-    kotak(0, 1, Z, 0, polaBayang(ctx, face, 0.12))
-    // batas pita nada dibuat BER-DITHER (ronde 38) supaya peralihan terang ->
-    // teduh tidak berupa garis lurus yang keras: ciri pixel-art 16-bit.
-    const nadaB = gelap(face, 1)
-    const nadaC = gelap(face, 2)
-    const tipis = Math.max(0.05, Z * 0.035)
-    kotak(0, 1, Z * 0.11 + tipis, Z * 0.11 - tipis, polaDither(ctx, face, nadaB, 0.5))
-    kotak(0, 1, Z * 0.11, 0, nadaB)
-    kotak(0, 1, Z * 0.045 + tipis * 0.7, Z * 0.045 - tipis * 0.7,
-      polaDither(ctx, nadaB, nadaC, 0.5))
-    kotak(0, 1, Z * 0.045, 0, nadaC)
 
-    // 2) PLINT (kaki dinding kayu) + garis gelap di atasnya
-    const plint = Math.min(0.26, Z * 0.5)
-    kotak(0, 1, plint, 0, trim)
-    // kaki dinding: tiga pita bayangan BER-DITHER (ronde 38) — makin rapat ke
-    // bawah. Sama dengan draw_wall() di tools/render_scene.py.
-    const teduh = gelap(face, 1)
-    for (const [z0b, z1b, kuat] of [[0, 0.22, 0.44], [0.22, 0.55, 0.26], [0.55, 1.05, 0.14]]) {
-      if (plint + z1b < Z) kotak(0, 1, plint + z1b, plint + z0b, polaBayang(ctx, teduh, kuat))
+    // tinggi wainscot (maksimal 1,7 z supaya proporsinya sama di dinding tinggi)
+    const zW = Math.min(1.7, Z * 0.34)
+    const zBatas = zW + (Z - zW) * 0.78   // batas nada plester atas/bawah
+
+    // 1) PLESTER: dua nada keras
+    kotak(0, 1, Z, zBatas, face)
+    kotak(0, 1, zBatas, zW, gelap(face, 1))
+    line(ctx, at(0, zBatas), at(1, zBatas), gelap(face, 2))
+
+    // 2) WAINSCOT KAYU: papan mendatar + sambungan tegak tiap ~0,85 tile
+    kotak(0, 1, zW, 0, trim)
+    const nPapan = Math.max(2, Math.round(panj / 0.85))
+    for (let i = 1; i < nPapan; i++) {
+      const t = i / nPapan
+      line(ctx, at(t, zW), at(t, 0), PAL.beamDark)
     }
-    kotak(0, 1, plint, plint - Math.min(0.05, plint * 0.3), PAL.beamDark)
+    // papan atas wainscot sedikit lebih terang (kesan panel ber-volume)
+    kotak(0, 1, zW, zW - Math.min(0.22, zW * 0.22), PAL.post)
 
-    // 2b) LIS DINDING (dado) — memecah bidang dinding yang kosong dan
-    //     meniru dinding berpanel pada referensi. Tinggi 1,15 z.
-    if (Z > 1.8) {
-      const zd = Math.min(1.15, Z * 0.4)
-      // bidang bawah sedikit lebih teduh (panel)
-      kotak(0, 1, zd, plint, gelapkanWarna(face, 0.90))
-      // lis kayu
-      kotak(0, 1, zd + 0.09, zd, PAL.beam)
-      kotak(0, 1, zd + 0.09, zd + 0.07, PAL.beamTop)
-      kotak(0, 1, zd, zd - 0.04, PAL.beamDark)
-    }
+    // 3) LIS KAYU di atas wainscot: pita terang + garis gelap
+    kotak(0, 1, zW + 0.16, zW, PAL.beamTop)
+    kotak(0, 1, zW + 0.16, zW + 0.11, PAL.peg)
+    line(ctx, at(0, zW), at(1, zW), PAL.beamDark)
 
-    // 2c) RANGKA BALOK TUDOR (ronde 39) — plester krem + balok kayu gelap
-    //     seperti gambar referensi: tiang tegak tiap 1/4 dinding, lis mendatar
-    //     di atas panel (dari lis dado), dan DUA PENOPANG MIRING per tiang.
-    //     Balok digambar sebelum cornice supaya ujung atasnya tertutup balok
-    //     puncak, persis seperti konstruksi aslinya.
+    // 4) KAKI DINDING: satu pita gelap tipis (tanpa dither)
+    kotak(0, 1, Math.min(0.14, zW * 0.2), 0, PAL.beamDark)
+
+    // 5) CORNICE — balok kayu gelap di puncak dinding
     const hb = Math.min(0.5, Z * 0.4)
-    if (isTudor(o.style) && Z > 1) {
-      const kayu = side === 'kanan' ? PAL.trimT : PAL.beam
-      const kayuMuda = side === 'kanan' ? PAL.postLit : PAL.post
-      const lebarT = Math.max(0.045, 0.34 / panj)          // lebar tiang (≈0,34 tile)
-      const zAtas = Z - hb
-      const zBawah = Math.min(0.26, Z * 0.5)
-      // bidang panel = dari plint/lis sampai balok puncak
-      const zLis = Z > 1.8 ? Math.min(1.15, Z * 0.4) : (zBawah + zAtas) / 2
-
-      // tiang tegak: dua tepi dinding sudah dipakai TIANG di langkah 4
-      for (const t of [0.25, 0.5, 0.75]) {
-        kotak(t - lebarT, t + lebarT, zAtas, zBawah, kayu)
-        // sisi kena cahaya (balok terasa punya volume, bukan garis tempel)
-        kotak(t - lebarT, t - lebarT * 0.25, zAtas, zBawah, kayuMuda)
-        line(ctx, at(t + lebarT, zAtas), at(t + lebarT, zBawah), PAL.beamDark)
-      }
-      // LIS MENDATAR: satu balok setiap ~5 z, jadi dinding terbagi kisi balok
-      // (persis rangka Tudor di gambar referensi), bukan satu garis nyasar.
-      const JARAK_LIS = 5
-      for (let zh = zLis + JARAK_LIS; zh < zAtas - 1; zh += JARAK_LIS) {
-        kotak(0, 1, zh + 0.28, zh, kayu)
-        kotak(0, 1, zh + 0.28, zh + 0.19, kayuMuda)
-        kotak(0, 1, zh, zh - 0.09, PAL.beamDark)
-      }
-    }
-
-    // 3) CORNICE — balok kayu gelap di puncak dinding (ciri khas referensi)
     if (Z > 1) {
       kotak(0, 1, Z, Z - hb, PAL.beam)
       // rim terang di bibir atas balok

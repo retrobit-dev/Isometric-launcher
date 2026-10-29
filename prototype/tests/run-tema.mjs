@@ -82,7 +82,7 @@ try {
     || !f.tones.every(t => HEX.test(t)) || !HEX.test(f.grout))
   cek('semua lantai sah', lantaiBuruk.length === 0, lantaiBuruk.map(([k]) => k).join(','))
   cek('lantai bawaan papan-batu', P.FLOOR_DEFAULT === 'lantai-papan-batu', P.FLOOR_DEFAULT)
-  cek('dinding bawaan Tudor', P.WALL_DEFAULT === 'dinding-tudor', P.WALL_DEFAULT)
+  cek('dinding bawaan NDS', P.WALL_DEFAULT === 'dinding-nds', P.WALL_DEFAULT)
 
   console.log('5. docs/04-palet.json = palette.ts')
   const json = JSON.parse(readFileSync('../docs/04-palet.json', 'utf8'))

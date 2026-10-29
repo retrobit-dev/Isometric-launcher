@@ -948,3 +948,58 @@ input[type='text'] {
   box-shadow: inset 2px 2px 0 rgba(0, 0, 0, 0.45) !important;
   font-family: ui-monospace, 'Courier New', monospace !important;
 }
+
+/* ===========================================================================
+   POKÉMON NDS UI — RONDE 41 (2026-10-29)
+   "saya hanya ingin style, warna, dan tema ... seperti game pokemon nds"
+   ---------------------------------------------------------------------------
+   Kotak dialog DS: bingkai krem tebal, garis gelap di luar, sudut tajam,
+   isian gelap agar teks tetap terbaca di atas latar hitam OLED.
+   =========================================================================== */
+
+.panel,
+.toolbar,
+.chip {
+  border: 2px solid #f1e1bb !important;
+  box-shadow:
+    0 0 0 2px #2b1a12,
+    4px 4px 0 rgba(0, 0, 0, 0.55) !important;
+}
+
+.phead {
+  background: #f1e1bb !important;
+  color: #2b1a12 !important;
+  border-bottom: 2px solid #2b1a12 !important;
+  text-shadow: none !important;
+}
+
+.tbtn,
+.sbtn {
+  background: #2b1a12 !important;
+  color: #f7f2cd !important;
+  border: 2px solid #8a5a3a !important;
+  box-shadow:
+    inset 2px 2px 0 rgba(255, 247, 205, 0.16),
+    inset -2px -2px 0 rgba(0, 0, 0, 0.6) !important;
+}
+
+.tbtn:hover,
+.sbtn:hover { border-color: #c99b6a !important; }
+
+.tbtn:active,
+.sbtn:active {
+  background: #452d1e !important;
+  box-shadow:
+    inset -2px -2px 0 rgba(255, 247, 205, 0.12),
+    inset 2px 2px 0 rgba(0, 0, 0, 0.65) !important;
+}
+
+/* keadaan AKTIF ala menu DS: kotak terang, teks gelap */
+.sbtn.on,
+.sbtn.save.ok {
+  background: #f7f2cd !important;
+  color: #2b1a12 !important;
+  border-color: #5f3d28 !important;
+}
+
+.sbtn.danger { color: #fb836b !important; border-color: #833422 !important; }

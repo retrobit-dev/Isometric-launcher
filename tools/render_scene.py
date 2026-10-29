@@ -445,22 +445,7 @@ def draw_box(o):
     for idx, ne, nw, nz in tampak:
         poly([V(i) for i in idx], warnai_wajah(c, ne, nw, nz), g)
 
-    # TEKSTUR BINTIK (ronde 40, cermin box.ts): bidang luas diberi bintik
-    # dither 14% supaya tidak terasa "cat digital rata".
-    def _luas(pts):
-        a = 0.0
-        for i in range(len(pts)):
-            x1, y1 = pts[i]
-            x2, y2 = pts[(i + 1) % len(pts)]
-            a += x1 * y2 - x2 * y1
-        return abs(a) / 2
-
-    for idx, ne, nw, nz in tampak:
-        pts = [V(i) for i in idx]
-        if _luas(pts) < 900:
-            continue
-        dasar = warnai_wajah(c, ne, nw, nz)
-        poly(pts, dither(dasar, gelap(dasar, 1), 0.14), False)
+    # RONDE 41: bintik dither dihapus (gaya NDS = warna rata + batas keras).
 
     if sz > 0.02:
         for idx, ne, nw, nz in tampak:
@@ -469,11 +454,9 @@ def draw_box(o):
             atas = warnai_wajah(c, ne, nw, nz)
             bawah = gelapkan(atas, 0.28) or c['left']
             poly([V(i, 0.26) for i in idx], bawah, False)
-            # batas pita nada BER-DITHER (cermin box.ts ronde 38)
-            tipis = min(0.16, 0.42 / max(0.25, sz))
-            pita = [V(idx[0], 0.26), V(idx[1], 0.26),
-                    V(idx[1], 0.26 + tipis), V(idx[0], 0.26 + tipis)]
-            poly(pita, dither(atas, bawah, 0.5), False)
+            # batas pita nada = GARIS KERAS 1 px (cermin box.ts ronde 41)
+            d.line([tuple(map(round, V(idx[0], 0.26))), tuple(map(round, V(idx[1], 0.26)))],
+                   fill=gelapkan(atas, 0.28) or bawah, width=1)
 
     if sz > 0.02 and g:
         warna = terangkan(c['top'])
@@ -1051,13 +1034,14 @@ def draw_floor(o):
     # BAYANGAN di kaki dinding = DITHER Bayer 4x4 (cermin room.ts).
     leb = min(1.8, (e1 - e0) * 0.22, (w1 - w0) * 0.22)
     if leb > 0.15:
-        for f, kuat in ((1.0, 0.14), (0.66, 0.34), (0.33, 0.60)):
-            dalam = max(0.0, leb * f - leb * 0.33)
-            pola = bayang(grout, kuat)
+        # RONDE 41 (cermin room.ts): dua pita bayangan WARNA KERAS, tanpa dither.
+        gelap1 = gelap(tones[0], 1)
+        gelap2 = gelap(tones[0], 2)
+        for dalam, wnav in ((leb, gelap1), (leb * 0.34, gelap2)):
             poly([px(e0, w0, z), px(e0, w1, z),
-                  px(e0 + dalam, w1, z), px(e0 + dalam, w0, z)], pola, False)
+                  px(e0 + dalam, w1, z), px(e0 + dalam, w0, z)], wnav, False)
             poly([px(e0, w0, z), px(e1, w0, z),
-                  px(e1, w0 + dalam, z), px(e0, w0 + dalam, z)], pola, False)
+                  px(e1, w0 + dalam, z), px(e0, w0 + dalam, z)], wnav, False)
 
     SK = 10
     bL, bR, tR = px(e0, w1, z), px(e1, w1, z), px(e1, w0, z)
@@ -1129,62 +1113,32 @@ def draw_wall(o):
     def kotak(t0, t1, zA, zB, warna):
         poly([at(t0, zA), at(t1, zA), at(t1, zB), at(t0, zB)], warna, False)
 
+    # =====================================================================
+    # GAYA INTERIOR "POKÉMON NDS" (ronde 41, cermin room.ts)
+    # warna rata + batas nada KERAS + wainscot kayu; tanpa dither di bidang.
+    # =====================================================================
     kotak(0, 1, sz, 0, face)
-    # tekstur plester: bintik dither 12% (ronde 40, cermin room.ts)
-    kotak(0, 1, sz, 0, bayang(face, 0.12))
-    # batas pita nada BER-DITHER (ronde 38, cermin room.ts)
-    # PENTING: pakai gelap() (tangga nada palet), bukan gelapkan() — gelapkan()
-    # adalah pembuat garis tepi (f >= 0,4 selalu jadi tinta gelap).
-    nadaB = gelap(face, 1)
-    nadaC = gelap(face, 2)
-    tipis = max(0.05, sz * 0.035)
-    kotak(0, 1, sz * 0.11 + tipis, sz * 0.11 - tipis, dither(face, nadaB, 0.5))
-    kotak(0, 1, sz * 0.11, 0, nadaB)
-    kotak(0, 1, sz * 0.045 + tipis * 0.7, sz * 0.045 - tipis * 0.7,
-          dither(nadaB, nadaC, 0.5))
-    kotak(0, 1, sz * 0.045, 0, nadaC)
-    teduh = gelap(face, 1)
+    z_w = min(1.7, sz * 0.34)
+    z_batas = z_w + (sz - z_w) * 0.78
+    kotak(0, 1, sz, z_batas, face)
+    kotak(0, 1, z_batas, z_w, gelap(face, 1))
+    d.line([tuple(map(round, at(0, z_batas))), tuple(map(round, at(1, z_batas)))],
+           fill=gelap(face, 2), width=1)
 
-    plint = min(0.26, sz * 0.5)
-    kotak(0, 1, plint, 0, trim)
-    # kaki dinding: tiga pita bayangan BER-DITHER (makin rapat ke bawah) —
-    # cermin kakiDinding() di iso/room.ts
-    for z0b, z1b, kuat in ((0.0, 0.22, 0.44), (0.22, 0.55, 0.26), (0.55, 1.05, 0.14)):
-        if plint + z1b < sz:
-            kotak(0, 1, plint + z1b, plint + z0b, bayang(teduh, kuat))
-    kotak(0, 1, plint, plint - min(0.05, plint * 0.3), BASE['beamDark'])
-
-    if sz > 1.8:
-        zd = min(1.15, sz * 0.4)
-        kotak(0, 1, zd, plint, gelap(face, 1))
-        kotak(0, 1, zd + 0.09, zd, BASE['beam'])
-        kotak(0, 1, zd + 0.09, zd + 0.07, BASE['beamTop'])
-        kotak(0, 1, zd, zd - 0.04, BASE['beamDark'])
+    kotak(0, 1, z_w, 0, trim)
+    n_papan = max(2, round(panj / 0.85))
+    for i_p in range(1, n_papan):
+        t_p = i_p / n_papan
+        d.line([tuple(map(round, at(t_p, z_w))), tuple(map(round, at(t_p, 0)))],
+               fill=BASE['beamDark'], width=1)
+    kotak(0, 1, z_w, z_w - min(0.22, z_w * 0.22), BASE['post'])
+    kotak(0, 1, z_w + 0.16, z_w, BASE['beamTop'])
+    kotak(0, 1, z_w + 0.16, z_w + 0.11, BASE['peg'])
+    d.line([tuple(map(round, at(0, z_w))), tuple(map(round, at(1, z_w)))],
+           fill=BASE['beamDark'], width=1)
+    kotak(0, 1, min(0.14, z_w * 0.2), 0, BASE['beamDark'])
 
     hb = min(0.5, sz * 0.4)
-    # ---- RANGKA BALOK TUDOR (ronde 39, cermin room.ts langkah 2c) ----
-    if is_tudor(o.get('style')) and sz > 1:
-        kayu = BASE['trimT'] if sisi == 'kanan' else BASE['beam']
-        kayu_muda = BASE['postLit'] if sisi == 'kanan' else BASE['post']
-        lebar_t = max(0.045, 0.34 / panj)
-        z_atas = sz - hb
-        z_bawah = min(0.26, sz * 0.5)
-        z_lis = min(1.15, sz * 0.4) if sz > 1.8 else (z_bawah + z_atas) / 2
-
-        for t in (0.25, 0.5, 0.75):
-            kotak(t - lebar_t, t + lebar_t, z_atas, z_bawah, kayu)
-            kotak(t - lebar_t, t - lebar_t * 0.25, z_atas, z_bawah, kayu_muda)
-            d.line([tuple(map(round, at(t + lebar_t, z_atas))),
-                    tuple(map(round, at(t + lebar_t, z_bawah)))],
-                   fill=BASE['beamDark'], width=1)
-        jarak_lis = 5
-        zh = z_lis + jarak_lis
-        while zh < z_atas - 1:
-            kotak(0, 1, zh + 0.28, zh, kayu)
-            kotak(0, 1, zh + 0.28, zh + 0.19, kayu_muda)
-            kotak(0, 1, zh, zh - 0.09, BASE['beamDark'])
-            zh += jarak_lis
-
     if sz > 1:
         kotak(0, 1, sz, sz - hb, BASE['beam'])
         kotak(0, 1, sz, sz - min(0.07, hb * 0.3), BASE['beamTop'])

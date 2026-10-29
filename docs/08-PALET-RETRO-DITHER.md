@@ -1,4 +1,4 @@
-# 08 — PALET REFERENSI 51 WARNA + DITHERING (ronde 39)
+# 08 — PALET 51 WARNA + DITHERING (ronde 39, aturan gambar ronde 41)
 
 Ditulis ulang 2026-10-29 (ronde 39). Menggantikan versi Endesga 32 (ronde 38).
 
@@ -151,16 +151,21 @@ matriks ambang (0..15)          level 25%          level 50%
 
 ### 2a. Di mana dithering dipasang
 
-| Bagian | Perilaku |
+**RONDE 41 (gaya interior Pokémon NDS):** bidang ruangan TIDAK lagi memakai
+dither. Dinding, lantai, dan objek memakai **warna rata + batas nada KERAS**
+(1 garis px), persis seperti interior Pokémon Generasi 4/5. Dither sekarang
+hanya dipakai di **langit dan halo matahari/bulan** (tempat gradasi memang
+dibutuhkan) serta di terminator silinder/bola.
+
+| Bagian | Perilaku (ronde 41) |
 | --- | --- |
-| kaki dinding | 3 pita `polaBayang` makin rapat ke bawah (0,22 / 0,33 / 0,50 z) |
-| bayangan lantai | 3 pita `polaBayang` warna nat material, di kaki kedua dinding |
-| pita nada dinding | batas terang -> teduh diberi jalur dither 50% |
-| balok objek | batas pita nada 26% diberi jalur dither selebar +-0,42 z |
-| silinder | batas terang/gelap: 3 zona (30% dan 70%) di sekitar terminator |
-| bola | 4 lapis konsentris 22% / 52% / 78% / sorot |
+| dinding | 2 nada keras + garis batas 1 px; wainscot kayu dengan garis papan |
+| lantai | 2 pita bayangan WARNA KERAS di kaki dinding (tanpa dither) |
+| balok objek | pita nada 26% dengan **garis keras** di batasnya |
+| silinder | batas terang/gelap tetap 2 zona dither tipis di terminator |
+| bola | 4 lapis konsentris (tetap, bentuk bulat butuh peralihan) |
 | langit | 6 pita keras + 2 jalur dither (25% lalu 75%) di setiap batas pita |
-| halo matahari/bulan | 2 cakram dither (14-18% lalu 42-48%) sebelum tepi pekat |
+| halo matahari/bulan | 2 cakram dither sebelum tepi pekat |
 | awan | lingkar luar = dither antara nada terang & perut awan |
 
 **Pantulan di lantai dihapus 2026-10-29** — tidak ada lagi lapisan bayangan
@@ -202,3 +207,30 @@ Mendung: gerimis `#8e8a6d x2 #574d36 x2 #3d432a x2` · hujan `#574d36 x2
 | `tests/run-paritas.mjs` | `langitFase`, `efekCuaca`, `rencanaLangit`, `gelap/terang`, `kePalet` **identik** TS <-> Python |
 
 Hasil render uji: `python3 tools/render_scene.py` (lihat `docs/04` §6).
+
+
+---
+
+## 4. Ronde 41 — arah gaya: interior Pokémon NDS
+
+Permintaan user:
+
+> "perbaiki semuanya, saya ijinkan kamu untuk mengubah semuanya. Saya hanya
+> ingin style, warna, dan tema seperti gambar referensi atau buat saja seperti
+> game Pokémon NDS."
+
+Yang diambil dari interior Pokémon Generasi 4/5 (NDS):
+
+1. **Warna rata & cerah** — tidak ada bintik dither di bidang (bintik ronde 40
+   dihapus karena terasa berisik, bukan retro).
+2. **Dua nada per bidang**, batasnya garis keras 1 px.
+3. **Wainscot kayu** di kaki dinding + lis terang di atasnya + garis papan tiap
+   ~0,85 tile.
+4. **Bayangan kaki dinding** = 2 pita warna keras (1 dan 2 langkah lebih gelap
+   dari nada lantai), bukan gradasi.
+5. **Outline 2 px** dari `tinta()` tetap, karena objek DS selalu bertepi tegas.
+6. **Kanvas internal 568×355** (`PIKSEL 2`) di-upscale ×4,5 — blok piksel besar
+   seperti layar DS yang diperbesar.
+
+Seluruh aturan di atas diterapkan **di dua renderer** (`iso/room.ts`,
+`iso/box.ts`, dan `tools/render_scene.py`) sehingga hasil offline tetap identik.

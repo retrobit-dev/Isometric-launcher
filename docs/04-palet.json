@@ -568,11 +568,17 @@
   }
  },
  "dinding": {
+  "dinding-nds": {
+   "kiri": "#f1e1bb",
+   "kanan": "#f7f2cd",
+   "trimKiri": "#8a5a3a",
+   "trimKanan": "#a8764f"
+  },
   "dinding-tudor": {
    "kiri": "#f1e1bb",
    "kanan": "#f7f2cd",
-   "trimKiri": "#5f3d28",
-   "trimKanan": "#8a5a3a"
+   "trimKiri": "#8a5a3a",
+   "trimKanan": "#a8764f"
   },
   "dinding-hangat": {
    "kiri": "#f1e1bb",
@@ -654,5 +660,5 @@
   }
  },
  "lantaiBawaan": "lantai-papan-batu",
- "dindingBawaan": "dinding-tudor"
+ "dindingBawaan": "dinding-nds"
 }
