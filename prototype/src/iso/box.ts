@@ -10,8 +10,10 @@ export interface Box { x0: number; y0: number; x1: number; y1: number }
 // Warnanya diturunkan otomatis dari warna isi (dicampur ke arah tinta gelap),
 // jadi tidak perlu menambah warna baru ke palet.
 // ---------------------------------------------------------------------------
-const INK = { r: 0x33, g: 0x2b, b: 0x3d }
-const CAMPUR = 0.34        // 0 = tanpa garis, 1 = tinta penuh
+// Tinta gelap HANGAT (cokelat-marun) — diambil dari garis tepi pada gambar
+// referensi tema diorama. Tinta ungu dingin tidak dipakai lagi.
+const INK = { r: 0x4a, g: 0x1e, b: 0x0a }
+const CAMPUR = 0.42        // 0 = tanpa garis, 1 = tinta penuh
 const TEBAL_TEPI = 2       // piksel internal (resolusi naik 1,775x 2026-10-29)
 
 function gelapkan(warna: string, f = CAMPUR): string {
@@ -23,6 +25,15 @@ function gelapkan(warna: string, f = CAMPUR): string {
   const b = n & 255
   const mix = (a: number, b2: number) => Math.round(a + (b2 - a) * f)
   return `rgb(${mix(r, INK.r)},${mix(g, INK.g)},${mix(b, INK.b)})`
+}
+
+/** versi terang dari sebuah warna (untuk bibir/sorot) */
+function terangkan(warna: string, f = 0.30): string {
+  const m = /^#([0-9a-f]{6})$/i.exec(warna)
+  if (!m) return warna
+  const n = parseInt(m[1], 16)
+  const mix = (a: number, b2: number) => Math.round(a + (b2 - a) * f)
+  return `rgb(${mix((n >> 16) & 255, 255)},${mix((n >> 8) & 255, 232)},${mix(n & 255, 190)})`
 }
 
 function poly(ctx: CanvasRenderingContext2D, pts: P[], color: string, garis = true) {
@@ -82,6 +93,20 @@ export function drawBox(ctx: CanvasRenderingContext2D, o: SceneObject) {
   poly(ctx, [t01, t11, b11, b01], c.left, g)
   poly(ctx, [t10, t11, b11, b10], c.right, g)
   poly(ctx, [t00, t10, t11, t01], c.top, g)
+  if (g) {
+    // RIM TERANG: dua sisi belakang bidang atas diberi garis lebih terang.
+    // Ini yang membuat balok terasa "kena cahaya" seperti di referensi
+    // (setiap bidang terang selalu punya bibir tipis yang lebih terang).
+    ctx.strokeStyle = terangkan(c.top)
+    ctx.lineWidth = TEBAL_TEPI
+    ctx.lineJoin = 'round'
+    ctx.beginPath()
+    ctx.moveTo(Math.round(t00.x), Math.round(t00.y))
+    ctx.lineTo(Math.round(t10.x), Math.round(t10.y))
+    ctx.moveTo(Math.round(t00.x), Math.round(t00.y))
+    ctx.lineTo(Math.round(t01.x), Math.round(t01.y))
+    ctx.stroke()
+  }
 }
 
 // ---------------------------------------------------------------------------

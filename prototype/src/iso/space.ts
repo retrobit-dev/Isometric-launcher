@@ -124,6 +124,45 @@ export function resetView() {
   CAM.CW = VIEW_FIXED.w
 }
 
+export interface KotakObjek {
+  pos: { e: number; w: number; z: number }
+  size: { e: number; w: number; z: number }
+}
+
+/**
+ * KOMPOSISI DIORAMA — permintaan user 2026-10-29 ("tema seperti gambar
+ * referensi"): diorama harus terlihat UTUH dalam bingkai, dengan tepi papan
+ * (deck) dan balok atas dinding kelihatan, seperti ketiga gambar referensi.
+ *
+ * Diambil dari isi scene (bukan angka mati): zoom + titik tengah dihitung
+ * dari kotak pembungkus semua objek. Dipakai saat membuka aplikasi dan oleh
+ * tombol REFRESH/TENGAH, jadi hasilnya selalu sama (deterministik).
+ */
+export function fitToScene(objs: KotakObjek[], margin = 0.95) {
+  if (!objs.length) {
+    resetView()
+    return
+  }
+  let e0 = Infinity, e1 = -Infinity, w0 = Infinity, w1 = -Infinity, zmax = 0
+  for (const o of objs) {
+    e0 = Math.min(e0, o.pos.e)
+    e1 = Math.max(e1, o.pos.e + o.size.e)
+    w0 = Math.min(w0, o.pos.w)
+    w1 = Math.max(w1, o.pos.w + o.size.w)
+    zmax = Math.max(zmax, o.pos.z + o.size.z)
+  }
+  const de = Math.max(0.5, e1 - e0)
+  const dw = Math.max(0.5, w1 - w0)
+  // lebar layar (px) = (de+dw)·HW ; tinggi = (de+dw)·HW/2 + zmax·HW
+  const hwLebar = (IW * margin) / (de + dw)
+  const hwTinggi = (IH * margin) / ((de + dw) / 2 + zmax)
+  applyZoom(Math.min(hwLebar, hwTinggi) / HW_BASE)
+  // titik tengah kotak + dorong ke bawah setengah tinggi dinding supaya
+  // bagian yang terpakai (dinding di atas) tetap di tengah bingkai
+  CAM.CE = (e0 + e1) / 2 - zmax / 2
+  CAM.CW = (w0 + w1) / 2 - zmax / 2
+}
+
 // terapkan zoom awal (HW/HH/ZH) sesuai posisi awal
 applyZoom(CAM.Q)
 

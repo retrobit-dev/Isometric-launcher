@@ -1,7 +1,7 @@
 import { useEffect, useRef, useState } from 'react'
 import {
   CAM, IH, IW,
-  setCenter, setZoom, unpx, zoomValue, zoneName,
+  fitToScene, setCenter, setZoom, unpx, zoomValue, zoneName,
 } from './iso/space'
 import { drawScene } from './iso/room'
 import { bboxOf, sortedObjects } from './iso/box'
@@ -139,10 +139,9 @@ export default function App() {
     setHistVer(v => v + 1)
   }
 
-  // REFRESH: kembalikan kamera ke acuan x1 di (0,0) — zoom & pusat
+  // REFRESH: bingkai ulang diorama (seluruh ruangan masuk layar, di tengah)
   const refreshKamera = () => {
-    setZoom(1)
-    setCenter(0, 0)
+    fitToScene(sceneRef.current.objects)
     forceZoomLabel(v => v + 1)
   }
 
@@ -213,6 +212,9 @@ export default function App() {
           ? sc
           : { ...sc, meta: { ...(sc.meta ?? { locked: false, savedAt: null }), locked: false } })
         setDipulihkan(dariFile.objects.length)
+        // KOMPOSISI: seluruh diorama masuk bingkai (tema gambar referensi)
+        fitToScene(sc.objects)
+        forceZoomLabel(v => v + 1)
       }
       setDimuat(true)
     })()

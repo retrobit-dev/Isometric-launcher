@@ -252,6 +252,19 @@ Transform **hanya saat menggambar** (`ctx.save` → transform → gambar →
 `DENS = 1.775` (lihat §0 di bawah). `refleksi` tetap memakai transform yang
 sama, jadi pantulan ikut bergerak.
 
+## 4c. Tema & elemen gambar (2026-10-29)
+
+Palet dan aturan gaya: lihat `docs/05-TEMA-DIORAMA-HANGAT.md`. Yang WAJIB
+ditiru renderer Kotlin (semua sudah ada di `render_scene.py`):
+
+| Elemen | Aturan |
+|---|---|
+| outline | isi dicampur 42% ke tinta `#4a1e0a`, tebal 2 px internal, `lineJoin=round`, dimatikan oleh `tepi:false` |
+| bibir terang | garis 2 px di dua sisi belakang bidang atas, warna isi dicampur 30% ke `#ffe8be` |
+| dinding | pita nada di 0,11·Z (teduh 0,94) dan 0,045·Z (teduh 0,88); plint 0,26 z; cornice balok 0,5 z dengan rim 0,07 z + bayangan 0,05 z; tiang 0,42 tile di kedua ujung + pasak r = 0,96·DENS |
+| lantai | bayangan ambient 3 pita (lebar 1,0/0,66/0,33 × min(1,8; 0,22·de; 0,22·dw), alpha 20/26/41 dari `rgba(74,33,12,·)`); deck = papan dengan sambungan tiap ~0,45 tile + bibir `#d98f4a` + dasar `#4a210c` |
+| komposisi | `fitToScene()` (docs/05 §3), margin 0,95 |
+
 **Hash acuan urutan gambar:** `b1d32a86ae59`
 (dihitung dari urutan `meja,buku,lampu` pada scene uji di `tests/run-kontrak.mjs`).
 Bila hash berubah, urutan gambar berubah — periksa dulu apakah disengaja,

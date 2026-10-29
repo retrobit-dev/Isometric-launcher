@@ -1,10 +1,9 @@
-import { CAM, CY, EXT_E, EXT_W, HH, IH, IW, ROOM, ROOM_VISIBLE, ZH, px, type P } from './space'
-import { PAL, floorMat, wallColors } from './palette'
+import { CAM, CY, DENS, EXT_E, EXT_W, HH, IH, IW, ROOM, ROOM_VISIBLE, TILE_W, ZH, px, type P } from './space'
+import { PAL, floorMat, gelapkanWarna, wallColors } from './palette'
 import { drawObject, footprintOf, sortedObjects } from './box'
 import type { SceneObject } from '../scene/types'
 
-function poly(ctx: CanvasRenderingContext2D, pts: P[], color: string) {
-  ctx.fillStyle = color
+function pathOf(ctx: CanvasRenderingContext2D, pts: P[]) {
   ctx.beginPath()
   pts.forEach((p, i) => {
     const x = Math.round(p.x)
@@ -13,6 +12,11 @@ function poly(ctx: CanvasRenderingContext2D, pts: P[], color: string) {
     else ctx.lineTo(x, y)
   })
   ctx.closePath()
+}
+
+function poly(ctx: CanvasRenderingContext2D, pts: P[], color: string | CanvasGradient) {
+  ctx.fillStyle = color
+  pathOf(ctx, pts)
   ctx.fill()
 }
 
@@ -269,11 +273,54 @@ function drawFloorObjects(ctx: CanvasRenderingContext2D, objects: SceneObject[])
       line(ctx, px(e1, w0, z), px(e1, w1, z), mat.grout)
     }
 
-    // tebal slab di dua sisi depan (sama seperti lantai ruangan)
+    // ---- BAYANGAN AMBIENT di kaki dinding (dua tepi belakang lantai) ----
+    // Gambar referensi menggelapkan lantai dekat dinding. Gradien halus ini
+    // yang membuat lantai terasa "masuk" ke dalam ruangan.
+    const AO = Math.min(1.8, (e1 - e0) * 0.22, (w1 - w0) * 0.22)
+    if (AO > 0.15) {
+      // tiga pita (bukan gradien) — sama seperti cara referensi menggelapkan
+      const pita: [number, string][] = [
+        [AO, 'rgba(74,33,12,0.08)'],
+        [AO * 0.66, 'rgba(74,33,12,0.10)'],
+        [AO * 0.33, 'rgba(74,33,12,0.16)'],
+      ]
+      for (const [leb, warna] of pita) {
+        poly(ctx, [px(e0, w0, z), px(e0, w1, z), px(e0 + leb, w1, z), px(e0 + leb, w0, z)], warna)
+        poly(ctx, [px(e0, w0, z), px(e1, w0, z), px(e1, w0 + leb, z), px(e0, w0 + leb, z)], warna)
+      }
+    }
+
+    // ---- TEPI SLAB = DECK PAPAN (ciri paling khas diorama referensi) ----
+    // Dua sisi depan digambar sebagai papan kayu: bidang + sambungan vertikal
+    // + rim terang di bibir atas.
     const SK = 10
     const bL = px(e0, w1, z), bR = px(e1, w1, z), tR = px(e1, w0, z)
-    poly(ctx, [bL, bR, { x: bR.x, y: bR.y + SK }, { x: bL.x, y: bL.y + SK }], mat.skirtL)
-    poly(ctx, [tR, bR, { x: bR.x, y: bR.y + SK }, { x: tR.x, y: tR.y + SK }], mat.skirtR)
+    const bawah = (p: P) => ({ x: p.x, y: p.y + SK })
+    poly(ctx, [bL, bR, bawah(bR), bawah(bL)], mat.skirtL)
+    poly(ctx, [tR, bR, bawah(bR), bawah(tR)], mat.skirtR)
+    // sambungan papan: tiap ~0.55 tile mengikuti sumbu tepi
+    const papan = (p0: P, p1: P, warna: string) => {
+      const n = Math.max(1, Math.round(Math.hypot(p1.x - p0.x, p1.y - p0.y) / (0.55 * TILE_W / Math.SQRT2 * 1.15)))
+      for (let i = 1; i < n; i++) {
+        const t = i / n
+        const x = Math.round(p0.x + (p1.x - p0.x) * t) + 0.5
+        const y = p0.y + (p1.y - p0.y) * t
+        ctx.strokeStyle = warna
+        ctx.lineWidth = 1
+        ctx.beginPath()
+        ctx.moveTo(x, Math.round(y) + 0.5)
+        ctx.lineTo(x, Math.round(y) + SK - 0.5)
+        ctx.stroke()
+      }
+    }
+    papan(bL, bR, PAL.deckSeam)
+    papan(tR, bR, PAL.deckSeam)
+    // rim terang di bibir atas deck
+    line(ctx, bL, bR, PAL.deckLight)
+    line(ctx, tR, bR, PAL.deckLight)
+    // garis gelap di dasar deck (memisahkan diorama dari void)
+    line(ctx, bawah(bL), bawah(bR), PAL.beamDark)
+    line(ctx, bawah(tR), bawah(bR), PAL.beamDark)
   }
 }
 
@@ -285,32 +332,76 @@ export function drawWallObjects(ctx: CanvasRenderingContext2D, objects: SceneObj
   for (const o of objects) {
     if (o.role !== 'dinding') continue
     const z0 = o.pos.z
-    const z1 = z0 + o.size.z
     if (o.size.z <= 0) continue
 
-    let a: P, b: P   // dua titik kaki dinding (z0)
+    let a: P, b: P
+    let panj: number
     if (o.side === 'kiri') {
       a = px(o.pos.e, o.pos.w, z0)
       b = px(o.pos.e, o.pos.w + o.size.w, z0)
+      panj = o.size.w
     } else {
       a = px(o.pos.e, o.pos.w, z0)
       b = px(o.pos.e + o.size.e, o.pos.w, z0)
+      panj = o.size.e
     }
-    const at: P = { x: a.x, y: a.y - o.size.z * ZH }
-    const bt: P = { x: b.x, y: b.y - o.size.z * ZH }
+    if (panj <= 0.2) continue
 
-    // warna mengikuti `style` objek: palet dinding (dinding-navy/krem/kayu/...)
-    // atau material balok biasa; style tak dikenal -> magenta (penanda bug)
     const side: 'kiri' | 'kanan' = o.side === 'kanan' ? 'kanan' : 'kiri'
     const { face, trim } = wallColors(o.style, side)
 
-    poly(ctx, [a, b, bt, at], face)
+    /** titik pada garis kaki dinding (t = 0..1) pada ketinggian dz */
+    const at = (t: number, dz = 0): P => ({
+      x: a.x + (b.x - a.x) * t,
+      y: a.y + (b.y - a.y) * t - dz * ZH,
+    })
+    const Z = o.size.z
+    const kotak = (t0: number, t1: number, zA: number, zB: number, warna: string | CanvasGradient) =>
+      poly(ctx, [at(t0, zA), at(t1, zA), at(t1, zB), at(t0, zB)], warna)
 
-    // plint kayu di kaki dinding (tinggi 0.18 z seperti palet ruangan)
-    const dz = Math.min(0.18, o.size.z)
-    const pb1: P = { x: b.x, y: b.y - dz * ZH }
-    const pa1: P = { x: a.x, y: a.y - dz * ZH }
-    poly(ctx, [a, b, pb1, pa1], trim)
+    // 1) MUKA DINDING — pita nada (bukan gradien halus): terang di atas,
+    //    makin teduh ke bawah. Pita keras = ciri pixel-art referensi, dan
+    //    hasilnya sama di renderer mana pun (mudah ditiru renderer offline).
+    kotak(0, 1, Z, 0, face)
+    kotak(0, 1, Z * 0.11, 0, gelapkanWarna(face, 0.94))
+    kotak(0, 1, Z * 0.045, 0, gelapkanWarna(face, 0.88))
+
+    // 2) PLINT (kaki dinding kayu) + garis gelap di atasnya
+    const plint = Math.min(0.26, Z * 0.5)
+    kotak(0, 1, plint, 0, trim)
+    kotak(0, 1, plint, plint - Math.min(0.05, plint * 0.3), PAL.beamDark)
+
+    // 3) CORNICE — balok kayu gelap di puncak dinding (ciri khas referensi)
+    const hb = Math.min(0.5, Z * 0.4)
+    if (Z > 1) {
+      kotak(0, 1, Z, Z - hb, PAL.beam)
+      // rim terang di bibir atas balok
+      const rim = Math.min(0.07, hb * 0.3)
+      kotak(0, 1, Z, Z - rim, PAL.beamTop)
+      // bayangan gelap di bawah balok
+      kotak(0, 1, Z - hb, Z - hb - Math.min(0.05, hb * 0.2), PAL.beamDark)
+    }
+
+    // 4) TIANG KAYU di kedua ujung dinding + pasak bulat
+    const tp = Math.min(0.5, 0.42 / panj)   // lebar tiang ~0.42 tile
+    for (const [t0, t1] of [[0, tp], [1 - tp, 1]] as [number, number][]) {
+      kotak(t0, t1, Z, 0, PAL.post)
+      // sisi kena cahaya
+      kotak(t0, t0 + (t1 - t0) * 0.45, Z, 0, PAL.postLit)
+      // garis gelap di sisi teduh tiang
+      line(ctx, at(t1, Z), at(t1, 0), PAL.beamDark)
+      if (Z > 1.2) {
+        // pasak (paku kayu) bundar di dekat puncak
+        const p = at((t0 + t1) / 2, Z - Math.min(0.75, Z * 0.35))
+        ctx.fillStyle = PAL.peg
+        ctx.beginPath()
+        ctx.arc(Math.round(p.x), Math.round(p.y), 1.6 * DENS * 0.6, 0, Math.PI * 2)
+        ctx.fill()
+      }
+    }
+
+    // 5) BAYANGAN SUDUT: garis gelap tipis di pertemuan dinding & lantai
+    line(ctx, at(0, 0), at(1, 0), PAL.beamDark)
   }
 }
 
