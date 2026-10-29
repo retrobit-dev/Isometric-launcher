@@ -308,6 +308,31 @@
    "left": "#deba9d",
    "right": "#dec5af"
   },
+  "kusen-putih": {
+   "top": "#eeeeee",
+   "left": "#cdcdcd",
+   "right": "#dddddd"
+  },
+  "matahari": {
+   "top": "#fde7b5",
+   "left": "#fcd780",
+   "right": "#fedd97"
+  },
+  "tirai-gorden": {
+   "top": "#dddddd",
+   "left": "#bbbbbb",
+   "right": "#cdcdcd"
+  },
+  "tirai-lipat": {
+   "top": "#bbbbbb",
+   "left": "#9a9a9a",
+   "right": "#ababab"
+  },
+  "pastel-awan": {
+   "top": "#eeeeee",
+   "left": "#eeeeee",
+   "right": "#dddddd"
+  },
   "zaitun": {
    "top": "#83cd1b",
    "left": "#669915",

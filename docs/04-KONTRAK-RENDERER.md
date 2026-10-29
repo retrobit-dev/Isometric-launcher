@@ -215,6 +215,28 @@ Berbeda dari **orbit kamera** (docs/06, kelipatan 15°, memutar seluruh dunia),
 Paritas offline: `draw_box()` di `tools/render_scene.py` memakai rumus yang
 sama; diuji oleh `prototype/tests/run-rotasi.mjs`.
 
+## 4f. Objek JENDELA (2026-10-29)
+
+Permintaan user: *"buatkan objek jendela seperti pada gambar"*
+(Screenshot_20261029_072237.jpg). Versi EDIT `jendela` ditulis ulang:
+
+| bagian | material | keterangan |
+| --- | --- | --- |
+| kusen luar, palang tegak, palang datar, ambang, batang gorden, cincin, ujung bola | `kusen-putih` (`#eeeeee`, kolom abu baris 1) | putih bersih seperti gambar (dulu kayu jati) |
+| 4 daun kaca | `kaca-langit` (`#81d6fb`) | langit biru |
+| matahari | `matahari` (`#fde7b5`) bentuk `cakram` + anim `denyut` | bulat, menempel di kaca |
+| awan | `pastel-awan` (`#eeeeee` rata) bentuk **`profil`** | siluet awan; tumpukan `cakram` selalu terbaca seperti "kacang" |
+| tirai | `tirai-gorden` (`#dddddd`) + lipatan `tirai-lipat` (`#bbbbbb`, `tepi:false`) | diikat di tengah; `tepi:false` = tanpa garis tepi supaya lipatan halus |
+
+Lapisan kedalaman (w, 0 = permukaan dinding): kusen `0,00–0,26` · kaca
+`0,10–0,16` · hiasan kaca `0,16–0,20` · tirai `0,30–0,46` · batang `0,52`.
+Tirai WAJIB di depan kusen, kalau tidak tirai "tenggelam" di dinding.
+
+Catatan alat: `b()`/`bt()`/`bp()` (presets.ts) = balok · balok tanpa garis
+tepi (`tepi:false`) · bentuk `profil` (siluet bebas). Semua koordinat `e`
+preset harus ≥ 0 (diuji `run-kontrak.mjs`), karena itu seluruh jendela digeser
++0,40 dengan `lebar` 5,6 → 6,4.
+
 ## 5. Yang TIDAK boleh dilakukan APK (sumber beda tafsir)
 
 1. Mengganti algoritma pengurutan (mis. mengurutkan ulang berdasarkan z saja).

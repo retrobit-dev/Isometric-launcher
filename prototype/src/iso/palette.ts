@@ -171,6 +171,22 @@ export const MATERIALS: Record<string, Mat> = {
   tembaga: M(Q('#b87a3c')),
   'kain-merah': M(Q('#b8412c')),
   'kaca-jendela': M(Q('#ffd9a0')),
+  // --- JENDELA (permintaan user 2026-10-29: "buatkan objek jendela seperti
+  // pada gambar"): kusen/ambang/batang gorden/tirai PUTIH, langit biru,
+  // matahari kuning pucat. Tetap dari palet referensi: #eeeeee = kolom abu-abu
+  // baris 1, #fde7b5 = kolom kuning baris 3.
+  'kusen-putih': M('#eeeeee'),
+  'matahari': M('#fde7b5'),
+  // tirai gorden: putih keabu-abuan, sedikit lebih gelap dari kusen supaya
+  // lipatan & bayangannya terbaca (kalau sama putihnya, tirai menempel jadi
+  // satu bidang dengan kusen)
+  'tirai-gorden': M('#dddddd'),
+  // lipatan tirai: satu tingkat lebih gelap dari tirai (#cdcdcd) supaya
+  // gorden tidak tampak sebagai papan rata
+  'tirai-lipat': M('#bbbbbb'),
+  // awan: putih RATA (tanpa shading) supaya tetap putih di atas langit biru;
+  // nama berawalan 'pastel-' = sengaja tidak mengikuti urutan nada 3 lapis
+  'pastel-awan': { top: '#eeeeee', left: '#eeeeee', right: '#dddddd' },
   zaitun: M(Q('#8a9a4a')),
   'zaitun-tua': M(Q('#66762f')),
   'krem-hangat': M(Q('#f7dfae')),

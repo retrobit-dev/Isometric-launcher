@@ -33,6 +33,8 @@ interface Bahan {
   /** siluet bebas untuk bentuk 'profil' — [u, z] 0..1 */
   profil?: [number, number][]
   anim?: Animasi
+  /** false = tanpa garis tepi (dipakai untuk lipatan tirai supaya halus) */
+  tepi?: boolean
 }
 
 export interface Preset {
@@ -56,6 +58,29 @@ const b = (
   ...(puncak !== undefined ? { puncak } : {}),
   ...(miring !== undefined ? { miring } : {}),
 })
+
+/** bagian tanpa garis tepi (lipatan kain, bayangan halus) */
+const bt = (
+  e: number, w: number, z: number,
+  se: number, sw: number, sz: number,
+  style: string,
+  bentuk?: Bentuk, puncak?: number,
+): Bahan => ({ ...b(e, w, z, se, sw, sz, style, bentuk, puncak), tepi: false })
+
+/** bagian bentuk 'profil' (siluet bebas [u, z] 0..1) */
+const bp = (
+  e: number, w: number, z: number,
+  se: number, sw: number, sz: number,
+  style: string, titik: [number, number][],
+): Bahan => ({ ...b(e, w, z, se, sw, sz, style, 'profil'), profil: titik })
+
+/** siluet awan (alas rata, tiga gumpalan) — dipakai dua kali di jendela */
+const AWAN: [number, number][] = [
+  [0.00, 0.10], [0.04, 0.30], [0.12, 0.40], [0.16, 0.66], [0.28, 0.82],
+  [0.42, 0.86], [0.48, 1.00], [0.62, 0.98], [0.72, 0.80], [0.84, 0.72],
+  [0.92, 0.50], [0.98, 0.24], [0.94, 0.08], [0.70, 0.02], [0.40, 0.00],
+  [0.14, 0.02],
+]
 
 /** beri animasi ke satu bagian */
 const beranim = (x: Bahan, a: Animasi): Bahan => ({ ...x, anim: a })
@@ -239,64 +264,90 @@ export const PRESETS: Preset[] = [
   },
 
   // ================================================================ JENDELA ==
-  // Referensi: kusen putih tebal, kaca kiri terang + kanan langit biru,
-  // matahari & awan, ambang menonjol, tirai putih diikat, batang + cincin.
+  // Sesuai gambar referensi (Screenshot_20261029_072237.jpg):
+  //   kusen PUTIH tebal, dua daun kaca dipisah palang tegak, palang datar di
+  //   sepertiga atas, langit biru + matahari & awan, ambang putih menonjol,
+  //   tirai putih diikat di tengah, batang gorden putih dengan cincin.
+  //
+  // LAPISAN KEDALAMAN (sumbu w, 0 = permukaan dinding):
+  //   w 0,00–0,26 kusen · 0,10–0,16 kaca · 0,30–0,46 tirai · 0,34–0,48 batang
+  //   0,26–0,70 ambang. Tirai HARUS di depan kusen (w > 0,26), kalau tidak
+  //   tirai "tenggelam" di dalam dinding dan tampak sebagai papan gepeng.
   {
     id: 'jendela', nama: 'JENDELA',
-    ket: 'jendela putih 2 panel + langit + tirai diikat',
-    pasang: 'dinding-kanan', lebar: 5.6, dalam: 0.7,
+    ket: 'kusen putih, langit biru + matahari & awan, tirai putih diikat, batang + cincin',
+    pasang: 'dinding-kanan', lebar: 6.4, dalam: 0.7,
     bagian: [
-      // kusen luar = KAYU (tema hangat: kusen putih dingin diganti jati)
-      b(0, 0, 2.5, 0.34, 0.2, 4.9, 'kayu-tua'),
-      b(5.26, 0, 2.5, 0.34, 0.2, 4.9, 'kayu-tua'),
-      b(0, 0, 2.42, 5.6, 0.24, 0.34, 'kayu-tua'),
-      b(0, 0, 7.02, 5.6, 0.24, 0.34, 'kayu-tua'),
-      // kusen dalam (bilevel seperti referensi) — lebih terang dari kusen luar
-      b(0.34, 0.02, 2.76, 0.14, 0.16, 4.26, 'krem-hangat'),
-      b(5.12, 0.02, 2.76, 0.14, 0.16, 4.26, 'krem-hangat'),
-      b(0.34, 0.02, 2.76, 4.92, 0.16, 0.14, 'krem-hangat'),
-      b(0.34, 0.02, 6.88, 4.92, 0.16, 0.14, 'krem-hangat'),
-      // kaca: kiri terang (pantulan), kanan langit biru
-      b(0.42, 0.0, 2.92, 2.14, 0.06, 4.06, 'kaca-terang'),
-      b(2.72, 0.0, 2.92, 2.3, 0.06, 4.06, 'kaca-langit'),
-      b(2.56, 0.0, 2.92, 0.16, 0.14, 4.06, 'kayu-tua'),      // palang tengah
-      // matahari + awan di panel kiri
-      beranim(b(0.78, 0.04, 6.0, 0.62, 0.04, 0.62, 'pastel-butter', 'cakram'),
-        { jenis: 'denyut', laju: 0.18, besar: 1, fase: 0 }),          // matahari
-      b(0.86, 0.03, 5.86, 0.5, 0.04, 0.5, 'kertas-putih', 'cakram'),
-      beranim(b(1.2, 0.03, 5.78, 0.6, 0.04, 0.6, 'kertas-putih', 'cakram'),
-        { jenis: 'naik-turun', laju: 0.09, besar: 0.8, fase: 0.3 }),  // awan
-      b(1.5, 0.03, 5.9, 0.44, 0.04, 0.44, 'kertas-putih', 'cakram'),
-      // awan kecil di panel kanan
-      b(3.9, 0.03, 3.9, 0.5, 0.04, 0.5, 'kertas-putih', 'cakram'),
-      b(4.24, 0.03, 3.98, 0.42, 0.04, 0.42, 'kertas-putih', 'cakram'),
-      // ambang jendela menonjol ke dalam ruangan
-      b(0, 0.2, 2.34, 5.6, 0.5, 0.18, 'kayu-terakota'),
-      b(0, 0.68, 2.26, 5.6, 0.06, 0.1, 'kayu-tua'),
-      // TIRAI kiri (lebar di atas & bawah, menyempit di ikatan)
-      beranim(b(0.0, 0.12, 5.0, 0.78, 0.14, 1.9, 'tirai-putih'),
-        { jenis: 'ayun', laju: 0.13, besar: 0.7, fase: 0.1 }),        // tirai kiri
-      b(0.18, 0.13, 4.5, 0.5, 0.13, 0.36, 'tirai-putih'),
-      beranim(b(0.06, 0.12, 2.66, 0.66, 0.14, 1.86, 'tirai-putih'),
-        { jenis: 'ayun', laju: 0.13, besar: 0.7, fase: 0.1 }),        // tirai kiri bawah
-      b(0.3, 0.1, 4.42, 0.3, 0.16, 0.1, 'kertas-putih'),      // ikatan
-      // TIRAI kanan
-      beranim(b(4.82, 0.12, 5.0, 0.78, 0.14, 1.9, 'tirai-putih'),
-        { jenis: 'ayun', laju: 0.13, besar: 0.7, fase: 0.6 }),        // tirai kanan
-      b(5.12, 0.13, 4.5, 0.5, 0.13, 0.36, 'tirai-putih'),
-      beranim(b(4.88, 0.12, 2.66, 0.66, 0.14, 1.86, 'tirai-putih'),
-        { jenis: 'ayun', laju: 0.13, besar: 0.7, fase: 0.6 }),        // tirai kanan bawah
-      b(4.98, 0.1, 4.42, 0.3, 0.16, 0.1, 'kertas-putih'),     // ikatan
-      // batang tirai + ujung bola + cincin
-      b(0.0, 0.09, 7.42, 5.6, 0.12, 0.12, 'kayu-tua', 'silinder'),
-      b(0.0, 0.06, 7.38, 0.22, 0.18, 0.22, 'tembaga', 'bola'),
-      b(5.38, 0.06, 7.38, 0.22, 0.18, 0.22, 'tembaga', 'bola'),
-      b(0.34, 0.08, 7.36, 0.1, 0.14, 0.16, 'tirai-putih'),
-      b(0.52, 0.08, 7.36, 0.1, 0.14, 0.16, 'tirai-putih'),
-      b(0.7, 0.08, 7.36, 0.1, 0.14, 0.16, 'tirai-putih'),
-      b(4.8, 0.08, 7.36, 0.1, 0.14, 0.16, 'tirai-putih'),
-      b(4.98, 0.08, 7.36, 0.1, 0.14, 0.16, 'tirai-putih'),
-      b(5.16, 0.08, 7.36, 0.1, 0.14, 0.16, 'tirai-putih'),
+      // ---- kusen luar PUTIH ------------------------------------------------
+      b(0.4, 0, 2.30, 0.28, 0.26, 4.70, 'kusen-putih'),
+      b(5.72, 0, 2.30, 0.28, 0.26, 4.70, 'kusen-putih'),
+      b(0.4, 0, 6.76, 5.60, 0.26, 0.24, 'kusen-putih'),
+      b(0.4, 0, 2.30, 5.60, 0.26, 0.24, 'kusen-putih'),
+      // ---- palang tegak tengah + palang datar sepertiga atas ---------------
+      b(3.1, 0.04, 2.54, 0.20, 0.20, 4.22, 'kusen-putih'),
+      b(0.68, 0.04, 5.62, 5.04, 0.20, 0.18, 'kusen-putih'),
+
+      // ---- kaca: empat daun ------------------------------------------------
+      b(0.68, 0.10, 5.80, 2.42, 0.06, 0.96, 'kaca-langit'),
+      b(3.3, 0.10, 5.80, 2.42, 0.06, 0.96, 'kaca-langit'),
+      b(0.68, 0.10, 2.54, 2.42, 0.06, 3.08, 'kaca-langit'),
+      b(3.3, 0.10, 2.54, 2.42, 0.06, 3.08, 'kaca-langit'),
+
+      // ---- matahari + awan (bentuk 'cakram' = bulatan pada bidang dinding) --
+      // 'cakram' digambar di bidang e-z pada w tetap, jadi tepat untuk hiasan
+      // yang menempel di kaca. w 0,18 = sedikit di depan kaca (0,16).
+      beranim(b(1.26, 0.18, 5.92, 0.76, 0.02, 0.76, 'matahari', 'cakram'),
+        { jenis: 'denyut', laju: 0.18, besar: 1, fase: 0 }),
+      // awan kiri: siluet bebas (bentuk 'profil'), bukan tumpukan bulatan —
+      // tumpukan cakram selalu terbaca seperti "kacang", siluet tidak.
+      bp(1.6, 0.16, 4.30, 1.02, 0.04, 0.56, 'pastel-awan', AWAN),
+      // awan kecil di daun kanan
+      bp(3.82, 0.16, 3.52, 0.82, 0.04, 0.46, 'pastel-awan', AWAN),
+
+      // ---- ambang jendela PUTIH menonjol ke dalam --------------------------
+      b(0.3, 0.26, 2.14, 5.80, 0.46, 0.16, 'kusen-putih'),
+      b(0.34, 0.62, 2.04, 5.72, 0.10, 0.10, 'kusen-putih'),
+
+      // ---- TIRAI PUTIH diikat (di DEPAN kusen, w 0,30-0,46) ----------------
+      // kiri: lebar di atas -> menyempit di ikatan -> lebar lagi di bawah
+      beranim(b(0.3, 0.30, 4.90, 1.16, 0.16, 2.14, 'tirai-gorden'),
+        { jenis: 'ayun', laju: 0.13, besar: 0.7, fase: 0.1 }),
+      b(0.56, 0.30, 4.46, 0.54, 0.16, 0.44, 'tirai-gorden'),      // ikatan
+      bt(0.53, 0.28, 4.52, 0.60, 0.20, 0.12, 'tirai-lipat'),      // pita ikat
+      beranim(b(0.32, 0.30, 1.86, 1.12, 0.16, 2.60, 'tirai-gorden'),
+        { jenis: 'ayun', laju: 0.13, besar: 0.7, fase: 0.1 }),
+      // lipatan (tanpa garis tepi supaya halus, bukan seperti kisi-kisi)
+      bt(0.5, 0.29, 4.90, 0.16, 0.14, 2.14, 'tirai-lipat'),
+      bt(0.7, 0.29, 4.90, 0.16, 0.14, 2.14, 'tirai-lipat'),
+      bt(0.52, 0.29, 1.86, 0.16, 0.14, 2.60, 'tirai-lipat'),
+      bt(0.72, 0.29, 1.86, 0.16, 0.14, 2.60, 'tirai-lipat'),
+      // kanan (cermin)
+      beranim(b(4.94, 0.30, 4.90, 1.16, 0.16, 2.14, 'tirai-gorden'),
+        { jenis: 'ayun', laju: 0.13, besar: 0.7, fase: 0.6 }),
+      b(5.3, 0.30, 4.46, 0.54, 0.16, 0.44, 'tirai-gorden'),
+      bt(5.27, 0.28, 4.52, 0.60, 0.20, 0.12, 'tirai-lipat'),
+      beranim(b(4.96, 0.30, 1.86, 1.12, 0.16, 2.60, 'tirai-gorden'),
+        { jenis: 'ayun', laju: 0.13, besar: 0.7, fase: 0.6 }),
+      bt(5.14, 0.29, 1.86, 0.16, 0.14, 2.60, 'tirai-lipat'),
+      bt(5.32, 0.29, 1.86, 0.16, 0.14, 2.60, 'tirai-lipat'),
+      bt(5.12, 0.29, 4.90, 0.16, 0.14, 2.14, 'tirai-lipat'),
+      bt(5.3, 0.29, 4.90, 0.16, 0.14, 2.14, 'tirai-lipat'),
+
+      // ---- batang gorden PUTIH, di DEPAN & DI ATAS tirai -------------------
+      b(0.16, 0.52, 7.26, 6.08, 0.12, 0.12, 'kusen-putih', 'silinder'),
+      b(0.06, 0.50, 7.22, 0.18, 0.18, 0.18, 'kusen-putih', 'bola'),
+      b(6.18, 0.50, 7.22, 0.18, 0.18, 0.18, 'kusen-putih', 'bola'),
+      // cincin: 5 kiri + 5 kanan, menggantung di bawah batang
+      bt(0.38, 0.54, 7.12, 0.10, 0.14, 0.16, 'kusen-putih', 'silinder'),
+      bt(0.56, 0.54, 7.12, 0.10, 0.14, 0.16, 'kusen-putih', 'silinder'),
+      bt(0.74, 0.54, 7.12, 0.10, 0.14, 0.16, 'kusen-putih', 'silinder'),
+      bt(0.92, 0.54, 7.12, 0.10, 0.14, 0.16, 'kusen-putih', 'silinder'),
+      bt(1.1, 0.54, 7.12, 0.10, 0.14, 0.16, 'kusen-putih', 'silinder'),
+      bt(5.14, 0.54, 7.12, 0.10, 0.14, 0.16, 'kusen-putih', 'silinder'),
+      bt(5.32, 0.54, 7.12, 0.10, 0.14, 0.16, 'kusen-putih', 'silinder'),
+      bt(5.5, 0.54, 7.12, 0.10, 0.14, 0.16, 'kusen-putih', 'silinder'),
+      bt(5.68, 0.54, 7.12, 0.10, 0.14, 0.16, 'kusen-putih', 'silinder'),
+      bt(5.86, 0.54, 7.12, 0.10, 0.14, 0.16, 'kusen-putih', 'silinder'),
     ],
   },
 
@@ -573,6 +624,7 @@ export function buatPreset(opts: {
     ...(bag.miring !== undefined ? { miring: bag.miring } : {}),
     ...(bag.profil ? { profil: bag.profil } : {}),
     ...(bag.anim ? { anim: bag.anim } : {}),
+    ...(bag.tepi === false ? { tepi: false } : {}),
     preset: preset.id,
     app: null,
     layer: 'main' as const,
