@@ -133,23 +133,43 @@ export const PRESETS: Preset[] = [
   // ---------------------------------------------------------------- JENDELA --
   {
     id: 'jendela', nama: 'JENDELA',
-    ket: 'jendela + tirai + kusen (4.6, dipasang di dinding)',
-    pasang: 'dinding-kanan', lebar: 4.6, dalam: 0.4,
+    ket: 'jendela 3×2 + tirai + batang (5.2, dipasang di dinding kanan)',
+    pasang: 'dinding-kanan', lebar: 5.2, dalam: 0.5,
     bagian: [
-      // kaca biru langit (2 tone vertikal, meniru langit di referensi)
-      b(0.5, 0.1, 2.0, 3.6, 0.1, 1.6, 'pastel-blue'),
-      b(0.5, 0.1, 3.6, 3.6, 0.1, 1.4, 'paper-night'),
-      // kusen
-      b(0.5, 0, 1.8, 3.6, 0.2, 0.2, 'paper'),              // ambang bawah
-      b(0.5, 0, 5.0, 3.6, 0.2, 0.2, 'paper'),              // ambang atas
-      b(0.5, 0, 1.8, 0.2, 0.2, 3.4, 'paper'),              // kusen kiri
-      b(3.9, 0, 1.8, 0.2, 0.2, 3.4, 'paper'),              // kusen kanan
-      b(2.2, 0, 2.0, 0.2, 0.15, 3.0, 'paper'),             // palang tengah
-      // tirai kiri & kanan
-      b(0.2, 0.12, 1.8, 0.6, 0.1, 3.4, 'curtain'),
-      b(3.8, 0.12, 1.8, 0.6, 0.1, 3.4, 'curtain'),
-      // batang tirai
-      b(0, 0.05, 5.2, 4.6, 0.15, 0.15, 'metal-light'),
+      // kusen luar (putih), tipis 0.14 supaya tidak terlihat seperti balok tebal
+      b(0.6, 0, 1.8, 4.0, 0.14, 0.2, 'board'),              // ambang bawah
+      b(0.6, 0, 5.0, 4.0, 0.14, 0.2, 'board'),              // ambang atas
+      b(0.6, 0, 1.8, 0.2, 0.14, 3.4, 'board'),              // kusen kiri
+      b(4.4, 0, 1.8, 0.2, 0.14, 3.4, 'board'),              // kusen kanan
+      // kaca 3 kolom × 2 baris (bawah lebih terang = horizon, atas lebih biru)
+      b(0.8, 0.02, 2.0, 1.12, 0.06, 1.44, 'pastel-blue'),
+      b(2.04, 0.02, 2.0, 1.12, 0.06, 1.44, 'pastel-blue'),
+      b(3.28, 0.02, 2.0, 1.12, 0.06, 1.44, 'pastel-blue'),
+      b(0.8, 0.02, 3.56, 1.12, 0.06, 1.44, 'book-blue'),
+      b(2.04, 0.02, 3.56, 1.12, 0.06, 1.44, 'book-blue'),
+      b(3.28, 0.02, 3.56, 1.12, 0.06, 1.44, 'book-blue'),
+      // matahari + 2 awan (menempel di depan kaca)
+      b(3.44, 0.09, 4.32, 0.48, 0.05, 0.48, 'pastel-butter'),
+      b(2.18, 0.09, 4.14, 0.72, 0.05, 0.22, 'paper'),
+      b(0.92, 0.09, 3.10, 0.58, 0.05, 0.18, 'paper'),
+      // palang kusen (flush dengan muka kusen)
+      b(1.92, 0.07, 2.0, 0.12, 0.09, 3.0, 'board'),
+      b(3.16, 0.07, 2.0, 0.12, 0.09, 3.0, 'board'),
+      b(0.8, 0.07, 3.44, 3.6, 0.09, 0.12, 'board'),
+      // ambang jendela (meja) menonjol ke dalam ruangan
+      b(0.45, 0.14, 1.58, 4.3, 0.28, 0.22, 'paper'),
+      // tirai: bagian lebar di atas-bawah, menyempit di tengah (tali tirai)
+      b(0.12, 0.18, 3.45, 0.8, 0.12, 1.85, 'curtain'),
+      b(0.2, 0.19, 1.7, 0.7, 0.11, 1.75, 'curtain'),
+      b(4.28, 0.18, 3.45, 0.8, 0.12, 1.85, 'curtain'),
+      b(4.3, 0.19, 1.7, 0.7, 0.11, 1.75, 'curtain'),
+      b(0.34, 0.16, 3.28, 0.36, 0.16, 0.2, 'paper'),        // tali tirai kiri
+      b(4.5, 0.16, 3.28, 0.36, 0.16, 0.2, 'paper'),         // tali tirai kanan
+      // batang tirai + cincin
+      b(0.05, 0.16, 5.34, 5.1, 0.14, 0.14, 'metal-light'),
+      b(0.35, 0.14, 5.32, 0.12, 0.18, 0.18, 'board'),
+      b(2.5, 0.14, 5.32, 0.12, 0.18, 0.18, 'board'),
+      b(4.65, 0.14, 5.32, 0.12, 0.18, 0.18, 'board'),
     ],
   },
   // ------------------------------------------------------------ LAMPU MEJA --

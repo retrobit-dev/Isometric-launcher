@@ -371,8 +371,15 @@ export default function App() {
     const gid = `grup-${Date.now().toString(36).slice(-4)}`
     const idAwal = `${preset.id}-${Date.now().toString(36).slice(-3)}`
     const snap2 = (v: number) => Math.round(v * 10) / 10
-    const e = snap2(Math.max(0, CAM.CE - preset.lebar / 2))
-    const w = snap2(Math.max(0, CAM.CW - preset.dalam / 2))
+    // objek dinding (jendela, papan gabus) otomatis menempel ke dinding latar
+    // yang sesuai supaya tidak perlu digeser manual
+    const dinding = sceneRef.current.objects.find(o =>
+      o.role === 'dinding' && o.latar === true
+      && o.side === (preset.pasang === 'dinding-kiri' ? 'kiri' : 'kanan'))
+    let e = snap2(Math.max(0, CAM.CE - preset.lebar / 2))
+    let w = snap2(Math.max(0, CAM.CW - preset.dalam / 2))
+    if (dinding && preset.pasang === 'dinding-kanan') w = snap2(dinding.pos.w + dinding.size.w + 0.02)
+    if (dinding && preset.pasang === 'dinding-kiri') e = snap2(dinding.pos.e + dinding.size.e + 0.02)
     const parts = buatPreset({
       preset, e, w, z: 0,
       grup: gid, nama: preset.nama,
