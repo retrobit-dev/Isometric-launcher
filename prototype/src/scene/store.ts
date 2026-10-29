@@ -189,7 +189,20 @@ export function normalisasiScene(scene: Scene): Scene {
   // ditulis tanpa objek itu, refresh berikutnya memuat scene yang sudah
   // kehilangan objek tersebut. Sekarang objeknya TETAP ADA; hanya penanda
   // presetnya yang dibuang (geometri, posisi, warna tidak berubah).
-  const objects = scene.objects.map((o0, i) => {
+  // TIRAI DIHAPUS (permintaan user 2026-10-29: "hapus saja tirainya").
+  // Objek bertanda `tirai: true` (bagian tirai jendela) dibuang di sini, jadi
+  // tirai hilang juga dari draf browser lama, file scene, maupun hasil IMPORT —
+  // bukan hanya dari katalog. Material kainnya tetap ada bila nanti diperlukan.
+  // Dikenali dari TIGA tanda: penanda `tirai`, id `...-tirai-N` (pola migrasi
+  // lama), atau label "TIRAI n". Penanda saja tidak cukup karena versi pertama
+  // sempat tidak menyimpannya.
+  const buangTirai = (o0: SceneObject) =>
+    o0.tirai === true ||
+    (o0.preset === 'jendela' &&
+      (String(o0.id ?? '').includes('-tirai-') || /^TIRAI\b/i.test(String(o0.label ?? ''))))
+  const objects = scene.objects
+    .filter(o0 => !buangTirai(o0 as SceneObject))
+    .map((o0, i) => {
     let id = (o0.id ?? '').trim() || `objek-${i + 1}`
     while (dipakai.has(id)) id = `${id}-${i + 1}`
     dipakai.add(id)
@@ -214,8 +227,6 @@ export function normalisasiScene(scene: Scene): Scene {
       // KACA LANGIT dinamis (jendela): dibawa bila true, atau dinyalakan
       // otomatis untuk scene lama yang bagian kacanya belum bertanda.
       ...(o.langit === true || perluLangit(o) ? { langit: true } : {}),
-      // TIRAI: penanda bagian kain ikut disimpan (lihat migrasiTirai)
-      ...(o.tirai === true ? { tirai: true } : {}),
       // TRANSPARANSI: dibatasi 0.05..1 dan dibulatkan 2 desimal; nilai 1
       // (pekat) tidak ditulis supaya file tetap ramping.
       ...(o.opasitas === undefined ? {} : { opasitas: normalOpasitas(o.opasitas) }),
@@ -250,10 +261,6 @@ export function normalisasiScene(scene: Scene): Scene {
       ...(typeof scene.meta?.latarGambar === 'string' ? { latarGambar: scene.meta.latarGambar } : {}),
       ...(scene.meta?.latarMode === 'muat' || scene.meta?.latarMode === 'isi'
         ? { latarMode: scene.meta.latarMode } : {}),
-      // PENANDA MIGRASI TIRAI (2026-10-29). WAJIB ikut: tanpa ini, setiap kali
-      // scene dinormalisasi penandanya hilang, migrasi jalan lagi di boot, dan
-      // tirai terpasang BERULANG (kejadian nyata: 4 tirai jadi 8).
-      ...(scene.meta?.tiraiV1 === true ? { tiraiV1: true } : {}),
     },
   }
 }
@@ -671,7 +678,6 @@ export function validateScene(data: unknown): Scene | null {
       ...(typeof m?.updatedAt === 'string' ? { updatedAt: m.updatedAt } : {}),
       ...(typeof m?.latarGambar === 'string' ? { latarGambar: m.latarGambar } : {}),
       ...(m?.latarMode === 'muat' || m?.latarMode === 'isi' ? { latarMode: m.latarMode } : {}),
-      ...(m?.tiraiV1 === true ? { tiraiV1: true } : {}),
     },
   }
 }

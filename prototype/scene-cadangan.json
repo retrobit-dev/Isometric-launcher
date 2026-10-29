@@ -1,5 +1,5 @@
 {
- "savedAt": "2026-10-29T06:53:19.071Z",
+ "savedAt": "2026-10-29T06:56:51.629Z",
  "scene": {
   "version": 1,
   "room": {
@@ -177,102 +177,13 @@
     "grupNama": "JENDELA",
     "preset": "jendela",
     "urutan": 4
-   },
-   {
-    "id": "grup-jendela-tirai-1-3",
-    "label": "TIRAI 1",
-    "pos": {
-     "e": 16.248,
-     "w": 0.18,
-     "z": 7.027
-    },
-    "size": {
-     "e": 0.26,
-     "w": 0.1,
-     "z": 4.14
-    },
-    "style": "tirai-putih",
-    "app": null,
-    "layer": "main",
-    "grup": "grup-jendela",
-    "grupNama": "JENDELA",
-    "preset": "jendela",
-    "tepi": false,
-    "urutan": 13
-   },
-   {
-    "id": "grup-jendela-tirai-2-3",
-    "label": "TIRAI 2",
-    "pos": {
-     "e": 16.508,
-     "w": 0.18,
-     "z": 7.027
-    },
-    "size": {
-     "e": 0.28,
-     "w": 0.1,
-     "z": 4.14
-    },
-    "style": "lilin",
-    "app": null,
-    "layer": "main",
-    "grup": "grup-jendela",
-    "grupNama": "JENDELA",
-    "preset": "jendela",
-    "tepi": false,
-    "urutan": 14
-   },
-   {
-    "id": "grup-jendela-tirai-3-3",
-    "label": "TIRAI 3",
-    "pos": {
-     "e": 16.788,
-     "w": 0.18,
-     "z": 7.027
-    },
-    "size": {
-     "e": 0.24,
-     "w": 0.1,
-     "z": 4.14
-    },
-    "style": "tirai-putih",
-    "app": null,
-    "layer": "main",
-    "grup": "grup-jendela",
-    "grupNama": "JENDELA",
-    "preset": "jendela",
-    "tepi": false,
-    "urutan": 15
-   },
-   {
-    "id": "grup-jendela-tirai-4-3",
-    "label": "TIRAI 4",
-    "pos": {
-     "e": 16.248,
-     "w": 0.18,
-     "z": 7.027
-    },
-    "size": {
-     "e": 1,
-     "w": 0.1,
-     "z": 0.14
-    },
-    "style": "lilin",
-    "app": null,
-    "layer": "main",
-    "grup": "grup-jendela",
-    "grupNama": "JENDELA",
-    "preset": "jendela",
-    "tepi": false,
-    "urutan": 16
    }
   ],
   "meta": {
    "locked": false,
    "savedAt": "2026-10-29T06:39:32.041Z",
    "latarMigrasi": "latar-v1",
-   "updatedAt": "2026-10-29T06:53:18.468Z",
-   "tiraiV1": true
+   "updatedAt": "2026-10-29T06:56:49.993Z"
   }
  }
 }

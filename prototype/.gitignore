@@ -5,4 +5,9 @@ dist
 
 # berkas GAMBAR LATAR (dibuat lewat /api/latar, bukan bagian repo)
 .isola-latar.*
-.isola-scene.json
+
+# CATATAN (perbaikan 2026-10-29): `.isola-scene.json` TIDAK boleh di-ignore.
+# Sebelumnya berkas ini diabaikan DI SINI (bukan hanya di .gitignore akar),
+# sehingga scene user tidak ikut snapshot workspace maupun commit — dan itu
+# menyebabkan semua objek hilang setiap sandbox restart. Berkas scene sekarang
+# ikut repo bersama `scene-cadangan.json`.

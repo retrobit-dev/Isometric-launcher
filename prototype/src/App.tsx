@@ -14,7 +14,6 @@ import Pulihkan from './ui/Pulihkan'
 import { LATAR_TAG, gabungLatar, geserTumpukan, hapusLatarImage, latarImageUrl, loadDraft, loadLocked, loadSceneFile, normalisasiScene, objekBiasa, objekLatar, saveDraftGuarded, saveLatarImage, saveLocked, saveSceneFile, simpanDarurat, storageWorks, validateScene } from './scene/store'
 import { type JenisAnim, type Scene, type SceneObject } from './scene/types'
 import { gayaBerikut } from './scene/gaya'
-import { migrasiTirai } from './scene/tirai'
 import { SEMUA_CUACA, faseDariJam, getLangit, langitFase, efekCuaca, setLangit, type Cuaca } from './iso/langit'
 import { ambilCuacaNyata, gantiKota, jamPerangkat, muatPengaturanCuaca, simpanPengaturanCuaca, type PengaturanCuaca } from './scene/cuaca'
 import KartuCuaca from './ui/KartuCuaca'
@@ -268,19 +267,14 @@ export default function App() {
       const fileLebihBaru = (capFile > 0 || capLokal > 0)
         ? capFile > capLokal
         : (dariFile?.objects.length ?? 0) > lokal.objects.length
-      // TIRAI (permintaan user 2026-10-29): jendela yang dibuat SEBELUM fitur
-      // tirai ada dilengkapi tirai sekali saja. Bila user sudah menghapusnya,
-      // meta.tiraiV1 mencegah tirai muncul lagi.
-      const lengkapi = (sc: Scene): Scene => migrasiTirai(sc).scene
       if (dariFile && dariFile.objects.length > 0 && fileLebihBaru) {
         setUndo({ scene: lokal, label: 'scene sebelum dimuat dari file' })
         setLocked(false)
         const sc = gabungLatar(dariFile, lokal)
         // tidak ada salinan TERKUNCI -> scene ini draf, jangan bawa meta.locked lama
-        const siap = lengkapi(loadLocked()
+        setScene(loadLocked()
           ? sc
           : { ...sc, meta: { ...(sc.meta ?? { locked: false, savedAt: null }), locked: false } })
-        setScene(siap)
         setDipulihkan(dariFile.objects.length)
         // KOMPOSISI: seluruh diorama masuk bingkai (tema gambar referensi)
         fitToScene(sc.objects)
@@ -291,11 +285,6 @@ export default function App() {
       // tampilkan tombol PULIHKAN (tidak mengubah apa pun tanpa diketuk).
       const terbanyak = objekTerbanyakKandidat()
       if (!batal && terbanyak > sceneRef.current.objects.length) setSaranPulih(terbanyak)
-      else {
-        // tetap di draf lokal — lengkapi tirai bila jendelanya jendela lama
-        const siap = lengkapi(sceneRef.current)
-        if (siap !== sceneRef.current) setScene(siap)
-      }
       setDimuat(true)
     })()
     return () => { batal = true }

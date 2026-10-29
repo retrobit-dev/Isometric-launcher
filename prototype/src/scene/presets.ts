@@ -57,8 +57,6 @@ interface Bahan {
   tepi?: boolean
   /** true = bidang KACA LANGIT dinamis (langit + cuaca mengikuti jam) */
   langit?: boolean
-  /** true = bagian TIRAI (kain) — dipakai migrasi & deteksi duplikat */
-  tirai?: boolean
 }
 
 export interface Preset {
@@ -98,13 +96,6 @@ const bp = (
   style: string, titik: [number, number][],
 ): Bahan => ({ ...b(e, w, z, se, sw, sz, style, 'profil'), profil: titik })
 
-/** bagian TIRAI: kain tanpa garis tepi + penanda tirai (untuk migrasi) */
-const btirai = (
-  e: number, w: number, z: number,
-  se: number, sw: number, sz: number,
-  style: string,
-): Bahan => ({ ...bt(e, w, z, se, sw, sz, style), tirai: true })
-
 /** bagian KACA LANGIT: digambar sebagai langit dinamis, bukan warna statis */
 const bk = (
   e: number, w: number, z: number,
@@ -142,19 +133,6 @@ export const PRESETS: Preset[] = [
       b(0.00, 0.04, 2.20, 4.20, 0.30, 0.26, 'kayu-tepi'),    // ambang bawah
       // --- papan ambang menjorok ke ruangan ---
       b(0.00, 0.00, 2.06, 4.20, 0.36, 0.14, 'kayu-tepi'),
-      // --- TIRAI di SISI KANAN (permintaan user 2026-10-29) -----------------
-      // Menggantung DI DALAM bukaan: dari ambang atas (z 6.34) sampai ambang
-      // bawah (z 2.20), menutup ±1,0 tile di dekat tiang kanan supaya kaca
-      // masih terlihat sebagian besar. Dipasang paling depan (w 0.30..0.40)
-      // agar berada di depan kusen, dan memakai bt() — garis tepi pada kain
-      // tipis membuatnya tampak seperti balok hitam (pelajaran ronde 18).
-      // Lipatan dibuat dari empat jalur nada kain yang berbeda, bukan garis.
-      btirai(3.20, 0.30, 2.20, 0.26, 0.10, 4.14, 'tirai-putih'),
-      // 'lilin' = krem lebih tua; dipakai supaya lipatan benar-benar terlihat
-      btirai(3.46, 0.30, 2.20, 0.28, 0.10, 4.14, 'lilin'),
-      btirai(3.74, 0.30, 2.20, 0.24, 0.10, 4.14, 'tirai-putih'),
-      // keliman bawah: sedikit lebih gelap, menutup ujung ketiga jalur
-      btirai(3.20, 0.30, 2.20, 1.00, 0.10, 0.14, 'lilin'),
     ],
   },
 ]
@@ -194,8 +172,7 @@ export function buatPreset(opts: {
   const z0 = snap(opts.z)
   return preset.bagian.map((bag, i) => ({
     id: `${idAwal}-${i + 1}`,
-    // bagian tirai diberi label sendiri supaya mudah dicari di DAFTAR OBJEK
-    label: bag.tirai ? `TIRAI ${i + 1}` : `${nama} ${i + 1}`,
+    label: `${nama} ${i + 1}`,
     pos: { e: snap(e0 + bag.e), w: snap(w0 + bag.w), z: snap(z0 + bag.z) },
     size: {
       e: ukuranSah(bag.se),
@@ -210,7 +187,6 @@ export function buatPreset(opts: {
     ...(bag.anim ? { anim: bag.anim } : {}),
     ...(bag.tepi === false ? { tepi: false } : {}),
     ...(bag.langit ? { langit: true } : {}),
-    ...(bag.tirai ? { tirai: true } : {}),
     preset: preset.id,
     app: null,
     layer: 'main' as const,
