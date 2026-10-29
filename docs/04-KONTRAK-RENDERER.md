@@ -155,11 +155,14 @@ Aturan wajib:
 
 Field `bentuk` pada objek: `balok` (default) · `silinder` · `kerucut` · `bola` · `cakram` · `daun`.
 
-**Garis tepi (outline) — 2026-10-29.** Setiap bidang digambar dengan garis
-1 px internal yang warnanya diturunkan dari warna isi:
-`outline = isi + (INK − isi) × 0.34`, `INK = #332b3d`, `lineJoin = round`.
-Bisa dimatikan per objek dengan `tepi: false`. Ini yang meniru outline tipis
-pada gambar referensi.
+**Garis tepi (outline) — DIMATIKAN.** Permintaan user 2026-10-29: *"jangan
+berikan outline untuk objek"*. Objek digambar **tanpa stroke sama sekali**
+(`GARIS_TEPI = false` di `iso/box.ts`; renderer offline `tools/render_scene.py`
+memakai nama yang sama). Yang MEMBEDAKAN bidang sekarang hanya tangga nada:
+pita nada 26% di kaki tiap sisi tegak + warna `top`/`left`/`right` per wajah.
+Field lama `tepi: true/false` tetap dibaca tetapi **tidak berpengaruh** — data
+scene lama tidak perlu dimigrasi; APK nanti tidak boleh menggambar outline.
+Dinding & lantai LATAR digambar `iso/room.ts` dan belum terpengaruh aturan ini.
 `bentuk` HANYA mengubah cara menggambar; footprint (`size.e × size.w`) tetap
 kotak pembatas, jadi hit-test, bbox, grup, tumpukan, dan kunci tidak berubah.
 

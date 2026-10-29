@@ -17,6 +17,12 @@ export interface Box { x0: number; y0: number; x1: number; y1: number }
 const CAMPUR = 0.42        // 0 = tanpa garis, 1 = banyak tingkat turun
 const TEBAL_TEPI = 2       // piksel internal (resolusi naik 1,775x 2026-10-29)
 
+// Permintaan user (2026-10-29): "jangan berikan outline untuk objek".
+// GARIS_TEPI = false -> TIDAK ADA stroke sama sekali pada objek: warna bidang
+// polos, hanya dibedakan oleh tangga nada (pita nada) antar wajah.
+// Field lama `tepi: true` di scene/preset diabaikan (tidak perlu migrasi data).
+const GARIS_TEPI = false
+
 /**
  * GARIS TEPI & SHADING — 2026-10-29
  * Dulu: campur warna dengan tinta cokelat / dengan putih (menghasilkan warna di
@@ -51,16 +57,16 @@ function poly(ctx: CanvasRenderingContext2D, pts: P[], color: string, garis = tr
   })
   ctx.closePath()
   ctx.fill()
-  if (!garis) return
+  if (!garis || !GARIS_TEPI) return
   ctx.strokeStyle = gelapkan(color)
   ctx.lineWidth = TEBAL_TEPI
   ctx.lineJoin = 'round'
   ctx.stroke()
 }
 
-/** garis tepi untuk objek ini (bawaan ON, `tepi: false` mematikannya) */
+/** garis tepi objek — MATI total sejak permintaan "jangan berikan outline" */
 function tepiOf(o: SceneObject): boolean {
-  return o.tepi !== false
+  return GARIS_TEPI && o.tepi !== false
 }
 
 function colorsOf(o: SceneObject) {
@@ -171,17 +177,18 @@ export function drawBox(ctx: CanvasRenderingContext2D, o: SceneObject) {
     poly(ctx, f.idx.map(i => V(i)), warnaWajah(c, f.ne, f.nw, f.nz), g)
   }
 
-  if (!g) return
-
   // PITA NADA: 26% kaki tiap sisi tegak digelapkan (menghilangkan kesan
-  // "kotak dicat rata"). Dipotong ke bentuk wajahnya masing-masing.
+  // "kotak dicat rata"). Ini SHADING, bukan outline -> tetap digambar walau
+  // garis tepi dimatikan.
   if (sz > 0.02) {
     for (const f of tampak) {
       if (f.nz !== 0) continue
       poly(ctx, f.idx.map(i => V(i, 0.26)), gelapkan(warnaWajah(c, f.ne, f.nw, f.nz), 0.28), false)
     }
 
-    // RIM TERANG di rusuk bidang atas yang menjauhi kamera
+    // RIM TERANG di rusuk bidang atas yang menjauhi kamera (garis -> hanya
+    // bila GARIS_TEPI hidup)
+    if (g) {
     const warna = terangkan(c.top)
     ctx.strokeStyle = warna
     ctx.lineWidth = TEBAL_TEPI
@@ -195,6 +202,7 @@ export function drawBox(ctx: CanvasRenderingContext2D, o: SceneObject) {
       ctx.moveTo(Math.round(V(a).x), Math.round(V(a).y))
       ctx.lineTo(Math.round(V(b).x), Math.round(V(b).y))
       ctx.stroke()
+    }
     }
   }
 }
@@ -269,7 +277,7 @@ export function drawSilinder(ctx: CanvasRenderingContext2D, o: SceneObject) {
   // tutup atas: elips penuh
   poly(ctx, atas, c.top, g)
   // sisi luar saja yang diberi garis: rusuk tegak tiap 6 segmen
-  for (let i = 0; i < SEGMEN; i += 6) {
+  if (g) for (let i = 0; i < SEGMEN; i += 6) {
     ctx.strokeStyle = gelapkan(bawah[i] ? c.left : c.left)
     ctx.beginPath()
     ctx.moveTo(Math.round(atas[i].x), Math.round(atas[i].y))
@@ -304,13 +312,15 @@ export function drawKerucut(ctx: CanvasRenderingContext2D, o: SceneObject) {
     poly(ctx, [bawah[s.i], bawah[s.j], atas[s.j], atas[s.i]], s.warna, false)
   }
   if (rasio > 0) poly(ctx, atas, c.top, g)
-  ctx.strokeStyle = gelapkan(c.left)
-  ctx.beginPath()
-  for (let i = 0; i < SEGMEN; i += 6) {
-    ctx.moveTo(Math.round(atas[i].x), Math.round(atas[i].y))
-    ctx.lineTo(Math.round(bawah[i].x), Math.round(bawah[i].y))
+  if (g) {
+    ctx.strokeStyle = gelapkan(c.left)
+    ctx.beginPath()
+    for (let i = 0; i < SEGMEN; i += 6) {
+      ctx.moveTo(Math.round(atas[i].x), Math.round(atas[i].y))
+      ctx.lineTo(Math.round(bawah[i].x), Math.round(bawah[i].y))
+    }
+    ctx.stroke()
   }
-  ctx.stroke()
 }
 
 /**

@@ -200,10 +200,14 @@ def terangkan(warna, f=0.30):
     return _hex(terang(warna, max(1, round(f * 4))))
 
 
+# Permintaan user: "jangan berikan outline untuk objek" -> semua objek polos.
+GARIS_TEPI = False
+
+
 def poly(pts, warna, garis=True):
     p = [(round(x), round(y)) for x, y in pts]
     d.polygon(p, fill=warna)
-    if garis:
+    if garis and GARIS_TEPI:
         g = gelapkan(warna)
         if g:
             d.line(p + [p[0]], fill=g, width=2)
@@ -237,7 +241,7 @@ def footing(o):
 
 
 def tepi(o):
-    return o.get('tepi') is not False
+    return GARIS_TEPI and o.get('tepi') is not False
 
 
 # --------------------------------------------------------------------------- #
@@ -311,9 +315,6 @@ def draw_box(o):
     for idx, ne, nw, nz in tampak:
         poly([V(i) for i in idx], warnai_wajah(c, ne, nw, nz), g)
 
-    if not g:
-        return
-
     if sz > 0.02:
         for idx, ne, nw, nz in tampak:
             if nz != 0:
@@ -321,6 +322,7 @@ def draw_box(o):
             poly([V(i, 0.26) for i in idx],
                  gelapkan(warnai_wajah(c, ne, nw, nz), 0.28) or c['left'], False)
 
+    if sz > 0.02 and g:
         warna = terangkan(c['top'])
         if warna:
             for k in range(4):
