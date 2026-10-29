@@ -18,7 +18,7 @@ export interface Box { x0: number; y0: number; x1: number; y1: number }
 // nada sampai luma <= 55%, jadi tetap anggota 51 warna palet (bukan hitam rata).
 // ---------------------------------------------------------------------------
 const CAMPUR = 0.42        // 0 = tanpa garis, 1 = banyak tingkat turun
-const TEBAL_TEPI = 1       // 1 px internal = 2,25 px di tablet (cukup tipis)
+const TEBAL_TEPI = 2       // 2 px internal = 4,5 px di tablet (lebih tebal = retro)
 
 // Permintaan user ronde 39: outline YA (membatalkan ronde 19).
 const GARIS_TEPI = true
@@ -63,6 +63,18 @@ function poly(
   ctx.lineWidth = TEBAL_TEPI
   ctx.lineJoin = 'round'
   ctx.stroke()
+}
+
+/** luas (px layar) sebuah poligon — dipakai untuk memilih bidang yang cukup
+ *  besar agar pantas diberi tekstur bintik (objek kecil tidak perlu). */
+function luasPoli(pts: P[]): number {
+  let a = 0
+  for (let i = 0; i < pts.length; i++) {
+    const p = pts[i]
+    const q = pts[(i + 1) % pts.length]
+    a += p.x * q.y - q.x * p.y
+  }
+  return Math.abs(a) / 2
 }
 
 /** garis tepi objek — HIDUP lagi sejak ronde 39 (gaya referensi) */
@@ -178,6 +190,17 @@ export function drawBox(ctx: CanvasRenderingContext2D, o: SceneObject) {
     poly(ctx, f.idx.map(i => V(i)), warnaWajah(c, f.ne, f.nw, f.nz), g)
   }
 
+  // TEKSTUR BINTIK (ronde 40 — "rasa retronya masih kurang").
+  // Bidang yang cukup luas diberi bintik dither 14% warna nada lebih gelap.
+  // Dulu permukaan besar dicat rata -> terasa seperti 3D modern; pola bintik
+  // inilah yang membuatnya terbaca sebagai pixel-art 2.5D.
+  for (const f of tampak) {
+    const pts = f.idx.map(i => V(i))
+    if (luasPoli(pts) < 900) continue
+    const dasar = warnaWajah(c, f.ne, f.nw, f.nz)
+    poly(ctx, pts, polaDither(ctx, dasar, gelapkan(dasar, 0.16), 0.14), false)
+  }
+
   // PITA NADA: 26% kaki tiap sisi tegak digelapkan (menghilangkan kesan
   // "kotak dicat rata"). Ini SHADING, bukan outline -> tetap digambar walau
   // garis tepi dimatikan.
@@ -237,7 +260,7 @@ function warnaWajah(
 // diproyeksikan lewat px(), jadi hasilnya sama dengan renderer APK nanti
 // (lihat docs/04-KONTRAK-RENDERER.md §4a).
 // ---------------------------------------------------------------------------
-const SEGMEN = 24
+const SEGMEN = 12   // ronde 40: 12 segmen = silinder/bola terlihat 'kotak' (retro)
 
 /** titik alas (z = pos.z) & titik atas (z + size.z) untuk silinder/kerucut */
 function cincin(o: SceneObject) {

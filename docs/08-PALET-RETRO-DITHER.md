@@ -84,7 +84,7 @@ tinta(hex):
   hasil  = ramp[k]
 ```
 
-* Tebal **1 px internal** = 2,25 px di tablet.
+* Tebal **2 px internal** = 9 px di tablet (ronde 40; dulu 1 px).
 * Warna = `tinta()` dari warna isian, jadi tepi di atas krem tetap kecokelatan
   dan tepi di atas hijau tetap hijau gelap (tidak jadi hitam semua).
 * Dipasang di `prototype/src/iso/box.ts` (`poly(..., garis)`), silinder, kerucut,
@@ -132,13 +132,14 @@ matriks ambang (0..15)          level 25%          level 50%
  12  4 14  6                    X . X .            X . X .
   3 11  1  9                    . X . X            . X . X
  15  7 13  5                    X . X .            X . X .
-(tiap . / X = blok 2x2 piksel internal)
+(tiap . / X = blok SKALAxSKALA piksel internal)
 ```
 
 * `level` dibulatkan ke **1/16** -> pola sama di semua perangkat.
 * Satu sel matriks digambar sebagai **blok `SKALA`x`SKALA` piksel internal**.
-  `SKALA = 2` (pilihan user ronde 38: *tekstur kotaknya lebih kasar*) -> ubin
-  pola **8x8 piksel internal** = **18x18 px di layar** (kanvas diperbesar x2,25).
+  `SKALA = 3` (ronde 40 — "rasa retronya masih kurang berasa") -> ubin pola
+  **12x12 piksel internal** = **54x54 px di layar** (kanvas internal 568x355
+  diperbesar x4,5). Ronde 38-39 memakai `SKALA = 2` (8x8 internal).
   Nilai ini ada di `dither.ts` (`SKALA`) dan `render_scene.py` (`SKALA_DITHER`)
   dan **harus sama**.
 * Modul: `prototype/src/iso/dither.ts`

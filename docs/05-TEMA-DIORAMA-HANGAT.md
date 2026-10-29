@@ -80,7 +80,7 @@ offline & APK: `docs/04-palet.json` — dibuat dengan `node gen_palet.mjs` dan
 6. **Komposisi**: diorama digambar UTUH dalam bingkai (tepi papan & balok atas
    kelihatan), tidak dipotong tepi layar. Lihat §3.
 7. Semua tepi dibulatkan ke piksel dan alpha di-threshold (`crispify`) supaya
-   tetap pixel-art tajam saat diperbesar ×2,25 ke 2560×1600.
+   tetap pixel-art tajam saat diperbesar ×4,5 ke 2560×1600.
 
 ## 3. Komposisi otomatis (`fitToScene`)
 

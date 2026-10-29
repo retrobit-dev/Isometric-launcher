@@ -1,5 +1,5 @@
 {
-  "savedAt": "2026-10-29T10:50:50.517Z",
+  "savedAt": "2026-10-29T10:55:48.119Z",
   "scene": {
     "version": 1,
     "room": {
@@ -1713,7 +1713,7 @@
       "locked": true,
       "savedAt": "2026-10-29T09:19:22.575Z",
       "latarMigrasi": "latar-v1",
-      "updatedAt": "2026-10-29T10:50:50.517Z"
+      "updatedAt": "2026-10-29T10:55:48.119Z"
     }
   }
 }

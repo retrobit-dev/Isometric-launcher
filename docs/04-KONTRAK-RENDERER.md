@@ -81,11 +81,11 @@ Aturan wajib:
 
 ### Resolusi internal (2026-10-29)
 
-Kanvas internal naik dari **640×400** ke **1136×710** (`DENS = 1.775`) karena
+Kanvas internal **568×355** (`DENS = 0,8875 = 1,775 / PIKSEL 2`) — ronde 40 membagi dua kerapatan piksel supaya terasa retro; karena
 referensi user berukuran 1135×711: dulu 1 px referensi hanya 0,56 px kanvas
 sehingga detailnya hilang ~44%. Skala dunia tidak berubah (1 tile tetap 1
 tile, kini 56,8 px internal), jadi semua koordinat objek lama tetap sah.
-Final di tablet 2560×1600 = ×2,25.
+Final di tablet 2560×1600 = **×4,5** (satu piksel internal = 4,5 px layar).
 
 Wajib dieksekusi persis dalam urutan ini. Nomor tidak boleh ditukar.
 
@@ -321,7 +321,7 @@ Transform **hanya saat menggambar** (`ctx.save` → transform → gambar →
 | `putar` | `rotate(besar · 8° · s)` di titik tumpu |
 | `kedip` | bila `s < −0.55` objek **tidak digambar** (30% siklus) |
 
-`DENS = 1.775` (lihat §0 di bawah). `refleksi` (cermin warna kiri/kanan) tetap
+`DENS = 0,8875` (lihat §0 di bawah). `refleksi` (cermin warna kiri/kanan) tetap
 memakai transform yang sama; tidak ada lagi pantulan lantai.
 
 ## 4b-1. Langit dinamis (diperhalus 2026-10-29)

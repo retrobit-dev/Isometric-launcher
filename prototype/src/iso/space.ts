@@ -24,10 +24,16 @@ import { ROOM_FIXED } from '../scene/types'
 // 56,8 px internal, bukan 32 px. Jadi semua koordinat objek lama tetap sah,
 // tetapi detail sekecil ~0,02 tile (= 1 px) kini bisa digambar.
 // ---------------------------------------------------------------------------
-export const DENS = 1.775          // pengali kerapatan piksel
-export const IW = Math.round(640 * DENS)   // 1136
-export const IH = Math.round(400 * DENS)   // 710
-export const SCALE = 2560 / IW             // 2,25 (dulu 4)
+// RONDE 40 — "rasa retronya masih kurang berasa, masih terasa modern": ukuran
+// piksel diperbesar. Kanvas internal dibagi PIKSEL, lalu CSS memperbesarnya
+// kembali dengan `image-rendering: pixelated`, jadi di tablet satu piksel
+// internal = 4,5 px layar (dulu 2,25). Ini knob paling kuat untuk rasa retro;
+// set PIKSEL = 1 kalau ingin kembali ke versi halus 1136x710.
+export const PIKSEL = 2
+export const DENS = 1.775 / PIKSEL  // pengali kerapatan piksel (0,8875)
+export const IW = Math.round(640 * DENS)   // 568
+export const IH = Math.round(400 * DENS)   // 355
+export const SCALE = 2560 / IW             // 4,5 (dulu 2,25)
 
 export const TILE_W = 32 * DENS    // 56,8 px internal
 export const TILE_H = 16 * DENS    // 28,4

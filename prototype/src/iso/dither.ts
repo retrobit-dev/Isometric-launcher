@@ -31,7 +31,7 @@
  * 2x2 piksel internal (kasar / lebih kelihatan). Ubah di sini + di
  * `tools/render_scene.py` (`SKALA_DITHER`) supaya dua renderer tetap sama.
  */
-export const SKALA = 2
+export const SKALA = 3
 
 /** matriks ambang Bayer 4x4 (nilai 0..15) */
 export const BAYER4: readonly (readonly number[])[] = [

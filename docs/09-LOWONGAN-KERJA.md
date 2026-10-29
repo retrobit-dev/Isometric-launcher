@@ -26,13 +26,13 @@ Produk hibrida **aplikasi + game**, sehingga dua jalur dikembangkan paralel:
 
 | Parameter | Nilai pasti |
 | --- | --- |
-| Kanvas internal | **1136 × 710 px** (`640×400 × DENS 1,775`) |
-| Skala ke layar | **×2,25** (2560 / 1136) — integer-friendly upscale, tanpa interpolasi |
-| Tile isometrik | **2:1** · `TILE_W = 32 × 1,775 = 56,8 px` · `TILE_H = 16 × 1,775 = 28,4 px` |
-| Satuan tinggi (z) | `Z_PX = 16 × 1,775 = 28,4 px` per 1 unit z |
+| Kanvas internal | **568 × 355 px** (`640×400 × DENS 0,8875`) — dibagi `PIKSEL 2` agar piksel besar |
+| Skala ke layar | **×4,5** (2560 / 568) — upscale nearest, tanpa interpolasi |
+| Tile isometrik | **2:1** · `TILE_W = 32 × 0,8875 = 28,4 px` · `TILE_H = 16 × 0,8875 = 14,2 px` |
+| Satuan tinggi (z) | `Z_PX = 16 × 0,8875 = 14,2 px` per 1 unit z |
 | Palet | **51 warna tetap**, 10 tangga nada (ramp), *tidak boleh* ada warna di luar itu (kecuali latar `#000000` OLED dan overlay editor semi-transparan) |
 | Dithering | **Bayer 4×4**, satu sel = blok **2×2 px** internal → ubin pola 8×8 px internal = **18×18 px** di layar |
-| Outline | **1 px internal** (= 2,25 px layar), warna = versi gelap dari warna isi (`tinta()`), **bukan** hitam rata |
+| Outline | **2 px internal** (= 9 px layar), warna = versi gelap dari warna isi (`tinta()`), **bukan** hitam rata |
 | Rotasi objek | kelipatan **30°** · kamera orbit kelipatan **15°** |
 | Presisi data | langkah tombol editor **0,1**; nilai yang diketik **0,001** |
 | Skema scene | JSON `version: 1`, 71 objek saat ini, disimpan ke `/api/scene` + cadangan browser |
@@ -51,7 +51,7 @@ Berkas acuan yang akan dibaca kandidat pada hari pertama: `docs/01-KONVENSI-RUAN
 
 ### 1.1 Misi peran ini
 
-Menjaga agar **satu kanvas 1136×710** bisa menampilkan diorama isometrik yang penuh
+Menjaga agar **satu kanvas 568×355** bisa menampilkan diorama isometrik yang penuh
 objek, 60 fps stabil di tablet 120 Hz, hemat RAM sebagai launcher yang **selalu hidup
 di latar belakang**, sekaligus menjadi aplikasi Android sungguhan yang bisa dipilih
 sebagai **HOME / launcher bawaan**.
@@ -148,7 +148,7 @@ sebagai **HOME / launcher bawaan**.
 
 ### 1.4 Uji teknis (dikerjakan ≤ 3 hari, dibayar `[ISI TIM]`)
 
-Buat repo kecil: kanvas **1136×710**, grid isometrik 20×20, 200 kotak isometrik
+Buat repo kecil: kanvas **568×355**, grid isometrik 20×20, 200 kotak isometrik
 berwarna dari palet yang diberikan, garis tepi 1 px, satu gradasi langit ber-dither
 Bayer 4×4 (sel 2×2 px). Lalu:
 
@@ -178,7 +178,7 @@ yang enak disentuh di layar 8,8" 343 ppi.
      supaya bisa ditempel di koordinat `(e, w, z)` tanpa geser subpiksel.
    - Serahkan aset sebagai **spesifikasi yang bisa dirender kode**: nama bentuk
      (`balok`, `silinder`, `kerucut`, `bola`, `cakram`, `daun`, `profil`), ukuran
-     `e/w/z`, material/palet, plus PNG 1× dan 2,25× untuk pembanding.
+     `e/w/z`, material/palet, plus PNG 1× dan 4,5× untuk pembanding.
    - Sediakan template grid (Aseprite/Krita) dengan penanda tinggi z, garis alas,
      dan area bayangan.
 2. **Disiplin palet 51 warna**
@@ -192,7 +192,7 @@ yang enak disentuh di layar 8,8" 343 ppi.
    - Dinding **plester krem** (`#f1e1bb` teduh / `#f7f2cd` terang) dengan **rangka
      balok kayu** (`#5f3d28` / `#8a5a3a`), lantai **papan kayu terang + batu krem**.
    - Referensi: diorama rumah Tudor + desa jembatan batu (diberikan saat onboarding).
-   - Target rasa: **16-bit**, bukan "3D modern dengan filter pixel".
+   - Target rasa: **16-bit / 2.5D**, bukan render 3D modern yang diberi filter pixel.
 4. **UI/UX launcher**
    - Ikon set bergaya pixel (outline 1 px), **state lengkap**: normal / hover /
      tekan / aktif / nonaktif / terkunci. Ukuran gambar kecil tapi **area sentuh
@@ -209,7 +209,7 @@ yang enak disentuh di layar 8,8" 343 ppi.
    - Menjaga konsistensi bayangan (ambient occlusion) di kaki dinding & lantai.
 6. **Dokumentasi aset**
    - Lembar palet, lembar ikon + state, peta lapisan, dan "acceptance proof"
-     berupa render 1136×710 serta versi ×2,25 yang **cocok** dengan hasil
+     berupa render 568×355 serta versi ×4,5 yang **cocok** dengan hasil
      `tools/render_scene.py`.
 
 ### 2.3 Syarat keahlian teknis (konkret, bisa diuji)
@@ -245,23 +245,23 @@ yang enak disentuh di layar 8,8" 343 ppi.
 - Bisa menulis/membaca **JSON spesifikasi scene** dan memvalidasi hasilnya
   dengan renderer Python.
 - Bisa membuat animasi pixel (idle objek, awan, hujan) 2–6 frame, loop mulus.
-- Pengalaman game isometrik (SimCity-like / Stardew-like) atau diorama 3D
+- Pengalaman game isometrik (SimCity-like / Stardew-like) atau diorama 2.5D
   yang di-*render* jadi pixel.
 - Bisa memakai Git dan menyerahkan aset dalam struktur folder yang rapi.
 
 **Yang otomatis gugur**
 
-- Portofolio memakai gradien halus, glow, blur, atau "pixel filter" di atas 3D.
+- Portofolio memakai gradien halus, glow, blur, atau "pixel filter" di atas render 3D.
 - Aset tidak presisi grid (sudut 26,57° "kira-kira", tepi tidak jatuh di px bulat).
 - Hanya bisa UI modern flat/glassmorphism tanpa kemampuan pixel-art.
 
 ### 2.4 Uji teknis (≤ 3 hari, dibayar `[ISI TIM]`)
 
-Serahkan: (1) satu **mock diorama 1136×710** memakai palet 51 warna yang diberikan
+Serahkan: (1) satu **mock diorama 568×355** memakai palet 51 warna yang diberikan
 (dinding Tudor + lantai papan/batu + minimal 5 objek), (2) **6 ikon toolbar** × 4 state,
-(3) **peta lapisan** ruangan, (4) file `.aseprite`/`.krita` + PNG 1× & 2,25× + JSON
+(3) **peta lapisan** ruangan, (4) file `.aseprite`/`.krita` + PNG 1× & 4,5× + JSON
 spesifikasi. **Lulus bila**: tidak ada warna di luar palet, outline 1 px konsisten,
-alas objek tepat di grid 2:1, dan ikon tetap terbaca di 2,25×.
+alas objek tepat di grid 2:1, dan ikon tetap terbaca di 4,5×.
 
 ---
 
@@ -280,7 +280,7 @@ cara berpikir & komunikasi 20% · kerja sama lintas peran 10% · kemandirian Git
 
 **Pertanyaan penentu** (dipakai di tahap 2):
 
-- Peran 1: "Kanvas 1136×710 di-upscale ×2,25. Ada objek yang tepinya bergetar saat pan —
+- Peran 1: "Kanvas 568×355 di-upscale ×4,5. Ada objek yang tepinya bergetar saat pan —
   apa penyebab dan perbaikanmu?" · "Launcher-mu dibunuh sistem setelah 20 menit idle.
   Apa yang kamu ubah?" · "Kenapa renderer Python harus menghasilkan piksel identik
   dengan TS, dan bagaimana kamu menjaga dua implementasi tetap sinkron?"
@@ -312,7 +312,7 @@ bernilai daripada daftar teknologi.
 
 | Istilah | Arti di proyek ini |
 | --- | --- |
-| `DENS` | pengali kerapatan 1,775 (kanvas 640×400 → 1136×710) |
+| `DENS` | pengali kerapatan 0,8875 (= 1,775 / `PIKSEL 2`); kanvas 640×400 → 568×355 |
 | `e`, `w`, `z` | koordinat ruang: dua sumbu lantai + tinggi |
 | `LATAR` | objek/gambar paling belakang (bukan wallpaper OS) |
 | `underlay / main / overlay` | tiga lapis objek; `NAIKKAN`/`TURUNKAN` memindahkannya |

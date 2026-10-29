@@ -844,3 +844,107 @@ html, body, #root {
   color: #b08a6a;
   letter-spacing: 0.04em;
 }
+
+/* ===========================================================================
+   PIXEL UI — RONDE 40 (2026-10-29)
+   "rasa retronya masih kurang berasa, masih terasa modern. ganti semuanya"
+   ---------------------------------------------------------------------------
+   Prinsip gaya 8/16-bit:
+     • TIDAK ADA sudut membulat (kecuali bezel tablet & lensa kamera — itu
+       benda fisik, bukan UI);
+     • TIDAK ADA blur / backdrop-filter / gradasi halus;
+     • bayangan = blok keras (offset 2-4 px tanpa blur), bukan glow;
+     • tombol punya BEVEL piksel: sisi atas-kiri terang, bawah-kanan gelap,
+       dan saat ditekan bevel-nya terbalik (bukan animasi geser);
+     • semua teks monospace, huruf besar, tanpa anti-alias halus.
+   =========================================================================== */
+
+/* 1. geometri kotak: semua sudut tajam */
+button,
+input,
+select,
+.chip,
+.panel,
+.pbody,
+.phead,
+.prow,
+.sbtn,
+.tbtn,
+.toolbar,
+.list,
+.card,
+.tag,
+.badge,
+.swatch { border-radius: 0 !important; }
+
+/* 2. buang semua efek "kaca" modern */
+.glare { display: none; }
+.panel,
+.pbody,
+.toolbar,
+.chip {
+  backdrop-filter: none !important;
+  -webkit-backdrop-filter: none !important;
+}
+
+/* 3. bayangan keras (piksel), bukan blur */
+.panel {
+  box-shadow: 4px 4px 0 rgba(0, 0, 0, 0.55) !important;
+  border-width: 2px !important;
+}
+.chip,
+.toolbar {
+  box-shadow: 2px 2px 0 rgba(0, 0, 0, 0.55) !important;
+}
+
+/* 4. tipografi piksel */
+button,
+.sbtn,
+.tbtn,
+.chip,
+.label,
+.rl,
+.prowlabel,
+.prowmeta,
+.tag {
+  font-family: ui-monospace, 'Cascadia Mono', 'Courier New', monospace !important;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  -webkit-font-smoothing: none;
+}
+
+/* 5. bevel piksel pada tombol */
+.tbtn,
+.sbtn {
+  border-width: 2px !important;
+  box-shadow:
+    inset 2px 2px 0 rgba(255, 240, 210, 0.14),
+    inset -2px -2px 0 rgba(0, 0, 0, 0.55) !important;
+}
+.tbtn:active,
+.sbtn:active {
+  transform: none !important;
+  box-shadow:
+    inset -2px -2px 0 rgba(255, 240, 210, 0.10),
+    inset 2px 2px 0 rgba(0, 0, 0, 0.60) !important;
+}
+
+/* 6. batang judul panel: pita kotak-kotak khas UI 16-bit */
+.phead,
+.panel > .head {
+  background-image:
+    repeating-linear-gradient(
+      90deg,
+      rgba(255, 255, 255, 0.06) 0 2px,
+      rgba(0, 0, 0, 0) 2px 4px
+    ) !important;
+  border-bottom: 2px solid rgba(0, 0, 0, 0.55) !important;
+}
+
+/* 7. selektor angka & input: kotak tajam, teks monospace */
+input[type='number'],
+input[type='text'] {
+  border-width: 2px !important;
+  box-shadow: inset 2px 2px 0 rgba(0, 0, 0, 0.45) !important;
+  font-family: ui-monospace, 'Courier New', monospace !important;
+}

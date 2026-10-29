@@ -371,6 +371,9 @@ export function drawWallObjects(ctx: CanvasRenderingContext2D, objects: SceneObj
     //    makin teduh ke bawah. Pita keras = ciri pixel-art referensi, dan
     //    hasilnya sama di renderer mana pun (mudah ditiru renderer offline).
     kotak(0, 1, Z, 0, face)
+    // TEKSTUR PLESTER (ronde 40): bintik dither 12% menutup seluruh bidang.
+    // Tanpa ini bidang krem seluas 25 z terlihat seperti cat digital rata.
+    kotak(0, 1, Z, 0, polaBayang(ctx, face, 0.12))
     // batas pita nada dibuat BER-DITHER (ronde 38) supaya peralihan terang ->
     // teduh tidak berupa garis lurus yang keras: ciri pixel-art 16-bit.
     const nadaB = gelap(face, 1)

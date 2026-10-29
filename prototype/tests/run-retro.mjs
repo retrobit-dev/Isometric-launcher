@@ -70,7 +70,7 @@ try {
     /round\(t \* 16\)/.test(dither) && /round\(level \* 16\)/.test(py))
   const skalaTs = Number((dither.match(/export const SKALA = (\d+)/) || [])[1])
   const skalaPy = Number((py.match(/SKALA_DITHER = (\d+)/) || [])[1])
-  cek('skala sel pola 2x2 (diminta user: lebih kasar)', skalaTs === 2, String(skalaTs))
+  cek('skala sel pola 3x3 (ronde 40: makin kasar)', skalaTs === 3, String(skalaTs))
   cek('skala sel pola sama di TS & Python', skalaTs === skalaPy,
     `TS ${skalaTs} vs PY ${skalaPy}`)
 

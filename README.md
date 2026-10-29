@@ -6,7 +6,7 @@
 |---|---|
 | `docs/00-PRODUCT-PRD.md` | PRD produk |
 | `docs/01-KONVENSI-RUANG.md` | konvensi ruang & sumbu |
-| `docs/02-ARSITEKTUR-3D.md` | keputusan arsitektur 3D |
+| `docs/02-ARSITEKTUR-2.5D.md` | keputusan arsitektur 2.5D |
 | `docs/03-SCENE-SCHEMA.md` | skema `scene.json` + seluruh perilaku editor |
 | `docs/04-KONTRAK-RENDERER.md` | **kontrak renderer (normatif)** — web ⇄ APK |
 | `docs/04-palet.json` | tabel warna beku untuk APK |

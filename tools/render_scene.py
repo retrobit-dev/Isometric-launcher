@@ -37,7 +37,9 @@ WALL = PALET['dinding']
 BASE = PALET['warnaDasar']
 ASET = os.path.join(AKAR, 'prototype', 'public', 'aset')
 
-DENS = 1.775
+# RONDE 40: kanvas internal dibagi PIKSEL (cermin space.ts) -> piksel lebih besar
+PIKSEL = 2
+DENS = 1.775 / PIKSEL
 IW, IH = round(640 * DENS), round(400 * DENS)
 HW = 16 * DENS
 HH = HW / 2
@@ -47,7 +49,7 @@ YAW = float(os.environ.get('YAW', '0'))      # orbit kamera, kelipatan 15
 _Y = math.radians(YAW)
 _KOS = (math.cos(_Y), math.sin(_Y))
 TAU = math.pi * 2
-SEGMEN = 24
+SEGMEN = 12          # ronde 40: 12 segmen = bentuk lebih kotak (retro)
 INK = (0x4A, 0x1E, 0x0A)
 CAMPUR = 0.42
 SKALA = 1
@@ -209,7 +211,7 @@ def terang(warna, n=1):
 BAYER4 = [[0, 8, 2, 10], [12, 4, 14, 6], [3, 11, 1, 9], [15, 7, 13, 5]]
 # SKALA sel pola (cermin SKALA di iso/dither.ts): 2 = blok 2x2 piksel internal,
 # jadi tekstur kotaknya lebih kasar / lebih kelihatan.
-SKALA_DITHER = 2
+SKALA_DITHER = 3
 
 
 def ambang_bayer(x, y):
@@ -324,7 +326,7 @@ def terangkan(warna, f=0.30):
 # RONDE 39: outline DIPAKAI lagi (membatalkan ronde 19) — 1 px, warna =
 # versi gelap dari warna isian (`tinta`), seperti gambar referensi.
 GARIS_TEPI = True
-TEBAL_TEPI = 1
+TEBAL_TEPI = 2
 
 
 def poly(pts, warna, garis=True):
@@ -442,6 +444,23 @@ def draw_box(o):
 
     for idx, ne, nw, nz in tampak:
         poly([V(i) for i in idx], warnai_wajah(c, ne, nw, nz), g)
+
+    # TEKSTUR BINTIK (ronde 40, cermin box.ts): bidang luas diberi bintik
+    # dither 14% supaya tidak terasa "cat digital rata".
+    def _luas(pts):
+        a = 0.0
+        for i in range(len(pts)):
+            x1, y1 = pts[i]
+            x2, y2 = pts[(i + 1) % len(pts)]
+            a += x1 * y2 - x2 * y1
+        return abs(a) / 2
+
+    for idx, ne, nw, nz in tampak:
+        pts = [V(i) for i in idx]
+        if _luas(pts) < 900:
+            continue
+        dasar = warnai_wajah(c, ne, nw, nz)
+        poly(pts, dither(dasar, gelap(dasar, 1), 0.14), False)
 
     if sz > 0.02:
         for idx, ne, nw, nz in tampak:
@@ -1111,6 +1130,8 @@ def draw_wall(o):
         poly([at(t0, zA), at(t1, zA), at(t1, zB), at(t0, zB)], warna, False)
 
     kotak(0, 1, sz, 0, face)
+    # tekstur plester: bintik dither 12% (ronde 40, cermin room.ts)
+    kotak(0, 1, sz, 0, bayang(face, 0.12))
     # batas pita nada BER-DITHER (ronde 38, cermin room.ts)
     # PENTING: pakai gelap() (tangga nada palet), bukan gelapkan() — gelapkan()
     # adalah pembuat garis tepi (f >= 0,4 selalu jadi tinta gelap).
