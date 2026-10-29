@@ -59,7 +59,7 @@ Arah kamera di dunia: `(cosφ + sinφ, cosφ − sinφ, 1)`. Pada 0° hasilnya
 ## 5. Kendali di preview
 
 - tombol `⟲ 15°` / `15° ⟳` → putar satu langkah,
-- tombol `⟳ REFRESH` → kembali ke 0° + bingkai ulang seluruh diorama,
+- tombol `⟳ REFRESH` → kembali ke acuan: **0°, zoom ×1, pusat (0,0)**, bukan fit ulang diorama (2026-10-29),
 - chip koordinat menampilkan `kamera ×Z (e, w) · N°`.
 
 ## 6. Uji

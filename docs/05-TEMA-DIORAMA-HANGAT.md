@@ -54,8 +54,13 @@ offline & APK: `docs/04-palet.json` — dibuat dengan `node gen_palet.mjs` dan
 ## 3. Komposisi otomatis (`fitToScene`)
 
 Dulu kamera selalu ×1 di (0,0) sehingga yang terlihat hanya sudut ruangan.
-Sekarang, saat aplikasi dibuka dan saat tombol REFRESH ditekan, kamera
-menghitung sendiri dari isi scene:
+Sekarang, **saat aplikasi dibuka**, kamera menghitung sendiri dari isi scene.
+Tombol **⟳ REFRESH** tidak memakai cara ini lagi: sejak 2026-10-29 REFRESH
+mengembalikan kamera ke **acuan ×1 di (0,0)** (permintaan user), karena
+memanggil fit ulang saat kamera sudah ter-fit membuat tombol itu terasa
+"tidak berfungsi" — hasilnya identik dengan keadaan semula.
+
+Perhitungan saat dibuka:
 
 - kotak pembungkus semua objek → `de × dw` dan tinggi maksimum `zmax`;
 - `HW = min( IW·0,95/(de+dw), IH·0,95/((de+dw)/2 + zmax) )`;

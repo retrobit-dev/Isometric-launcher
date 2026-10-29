@@ -92,6 +92,21 @@ try {
   const batas = ((1 - 0.95) / 2) * Math.min(S.IW, S.IH) + 1
   cek('semua sudut 15°: isi tetap di dalam bingkai (margin 5%)', keluarTerburuk <= batas,
     `maks keluar ${keluarTerburuk.toFixed(1)} px (batas ${batas.toFixed(1)})`)
+  console.log('5. REFRESH = acuan ×1 di (0,0)')
+  // tombol REFRESH memanggil setYaw(0) + resetView(): zoom 1, pusat (0,0)
+  S.setZoom(2.5); S.setCenter(12, -7); S.setYaw(45)
+  S.setYaw(0); S.resetView()
+  cek('zoom kembali ×1', S.zoomValue() === 1, String(S.zoomValue()))
+  cek('pusat kamera (0,0)', S.CAM.CE === 0 && S.CAM.CW === 0, `${S.CAM.CE}, ${S.CAM.CW}`)
+  cek('sudut kembali 0°', S.yawValue() === 0, String(S.yawValue()))
+  // bukti tombol lama memang tidak berubah: fit diulang = hasil sama, sedangkan
+  // resetView menghasilkan komposisi lain (zoom bukan hasil fit).
+  const kubus = [{ pos: { e: -8, w: -8, z: 0 }, size: { e: 16, w: 16, z: 6 } }]
+  S.setYaw(0); S.fitToScene(kubus)
+  const qFit = S.zoomValue()
+  S.resetView()
+  cek('zoom acuan ×1 berbeda dari zoom hasil fit (dulu REFRESH = fit, jadi tampak tak berfungsi)',
+    S.zoomValue() === 1 && qFit !== 1, `fit ×${qFit} vs acuan ×1`)
 } finally {
   rmSync(tmp, { recursive: true, force: true })
 }

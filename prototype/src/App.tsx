@@ -1,7 +1,7 @@
 import { useEffect, useRef, useState } from 'react'
 import {
   CAM, IH, IW,
-  fitToScene, putarKamera, setCenter, setYaw, setZoom, unpx, yawBersih, yawValue, zoomValue, zoneName,
+  fitToScene, putarKamera, resetView, setCenter, setYaw, setZoom, unpx, yawBersih, yawValue, zoomValue, zoneName,
 } from './iso/space'
 import { drawScene } from './iso/room'
 import { bboxOf, sortedObjects } from './iso/box'
@@ -141,10 +141,14 @@ export default function App() {
     setHistVer(v => v + 1)
   }
 
-  // REFRESH: bingkai ulang diorama (seluruh ruangan masuk layar, di tengah)
+  // REFRESH: kembalikan kamera ke ACUAN ×1 di (0,0) — permintaan user 2026-10-29
+  // ("harusnya mengembalikan zoom dan kamera ke x1 (0.0)").
+  // Dulu tombol ini memanggil fitToScene(), padahal saat aplikasi dibuka kamera
+  // SUDAH di-fit ke seluruh diorama — hasil fit identik, jadi tombol terlihat
+  // tidak berfungsi. Sekarang: sudut 0°, zoom ×1, pusat tepat (0, 0).
   const refreshKamera = () => {
     setYaw(0) // kembali ke sudut acuan (grid 2:1 murni)
-    fitToScene(sceneRef.current.objects)
+    resetView()
     forceZoomLabel(v => v + 1)
   }
 
@@ -1051,7 +1055,7 @@ export default function App() {
                 </span>
                 <span>{`kamera ×${zoomValue()} (${CAM.CE.toFixed(3)}, ${CAM.CW.toFixed(3)}) · ${yawValue()}°`}</span>
                 {!yawBersih() && (
-                  <span className="warn" title="pada sudut selain 0/90/180/270, ubin tidak lagi 2:1 (nat jadi bertangga). Tombol REFRESH mengembalikan ke 0°.">
+                  <span className="warn" title="pada sudut selain 0/90/180/270, ubin tidak lagi 2:1 (nat jadi bertangga). Tombol REFRESH mengembalikan ke 0° dan zoom ×1 di (0,0).">
                     orbit {yawValue()}° — grid bukan 2:1
                   </span>
                 )}
@@ -1134,7 +1138,7 @@ export default function App() {
         <button
           className="tbtn"
           onClick={refreshKamera}
-          title="kembalikan kamera ke sudut acuan (0°) dan bingkai seluruh diorama"
+          title="kembalikan kamera ke acuan: sudut 0°, zoom ×1, pusat (0, 0)"
         >
           ⟳ REFRESH
         </button>
