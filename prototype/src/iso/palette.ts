@@ -1,25 +1,22 @@
 // ===========================================================================
-// TEMA "DIORAMA HANGAT" x PALET RETRO ENDESGA 32 — ronde 38 (2026-10-29)
+// TEMA "DIORAMA HANGAT" x PALET REFERENSI 51 WARNA — ronde 39 (2026-10-29)
 // ===========================================================================
-// Permintaan user: "untuk semuanya bisakah style nya dan palette warna nya
-// dibuat lebih ke arah retro pixel art?"  Pilihan user saat ditanya:
-//   ciri = DITHERING · palet = ENDESGA 32 · cakupan = SEMUA bagian.
+// Permintaan user: "Saya rasa masih terlihat terlalu modern, bisa buat seperti
+// referensi untuk Style dan warnanya?" + dua gambar diorama pixel-art
+// (rumah Tudor beratap bata, tanah mint, jalan batu krem, pohon hijau cerah).
 //
-// Jadi file ini sekarang DITULIS LANGSUNG dalam 32 warna Endesga (bukan lagi
-// hasil pembulatan 342 warna ronde 13 — pembulatan otomatis membuat banyak
-// nada melebur jadi satu warna, ruangan jadi rata). Nama material TIDAK
-// berubah supaya data scene/preset pengguna tetap sah.
+// Jawaban user: palet BARU dari referensi · outline DIPAKAI lagi (ronde 19
+// dicabut) · latar tetap HITAM OLED · dinding TUDOR (krem + balok kayu).
 //
-// ATURAN GAYA (yang membuat gambar terasa retro 16-bit):
-//   1. Keluarga warna tetap hangat (oranye–cokelat–krem); biru/ungu hanya
-//      untuk langit, kaca, dan aksen buku. Latar luar = HITAM OLED #000000.
-//   2. Tiap material punya TIGA nada dari SATU tangga warna Endesga:
-//      atas paling terang, lalu turun 1 langkah (kanan), turun 2 langkah (kiri)
-//      — cell-shading, bukan gradasi.
-//   3. Peralihan warna (lantai, dinding, langit) memakai DITHERING 4x4
-//      (iso/dither.ts), bukan campuran warna: campuran akan menghasilkan warna
-//      di luar 32 palet.
-//   4. Tanpa outline objek (permintaan ronde 19, masih berlaku).
+// Palet: 51 warna hasil ekstrak kedua gambar, disusun 10 tangga nada
+// (`palet-retro.ts`). Palet Endesga 32 (ronde 38) tidak dipakai lagi.
+//
+// ATURAN GAYA:
+//   1. Semua warna dari 51 warna palet; latar luar hitam OLED #000000.
+//   2. Tiap material 3 nada satu tangga: atas > kanan (1 turun) >= kiri (2 turun).
+//   3. Setiap balok diberi OUTLINE 1 px berwarna `tinta()` — versi gelap dari
+//      warna isinya (bukan hitam rata), seperti referensi.
+//   4. Peralihan nada memakai DITHERING Bayer 4x4 (iso/dither.ts).
 // ===========================================================================
 
 import { OLED, gelap as gelapPalet, kePalet as Q } from './palet-referensi'
@@ -44,40 +41,42 @@ function shade(hex: string, f: number): string {
 }
 
 export const PAL = {
-  void: OLED,            // luar ruangan: HITAM OLED murni #000000 (permintaan user 2026-10-29)
-  voidGlow: OLED,        // tidak dipakai lagi: OLED butuh hitam rata, bukan pendar
+  void: OLED,            // luar ruangan: HITAM OLED murni #000000 (permintaan user, tetap)
 
-  // dinding: muka teduh (DB/kiri) dan muka kena cahaya (DT/kanan)
-  wallB: '#b86f50',      // cokelat hangat (sisi teduh)
-  wallT: '#e4a672',      // tan kena cahaya (sisi terang)
-  wallHi: '#ead4aa',     // sorot krem di bagian atas muka dinding
-  trimB: '#733e39',      // plint kayu (sisi teduh)
-  trimT: '#b86f50',      // plint kayu (sisi cahaya)
-  seam: '#3e2731',       // pertemuan dua dinding (sudut dalam)
+  // DINDING TUDOR (ronde 39): plester krem + balok kayu gelap
+  wallB: '#dadab8',      // plester sisi teduh (DB/kiri)
+  wallT: '#f7f2cd',      // plester sisi kena cahaya (DT/kanan)
+  wallHi: '#fff9e3',     // sorot paling terang
+  trimB: '#5f3d28',      // balok kayu (sisi teduh)
+  trimT: '#8a5a3a',      // balok kayu (sisi cahaya)
+  seam: '#391d0b',       // pertemuan dua dinding (sudut dalam)
 
-  floorBase: '#d77643',  // ubin terakota (nada utama)
-  floorAlt: '#b86f50',   // ubin selang (nada teduh)
-  floorC: '#c28569',     // ubin selang (nada terang)
-  grout: '#733e39',      // nat ubin
+  // LANTAI BATU KREM seperti jalan di referensi
+  floorBase: '#dadab8',
+  floorAlt: '#c5c7a4',
+  floorC: '#f1e1bb',
+  grout: '#8e8a6d',      // nat batu
 
-  skirtL: '#733e39',     // tepi slab = deck papan (sisi teduh)
-  skirtR: '#3e2731',     // deck papan (sisi paling teduh)
-  deckSeam: '#3e2731',   // sambungan papan pada tepi slab
-  deckLight: '#e4a672',  // rim terang di bibir atas deck
+  // TEPI SLAB = papan kayu
+  skirtL: '#8a5a3a',
+  skirtR: '#5f3d28',
+  deckSeam: '#391d0b',
+  deckLight: '#c99b6a',
 
-  beam: '#733e39',       // balok kayu gelap (cornice)
-  beamTop: '#b86f50',    // bibir balok kena cahaya
-  beamDark: '#3e2731',   // bayangan di bawah balok
-  post: '#b86f50',       // tiang kayu
-  postLit: '#e4a672',    // tiang kena cahaya
-  peg: '#e8b796',        // pasak bulat
+  // BALOK & TIANG
+  beam: '#5f3d28',
+  beamTop: '#8a5a3a',
+  beamDark: '#391d0b',
+  post: '#8a5a3a',
+  postLit: '#a8764f',
+  peg: '#e4b98a',
 
   // --- lapisan bantu EDITOR (bukan karya: boleh semi-transparan) ---
-  hud: '#ead4aa',
-  ao: 'rgba(24,20,37,0.42)',
-  grid: 'rgba(139,155,180,0.35)',
-  zone: 'rgba(254,231,97,0.90)',
-  tinta: '#3e2731',
+  hud: '#f7f2cd',
+  ao: 'rgba(43,26,18,0.42)',
+  grid: 'rgba(142,138,109,0.45)',
+  zone: 'rgba(201,221,65,0.90)',
+  tinta: '#391d0b',
 } as const
 
 export interface Mat { top: string; left: string; right: string }
@@ -103,89 +102,89 @@ function M3(top: string, right: string, left: string): Mat {
 // ---------------------------------------------------------------------------
 export const MATERIALS: Record<string, Mat> = {
   // --- dasar ---
-  wood: M('#c28569'),
-  'wood-dark': M('#b86f50'),
-  metal: M('#feae34'),            // kuningan (oranye tua -> kuning)
-  paper: M('#ead4aa'),
-  teal: M('#2ce8f5'),             // satu-satunya nada dingin terang (kaca/potion)
-  cream: M('#e8b796'),
-  amber: M('#feae34'),
-  slate: M('#733e39'),
-  crimson: M('#e43b44'),
-  sage: M('#3e8948'),
-  'night-wood': M('#b86f50'),
-  board: M('#ead4aa'),            // papan tulis
-  cork: M('#c28569'),
-  'metal-light': M('#fee761'),
-  curtain: M('#e8b796'),
-  plant: M('#3e8948'),
-  terracotta: M('#d77643'),
-  'chair-dark': M('#3a4466'),     // kursi: biru-arang gelap (kontras di ruangan hangat)
-  'lamp-amber': M('#fee761'),
-  'book-red': M('#f6757a'),
-  'book-green': M('#63c74d'),
-  'book-blue': M('#5a6988'),
-  'paper-night': M('#ead4aa'),
+  wood: M('#c99b6a'),
+  'wood-dark': M('#8a5a3a'),
+  metal: M('#f0ce92'),            // kuningan hangat
+  paper: M('#fff9e3'),
+  teal: M('#a9f3f2'),             // kaca/potion (dingin terang)
+  cream: M('#f1e1bb'),
+  amber: M('#fdd792'),
+  slate: M('#8e8a6d'),
+  crimson: M('#ee734c'),
+  sage: M('#7ad46f'),
+  'night-wood': M('#a8764f'),
+  board: M('#f7f2cd'),            // papan tulis
+  cork: M('#c99b6a'),
+  'metal-light': M('#fdd792'),
+  curtain: M('#f1e1bb'),
+  plant: M('#4cb45c'),
+  terracotta: M('#ef9762'),
+  'chair-dark': M('#452d1e'),     // kursi: kayu sangat gelap
+  'lamp-amber': M('#fdd792'),
+  'book-red': M('#fb836b'),
+  'book-green': M('#a3ed75'),
+  'book-blue': M('#66b6cf'),
+  'paper-night': M('#fff9e3'),
 
-  // --- palet pastel (pilihan pengguna; kini versi retro-nya) ---
-  'pastel-mint': M3('#c0cbdc', '#8b9bb4', '#5a6988'),
-  'pastel-peach': M3('#e8b796', '#e4a672', '#c28569'),
-  'pastel-lavender': M3('#b55088', '#68386c', '#3a4466'),
-  'pastel-blue': M3('#c0cbdc', '#8b9bb4', '#5a6988'),
-  'pastel-butter': M3('#fee761', '#feae34', '#f77622'),
-  'pastel-rose': M3('#f6757a', '#e43b44', '#a22633'),
-  'pastel-sage': M3('#63c74d', '#3e8948', '#265c42'),
-  'pastel-clay': M3('#e4a672', '#c28569', '#b86f50'),
+  // --- palet pastel (pilihan pengguna; versi palet referensi) ---
+  'pastel-mint': M3('#cef4e5', '#8dd8a5', '#70c297'),
+  'pastel-peach': M3('#f0ce92', '#ef9762', '#d8894a'),
+  'pastel-lavender': M3('#a9e0ea', '#66b6cf', '#3f7fa3'),   // lavender -> biru pucat
+  'pastel-blue': M3('#a9e0ea', '#66b6cf', '#3f7fa3'),
+  'pastel-butter': M3('#fdd792', '#f0ce92', '#ef9762'),
+  'pastel-rose': M3('#fb836b', '#ee734c', '#c95b3f'),
+  'pastel-sage': M3('#a3ed75', '#7ad46f', '#4cb45c'),
+  'pastel-clay': M3('#e4b98a', '#c99b6a', '#a8764f'),
 
   // --- referensi ruang guru (nama dipakai katalog preset) ---
-  'kayu-terakota': M('#d77643'),
-  'kayu-tua': M('#b86f50'),
-  'tirai-putih': M('#ead4aa'),
-  'kaca-langit': M('#c0cbdc'),
-  'kaca-terang': M('#fee761'),
-  'daun-sage': M('#63c74d'),
-  'daun-gelap': M('#3e8948'),
-  'buku-biru': M('#0099db'),
-  'buku-lav': M('#b55088'),
-  'buku-salmon': M('#f6757a'),
-  'buku-krem': M('#ead4aa'),
-  'papan-krem': M('#ead4aa'),
-  'kertas-putih': M('#ffffff'),
-  'gabus-tanah': M('#d77643'),
-  'buku-bata': M('#e43b44'),
-  'buku-zaitun': M('#3e8948'),
+  'kayu-terakota': M('#c99b6a'),
+  'kayu-tua': M('#8a5a3a'),
+  'tirai-putih': M('#fff9e3'),
+  'kaca-langit': M('#a9e0ea'),
+  'kaca-terang': M('#fdd792'),
+  'daun-sage': M('#7ad46f'),
+  'daun-gelap': M('#4cb45c'),
+  'buku-biru': M('#66b6cf'),
+  'buku-lav': M('#70c297'),
+  'buku-salmon': M('#fb836b'),
+  'buku-krem': M('#f1e1bb'),
+  'papan-krem': M('#f7f2cd'),
+  'kertas-putih': M('#fff9e3'),
+  'gabus-tanah': M('#c99b6a'),
+  'buku-bata': M('#c95b3f'),
+  'buku-zaitun': M('#c9dd41'),
 
   // --- material tema hangat ---
-  jati: M('#b86f50'),
-  'jati-muda': M('#c28569'),
-  walnut: M('#733e39'),
-  bata: M('#d77643'),
-  lilin: M('#fee761'),
-  tembaga: M('#d77643'),
-  'kain-merah': M('#e43b44'),
-  'kaca-jendela': M('#fee761'),
+  jati: M('#8a5a3a'),
+  'jati-muda': M('#a8764f'),
+  walnut: M('#452d1e'),
+  bata: M('#c95b3f'),
+  lilin: M('#fdd792'),
+  tembaga: M('#ef9762'),
+  'kain-merah': M('#ee734c'),
+  'kaca-jendela': M('#fdd792'),
 
   // --- katalog 2026-10-29 ---
-  'papan-putih': M('#ffffff'),
-  perak: M('#c0cbdc'),
-  'perak-tua': M('#8b9bb4'),
-  'abu-tua': M('#3a4466'),
-  abu: M('#5a6988'),
-  'kayu-meja': M('#e4a672'),
-  'kayu-tepi': M('#c28569'),
-  'kayu-gelap': M('#b86f50'),
-  'buku-gelap': M('#3a4466'),
-  'buku-zaitun-tepi': M('#265c42'),
-  'kusen-putih': M('#ffffff'),
-  matahari: M('#fee761'),
-  'tirai-gorden': M('#e8b796'),
-  'tirai-lipat': M('#c28569'),
-  // awan: putih RATA dengan perut abu-terang (tanpa tangga 3 nada)
-  'pastel-awan': M3('#ffffff', '#c0cbdc', '#c0cbdc'),
-  zaitun: M('#3e8948'),
-  'zaitun-tua': M('#265c42'),
-  'krem-hangat': M('#e8b796'),
-  'terakota-muda': M('#d77643'),
+  'papan-putih': M('#fff9e3'),
+  perak: M('#dadab8'),
+  'perak-tua': M('#c5c7a4'),
+  'abu-tua': M3('#574d36', '#3d432a', '#2b1a12'),
+  abu: M3('#8e8a6d', '#574d36', '#3d432a'),
+  'kayu-meja': M('#e4b98a'),
+  'kayu-tepi': M('#c99b6a'),
+  'kayu-gelap': M('#8a5a3a'),
+  'buku-gelap': M3('#452d1e', '#391d0b', '#2b1a12'),
+  'buku-zaitun-tepi': M3('#566b32', '#3d432a', '#2b1a12'),
+  'kusen-putih': M('#f7f2cd'),
+  matahari: M('#fdd792'),
+  'tirai-gorden': M('#f1e1bb'),
+  'tirai-lipat': M('#dadab8'),
+  // awan: putih RATA dengan perut abu-krem
+  'pastel-awan': M3('#ffffff', '#f4fefb', '#f4fefb'),
+  zaitun: M('#c9dd41'),
+  'zaitun-tua': M3('#9aa84e', '#566b32', '#3d432a'),
+  'krem-hangat': M('#f1e1bb'),
+  'terakota-muda': M('#ef9762'),
 }
 
 // ---------------------------------------------------------------------------
@@ -203,41 +202,60 @@ export interface FloorMat {
 }
 
 export const FLOOR_MATERIALS: Record<string, FloorMat> = {
-  // ubin terakota: tiga nada oranye + nat cokelat tua
+  // ---- RONDE 39: LANTAI PAPAN + BATU seperti gambar referensi -------------
+  // Papan kayu terang (sama dengan badan rumah di referensi) dengan nat batu
+  // krem. Ini gaya lantai utama ruangan sekarang.
+  'lantai-papan-batu': {
+    pattern: 'papan',
+    tones: ['#c99b6a', '#e4b98a', '#c99b6a'],
+    grout: '#8a5a3a',
+    skirtL: '#8a5a3a',
+    skirtR: '#5f3d28',
+    plank: 4,
+  },
+  // ubin terakota: tiga nada oranye + nat kayu tua
   'lantai-terakota': {
     pattern: 'ubin',
-    tones: ['#d77643', '#be4a2f', '#c28569'],
-    grout: '#733e39',
+    tones: ['#ef9762', '#d8894a', '#c95b3f'],
+    grout: '#5f3d28',
+    skirtL: PAL.skirtL,
+    skirtR: PAL.skirtR,
+  },
+  // batu krem: jalan setapak di gambar desa referensi
+  'lantai-batu': {
+    pattern: 'ubin',
+    tones: ['#dadab8', '#c5c7a4', '#f1e1bb'],
+    grout: '#8e8a6d',
     skirtL: PAL.skirtL,
     skirtR: PAL.skirtR,
   },
   // kayu jati hangat (papan panjang selang-seling)
   'lantai-kayu': {
     pattern: 'papan',
-    tones: ['#b86f50', '#c28569', '#733e39'],
-    grout: '#3e2731',
+    tones: ['#c99b6a', '#e4b98a', '#8a5a3a'],
+    grout: '#5f3d28',
     skirtL: PAL.skirtL,
     skirtR: PAL.skirtR,
     plank: 4,
-    grain: '#3e2731',
+    grain: '#5f3d28',
   },
   'lantai-kayu-terang': {
     pattern: 'papan',
-    tones: ['#e4a672', '#c28569', '#e8b796'],
-    grout: '#b86f50',
-    skirtL: '#c28569',
-    skirtR: '#733e39',
+    tones: ['#e4b98a', '#c99b6a', '#a8764f'],
+    grout: '#8a5a3a',
+    skirtL: '#c99b6a',
+    skirtR: '#8a5a3a',
     plank: 4,
-    grain: '#b86f50',
+    grain: '#8a5a3a',
   },
   'lantai-kayu-gelap': {
     pattern: 'papan',
-    tones: ['#733e39', '#3e2731', '#b86f50'],
-    grout: '#181425',
-    skirtL: '#3e2731',
-    skirtR: '#181425',
+    tones: ['#8a5a3a', '#5f3d28', '#a8764f'],
+    grout: '#391d0b',
+    skirtL: '#5f3d28',
+    skirtR: '#391d0b',
     plank: 4,
-    grain: '#3e2731',
+    grain: '#391d0b',
   },
   'lantai-ubin': {
     pattern: 'ubin',
@@ -246,40 +264,40 @@ export const FLOOR_MATERIALS: Record<string, FloorMat> = {
     skirtL: PAL.skirtL,
     skirtR: PAL.skirtR,
   },
-  // --- palet pastel (versi retro Endesga) ---
+  // --- palet pastel (versi 51 warna referensi) ---
   'lantai-pastel-krem': {
     pattern: 'papan',
-    tones: ['#ead4aa', '#e8b796', '#e4a672'],
-    grout: '#c28569', skirtL: '#d77643', skirtR: '#b86f50', plank: 4, grain: '#c28569',
+    tones: ['#f1e1bb', '#e4b98a', '#c99b6a'],
+    grout: '#8a5a3a', skirtL: '#c99b6a', skirtR: '#8a5a3a', plank: 4, grain: '#8a5a3a',
   },
   'lantai-pastel-sakura': {
     pattern: 'papan',
-    tones: ['#f6757a', '#e43b44', '#b55088'],
-    grout: '#a22633', skirtL: '#e43b44', skirtR: '#a22633', plank: 4, grain: '#a22633',
+    tones: ['#fb836b', '#ee734c', '#c95b3f'],
+    grout: '#833422', skirtL: '#c95b3f', skirtR: '#a8412b', plank: 4, grain: '#833422',
   },
   'lantai-pastel-mint': {
     pattern: 'papan',
-    tones: ['#63c74d', '#3e8948', '#8b9bb4'],
-    grout: '#265c42', skirtL: '#3e8948', skirtR: '#265c42', plank: 4, grain: '#265c42',
+    tones: ['#7ad46f', '#4cb45c', '#2fa56e'],
+    grout: '#1c5e40', skirtL: '#4cb45c', skirtR: '#1c5e40', plank: 4, grain: '#1c5e40',
   },
   'lantai-pastel-lavender': {
     pattern: 'papan',
-    tones: ['#b55088', '#68386c', '#8b9bb4'],
-    grout: '#3a4466', skirtL: '#68386c', skirtR: '#3a4466', plank: 4, grain: '#3a4466',
+    tones: ['#a9e0ea', '#66b6cf', '#3f7fa3'],
+    grout: '#2e4a63', skirtL: '#66b6cf', skirtR: '#2e4a63', plank: 4, grain: '#2e4a63',
   },
   'lantai-pastel-biru': {
     pattern: 'papan',
-    tones: ['#c0cbdc', '#8b9bb4', '#5a6988'],
-    grout: '#3a4466', skirtL: '#8b9bb4', skirtR: '#5a6988', plank: 4, grain: '#5a6988',
+    tones: ['#a9e0ea', '#66b6cf', '#2b8fa8'],
+    grout: '#2e4a63', skirtL: '#66b6cf', skirtR: '#2b8fa8', plank: 4, grain: '#2e4a63',
   },
   'lantai-pastel-ijo': {
     pattern: 'papan',
-    tones: ['#63c74d', '#3e8948', '#265c42'],
-    grout: '#193c3e', skirtL: '#3e8948', skirtR: '#265c42', plank: 4, grain: '#265c42',
+    tones: ['#a3ed75', '#7ad46f', '#4cb45c'],
+    grout: '#1c5e40', skirtL: '#7ad46f', skirtR: '#1c5e40', plank: 4, grain: '#1c5e40',
   },
 }
 export const FLOOR_KEYS = Object.keys(FLOOR_MATERIALS)
-export const FLOOR_DEFAULT = 'lantai-terakota'
+export const FLOOR_DEFAULT = 'lantai-papan-batu'
 
 export function floorMat(name: unknown): FloorMat {
   return (typeof name === 'string' && FLOOR_MATERIALS[name]) || FLOOR_MATERIALS[FLOOR_DEFAULT]
@@ -317,25 +335,39 @@ export interface WallMat {
 }
 
 export const WALL_MATERIALS: Record<string, WallMat> = {
-  // tema utama: dinding tan hangat + plint jati
-  'dinding-hangat': { kiri: PAL.wallB, kanan: PAL.wallT, trimKiri: PAL.trimB, trimKanan: PAL.trimT },
-  'dinding-bata': { kiri: '#be4a2f', kanan: '#d77643', trimKiri: '#733e39', trimKanan: '#a22633' },
-  'dinding-kayu': { kiri: '#733e39', kanan: '#b86f50', trimKiri: '#3e2731', trimKanan: '#733e39' },
-  'dinding-krem': { kiri: '#e4a672', kanan: '#ead4aa', trimKiri: PAL.trimB, trimKanan: PAL.trimT },
-  'dinding-teal': { kiri: '#265c42', kanan: '#3e8948', trimKiri: '#193c3e', trimKanan: '#265c42' },
-  'dinding-kertas': { kiri: '#c28569', kanan: '#e8b796', trimKiri: PAL.trimB, trimKanan: PAL.trimT },
-  // nama lama dipertahankan agar data lama tetap sah
-  'dinding-navy': { kiri: '#3a4466', kanan: '#5a6988', trimKiri: '#262b44', trimKanan: '#3a4466' },
-  // --- dinding pastel (versi retro) ---
-  'dinding-pastel-krem': { kiri: '#e4a672', kanan: '#ead4aa', trimKiri: '#b86f50', trimKanan: '#c28569' },
-  'dinding-pastel-sakura': { kiri: '#e43b44', kanan: '#f6757a', trimKiri: '#a22633', trimKanan: '#e43b44' },
-  'dinding-pastel-mint': { kiri: '#3e8948', kanan: '#63c74d', trimKiri: '#265c42', trimKanan: '#3e8948' },
-  'dinding-pastel-lavender': { kiri: '#68386c', kanan: '#b55088', trimKiri: '#3a4466', trimKanan: '#68386c' },
-  'dinding-pastel-biru': { kiri: '#8b9bb4', kanan: '#c0cbdc', trimKiri: '#5a6988', trimKanan: '#8b9bb4' },
-  'dinding-pastel-kuning': { kiri: '#feae34', kanan: '#fee761', trimKiri: '#d77643', trimKanan: '#f77622' },
+  // ---- RONDE 39: DINDING TUDOR (permintaan user) ----
+  // Plester krem (#f7f2cd kena cahaya, #dadab8 teduh) + rangka balok kayu
+  // gelap (#5f3d28 / #452d1e) yang digambar `walls()` & `drawWallObjects()`.
+  'dinding-tudor': { kiri: '#f1e1bb', kanan: '#f7f2cd', trimKiri: '#5f3d28', trimKanan: '#8a5a3a' },
+  // tema lama
+  'dinding-hangat': { kiri: '#f1e1bb', kanan: '#f7f2cd', trimKiri: PAL.trimB, trimKanan: PAL.trimT },
+  'dinding-bata': { kiri: '#c95b3f', kanan: '#ee734c', trimKiri: '#833422', trimKanan: '#a8412b' },
+  'dinding-kayu': { kiri: '#8a5a3a', kanan: '#a8764f', trimKiri: '#391d0b', trimKanan: '#5f3d28' },
+  'dinding-krem': { kiri: '#e4b98a', kanan: '#f1e1bb', trimKiri: PAL.trimB, trimKanan: PAL.trimT },
+  'dinding-teal': { kiri: '#1b865f', kanan: '#2fa56e', trimKiri: '#0f4f42', trimKanan: '#1c5e40' },
+  'dinding-kertas': { kiri: '#c99b6a', kanan: '#e4b98a', trimKiri: PAL.trimB, trimKanan: PAL.trimT },
+  'dinding-navy': { kiri: '#2e4a63', kanan: '#3f7fa3', trimKiri: '#1a3121', trimKanan: '#2e4a63' },
+  // --- dinding pastel (versi 51 warna) ---
+  'dinding-pastel-krem': { kiri: '#e4b98a', kanan: '#f1e1bb', trimKiri: '#a8764f', trimKanan: '#c99b6a' },
+  'dinding-pastel-sakura': { kiri: '#ee734c', kanan: '#fb836b', trimKiri: '#a8412b', trimKanan: '#c95b3f' },
+  'dinding-pastel-mint': { kiri: '#4cb45c', kanan: '#7ad46f', trimKiri: '#1c5e40', trimKanan: '#2f8a52' },
+  'dinding-pastel-lavender': { kiri: '#66b6cf', kanan: '#a9e0ea', trimKiri: '#2e4a63', trimKanan: '#3f7fa3' },
+  'dinding-pastel-biru': { kiri: '#3f7fa3', kanan: '#66b6cf', trimKiri: '#2e4a63', trimKanan: '#3f7fa3' },
+  'dinding-pastel-kuning': { kiri: '#f0ce92', kanan: '#fdd792', trimKiri: '#d8894a', trimKanan: '#ef9762' },
 }
 export const WALL_KEYS = Object.keys(WALL_MATERIALS)
-export const WALL_DEFAULT = 'dinding-hangat'
+export const WALL_DEFAULT = 'dinding-tudor'
+
+/**
+ * RONDE 39: apakah dinding ini memakai gaya TUDOR (plester krem + rangka balok
+ * kayu)? Gaya bawaan (tanpa `style`) dan nama lama 'dinding-kiri'/'dinding-kanan'
+ * juga dianggap Tudor, karena tema ruangan sekarang Tudor.
+ */
+export function isTudor(style: unknown): boolean {
+  if (typeof style !== 'string' || !style) return true
+  if (style === 'dinding-kiri' || style === 'dinding-kanan') return true
+  return style === 'dinding-tudor'
+}
 
 // Semua style yang SAH untuk objek dinding: palet dinding dulu, lalu material balok.
 export const WALL_STYLE_KEYS = [...WALL_KEYS, ...Object.keys(MATERIALS)]
@@ -343,9 +375,9 @@ export const WALL_STYLE_KEYS = [...WALL_KEYS, ...Object.keys(MATERIALS)]
 // Style yang tidak dikenal TIDAK diam-diam jadi kayu: dipetakan ke PINK pekat
 // (#ff0044, anggota palet) supaya kesalahan data langsung terlihat di layar.
 export const UNKNOWN_STYLE = {
-  top: '#ff0044',
+  top: '#fb836b',        // warna paling mencolok di 51 palet (penanda bug data)
   left: GELAP_MAKS,
-  right: '#68386c',
+  right: '#2b1a12',
 }
 
 /** Warna muka + plint dinding untuk sebuah style & sisi. */

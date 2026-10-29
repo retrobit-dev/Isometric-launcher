@@ -618,7 +618,6 @@ export function validateScene(data: unknown): Scene | null {
         const op = normalOpasitas(ob.opasitas)
         return op >= 1 ? {} : { opasitas: op }
       })(),
-      ...(typeof ob.pantulan === 'boolean' ? { pantulan: ob.pantulan } : {}),
       ...(ob.polaRot === 1 ? { polaRot: 1 as const } : {}),
       ...(ob.role === 'lantai' || ob.role === 'dinding' ? { role: ob.role } : {}),
       ...(ob.side === 'kiri' || ob.side === 'kanan' ? { side: ob.side } : {}),

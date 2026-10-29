@@ -1,34 +1,51 @@
 // ===========================================================================
-// PALET RETRO — ENDESGA 32 (EDG32)
+// PALET REFERENSI — 51 warna (ronde 39, 2026-10-29)
 // ===========================================================================
-// Permintaan user 2026-10-29: "untuk semuanya bisakah style nya dan palette
-// warna nya dibuat lebih ke arah retro pixel art?" — pilihan user:
-//   • teknik  : DITHERING (pola kotak-kotak) untuk transisi warna
-//   • palet   : ENDESGA 32 (32 warna, gaya 16-bit)
-//   • cakupan : SEMUA bagian (ruangan, objek, langit/cuaca)
+// Permintaan user: "Saya rasa masih terlihat terlalu modern, bisa buat seperti
+// referensi untuk Style dan warnanya?" + dua gambar referensi diorama
+// pixel-art (rumah Tudor beratap bata, tanah mint bertitik, jalan batu krem,
+// pohon hijau cerah, air toska).
 //
-// CATATAN PENTING: pilihan palet ini MEMBATALKAN aturan ronde 13
-// ("untuk pallete warna gunakan referensi ini saja" = 342 warna). Sejak
-// sekarang keluaran warna = 32 warna Endesga di bawah. Palet referensi lama
-// tetap disimpan sebagai *niat desain* (grid 18 x 19 di palet-referensi.ts):
-// tiap warna di sana DIPETAKAN ke warna Endesga terdekat, jadi nama material
-// di palette.ts tidak perlu diubah dan file scene lama tetap terbaca.
+// Jawaban user saat ditanya:
+//   • palet   : PALET BARU dari kedua gambar referensi (bukan Endesga 32)
+//   • outline : DIPAKAI lagi (aturan ronde 19 "jangan beri outline" dicabut)
+//   • latar   : tetap HITAM OLED #000000 (aturan ronde 13 tidak dicabut)
+//   • dinding : Tudor — krem + balok kayu
 //
-// Kenapa 32 warna ini cocok untuk diorama hangat: keluarga cokelat/oranye/krem
-// lengkap (8 nada), hijau daun 4 nada, biru-langit 6 nada + sian 3 nada, plus
-// merah/ungu/pink sebagai aksen buku & bunga.
+// Palet ini diekstrak dari dua gambar itu (kuantisasi median-cut), lalu
+// disusun jadi 10 TANGGA NADA yang urut gelap -> terang. Tiap warna masuk tepat
+// satu tangga, jadi `gelap()`/`terang()` selalu bergerak dalam satu keluarga
+// warna (hue-shifted shading seperti referensi) dan tidak pernah mencampur
+// warna (campuran akan menghasilkan warna di luar palet).
+//
+// Ciri khas referensi yang sekarang dipakai:
+//   - latar mint + titik dither (untuk gambar referensi) TIDAK dipakai: layar
+//     tetap hitam OLED sesuai pilihan user;
+//   - outline 1 px di setiap objek, warnanya versi gelap dari warna isi
+//     (`tinta()`), bukan hitam rata;
+//   - tiga nada per material + bayangan bertangga dither Bayer 4x4.
 // ===========================================================================
 
-/** 32 warna Endesga (EDG32), urut sesuai palet aslinya. */
+/** 51 warna referensi, urut per keluarga. */
 export const PALET_RETRO: readonly string[] = [
-  '#be4a2f', '#d77643', '#ead4aa', '#e4a672',
-  '#b86f50', '#733e39', '#3e2731', '#a22633',
-  '#e43b44', '#f77622', '#feae34', '#fee761',
-  '#63c74d', '#3e8948', '#265c42', '#193c3e',
-  '#124e89', '#0099db', '#2ce8f5', '#ffffff',
-  '#c0cbdc', '#8b9bb4', '#5a6988', '#3a4466',
-  '#262b44', '#181425', '#ff0044', '#68386c',
-  '#b55088', '#f6757a', '#e8b796', '#c28569',
+  // kayu & outline umum
+  '#2b1a12', '#391d0b', '#452d1e', '#5f3d28', '#8a5a3a', '#a8764f', '#c99b6a', '#e4b98a',
+  // batu / krem / kertas
+  '#3d432a', '#574d36', '#8e8a6d', '#c5c7a4', '#dadab8', '#f1e1bb', '#f7f2cd', '#fff9e3',
+  // bata / merah
+  '#833422', '#a8412b', '#c95b3f', '#ee734c', '#fb836b',
+  // oranye / amber (cahaya lampu, matahari)
+  '#a05a2a', '#d8894a', '#ef9762', '#f0ce92', '#fdd792',
+  // hijau daun
+  '#1a3121', '#1c5e40', '#2f8a52', '#4cb45c', '#7ad46f', '#a3ed75',
+  // zaitun
+  '#566b32', '#9aa84e', '#c9dd41',
+  // mint / toska (batu toska, air, latar referensi)
+  '#0f4f42', '#1b865f', '#2fa56e', '#70c297', '#8dd8a5', '#befae4', '#cef4e5',
+  // langit & air
+  '#2e4a63', '#3f7fa3', '#66b6cf', '#a9e0ea', '#2b8fa8', '#51dce1', '#a9f3f2',
+  // putih
+  '#f4fefb', '#ffffff',
 ]
 
 export const SEMUA_RETRO: readonly string[] = PALET_RETRO
@@ -36,32 +53,49 @@ const SET_RETRO = new Set(PALET_RETRO)
 
 /**
  * TANGGA NADA (ramp) — dipakai `gelap()` / `terang()` supaya bayangan tetap
- * satu keluarga warna dan cuma bergeser 1 nada (ciri pixel-art), tidak
- * melompat ke warna lain. Tiap warna Endesga masuk tepat satu tangga, urut
- * dari GELAP ke TERANG.
+ * satu keluarga warna. Tiap warna palet masuk TEPAT SATU tangga, urut dari
+ * GELAP ke TERANG.
  */
 export const TANGGA: readonly (readonly string[])[] = [
-  // cokelat -> krem (kayu, dinding, lantai, kertas)
-  ['#3e2731', '#733e39', '#b86f50', '#c28569', '#e4a672', '#e8b796', '#ead4aa'],
-  // merah (buku, kain, lampu)
-  ['#a22633', '#e43b44', '#f6757a'],
-  // oranye -> kuning (cahaya, matahari, lampu, terakota)
-  ['#be4a2f', '#d77643', '#f77622', '#feae34', '#fee761'],
-  // hijau (daun, papan tulis hijau, zaitun)
-  ['#193c3e', '#265c42', '#3e8948', '#63c74d'],
-  // biru -> putih (langit, kaca, logam, kertas putih)
-  ['#181425', '#262b44', '#3a4466', '#5a6988', '#8b9bb4', '#c0cbdc', '#ffffff'],
-  // sian (langit cerah, hujan, kaca jendela)
-  ['#124e89', '#0099db', '#2ce8f5'],
-  // ungu (aksen buku & bunga)
-  ['#68386c', '#b55088'],
-  // pink pekat (aksen)
-  ['#ff0044'],
+  // kayu & outline umum (cokelat tua -> kayu terang)
+  ['#2b1a12', '#391d0b', '#452d1e', '#5f3d28', '#8a5a3a', '#a8764f', '#c99b6a', '#e4b98a'],
+  // batu / krem / kertas
+  ['#3d432a', '#574d36', '#8e8a6d', '#c5c7a4', '#dadab8', '#f1e1bb', '#f7f2cd', '#fff9e3'],
+  // bata / merah
+  ['#833422', '#a8412b', '#c95b3f', '#ee734c', '#fb836b'],
+  // oranye / amber
+  ['#a05a2a', '#d8894a', '#ef9762', '#f0ce92', '#fdd792'],
+  // hijau daun
+  ['#1a3121', '#1c5e40', '#2f8a52', '#4cb45c', '#7ad46f', '#a3ed75'],
+  // zaitun
+  ['#566b32', '#9aa84e', '#c9dd41'],
+  // mint / toska
+  ['#0f4f42', '#1b865f', '#2fa56e', '#70c297', '#8dd8a5', '#befae4', '#cef4e5'],
+  // langit
+  ['#2e4a63', '#3f7fa3', '#66b6cf', '#a9e0ea'],
+  // air
+  ['#2b8fa8', '#51dce1', '#a9f3f2'],
+  // putih
+  ['#f4fefb', '#ffffff'],
 ]
+
+/** Warna tergelap palet (outline & bayangan terdalam). */
+export const GELAP_MAKS = '#2b1a12'
+
+/**
+ * SKALA sel pola dither (cermin SKALA di iso/dither.ts): 2 = blok 2x2 piksel
+ * internal. Disimpan di sini hanya sebagai dokumentasi nilai yang disepakati.
+ */
+export const SKALA_POLA = 2
 
 function rgb(hex: string): [number, number, number] {
   const h = hex.replace('#', '')
   return [parseInt(h.slice(0, 2), 16), parseInt(h.slice(2, 4), 16), parseInt(h.slice(4, 6), 16)]
+}
+
+function luma(hex: string): number {
+  const [r, g, b] = rgb(hex)
+  return r * 0.299 + g * 0.587 + b * 0.114
 }
 
 /**
@@ -82,7 +116,7 @@ export function jarakWarna(a: string, b: string): number {
 const cache = new Map<string, string>()
 
 /**
- * Warna Endesga terdekat dari sembarang warna hex.
+ * Warna palet terdekat dari sembarang warna hex.
  * Warna yang SUDAH anggota palet dikembalikan apa adanya (tanpa pembulatan).
  */
 export function keRetro(hex: string): string {
@@ -101,17 +135,10 @@ export function keRetro(hex: string): string {
   return terbaik
 }
 
-/** true kalau warna ini anggota palet Endesga */
+/** true kalau warna ini anggota palet */
 export function diRetro(hex: string): boolean {
   return SET_RETRO.has(hex.toLowerCase())
 }
-
-/**
- * Warna "paling gelap" saat sebuah tangga sudah habis (ujung bawah).
- * Palet Endesga tidak punya hitam murni — `#181425` adalah nada tergelapnya
- * (dipakai juga sebagai bayangan terdalam ruangan).
- */
-export const GELAP_MAKS = '#181425'
 
 /** posisi warna di tangga nada: indeks tangga (0..) dan tingkat (0..) */
 export function tanggaDari(hex: string): { tangga: number; tingkat: number } {
@@ -141,4 +168,19 @@ export function lebihTerang(hex: string, n = 1): string {
   const { tangga, tingkat } = tanggaDari(hex)
   const i = Math.min(TANGGA[tangga].length - 1, tingkat + Math.max(0, Math.round(n)))
   return TANGGA[tangga][i]
+}
+
+/**
+ * TINTA OUTLINE — ciri paling khas referensi: tiap objek punya garis tepi
+ * tipis yang warnanya versi GELAP dari warna isi (bukan hitam rata).
+ * Cara: turun tangga sampai kecerahannya <= 55% kecerahaan asal, minimal 2
+ * langkah, mentok di nada tergelap.
+ */
+export function tinta(hex: string): string {
+  const c = keRetro(hex)
+  const { tangga, tingkat } = tanggaDari(c)
+  const target = luma(c) * 0.55
+  let k = Math.max(0, tingkat - 2)
+  while (k > 0 && luma(TANGGA[tangga][k]) > target) k--
+  return TANGGA[tangga][k]
 }

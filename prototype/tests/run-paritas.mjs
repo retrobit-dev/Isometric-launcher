@@ -11,7 +11,7 @@
 //   1. langitFase()        <-> fase_warna()        (6 pita + awan, 5 fase)
 //   2. efekCuaca().mendung <-> efek_cuaca()[4]     (mendung 5 cuaca)
 //   3. rencanaLangit()     <-> _rencana_langit()   (pita + 2 jalur dither)
-//   4. gelap()/terang()    <-> gelap()/terang()    (tangga nada 32 warna)
+//   4. gelap()/terang()    <-> gelap()/terang()    (tangga nada 51 warna)
 //   5. kePalet()           <-> ke_palet()          (warna terdekat redmean)
 import { execFileSync } from 'node:child_process'
 import { mkdtempSync, rmSync, writeFileSync } from 'node:fs'
@@ -127,8 +127,8 @@ print(json.dumps(hasil))
       tanggaSama = false; bedaTangga.push(`terang ${c}`)
     }
   }
-  cek('32 warna x 3 langkah x 2 arah identik', tanggaSama,
-    bedaTangga.slice(0, 4).join(',') || '192 hasil')
+  cek('51 warna x 3 langkah x 2 arah identik', tanggaSama,
+    bedaTangga.slice(0, 4).join(',') || `${R.SEMUA.length * 6} hasil`)
 
   console.log('5. pemetaan warna terdekat (redmean)')
   const tsPalet = LUAR_PALET.map(h => R.kePalet(h))

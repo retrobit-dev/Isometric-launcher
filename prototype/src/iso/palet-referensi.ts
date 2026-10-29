@@ -1,10 +1,10 @@
 // ===========================================================================
-// PALET RETRO "ENDESGA 32" — 2026-10-29 (ronde 38)
+// PALET REFERENSI 51 WARNA — 2026-10-29 (ronde 39)
 // ===========================================================================
 // Permintaan user: "untuk semuanya bisakah style nya dan palette warna nya
 // dibuat lebih ke arah retro pixel art?"  Pilihan user saat ditanya:
 //   • ciri khas : DITHERING (pola kotak-kotak untuk peralihan warna)
-//   • palet     : ENDESGA 32  -> 32 warna saja (gaya 16-bit)
+//   • palet     : PALET BARU hasil ekstrak dua gambar referensi (51 warna)
 //   • cakupan   : SEMUA bagian (ruangan, 4 preset objek, langit & cuaca)
 //
 // ⚠ ATURAN RONDE 13 DIBATALKAN OLEH USER DI RONDE 38.
@@ -39,6 +39,7 @@ import {
   lebihGelap,
   lebihTerang,
   tanggaDari,
+  tinta,
 } from './palet-retro'
 
 export {
@@ -52,6 +53,7 @@ export {
   lebihGelap,
   lebihTerang,
   tanggaDari,
+  tinta,
 }
 
 /**

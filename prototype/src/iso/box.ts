@@ -4,26 +4,24 @@ import { drawLangit, setDetik, type Bidang } from './langit'
 import type { SceneObject } from '../scene/types'
 
 import { gelap as gelapPalet, kePalet, terang as terangPalet, warna } from './palet-referensi'
+import { GELAP_MAKS, tinta } from './palet-retro'
 import { polaDither } from './dither'
 
 export interface Box { x0: number; y0: number; x1: number; y1: number }
 
 // ---------------------------------------------------------------------------
-// GARIS TEPI (outline) — permintaan user 2026-10-29 "identik dengan referensi".
-// Gambar referensi memberi garis tipis lebih gelap di tepi setiap bidang.
-// Warnanya diturunkan otomatis dari warna isi (dicampur ke arah tinta gelap),
-// jadi tidak perlu menambah warna baru ke palet.
+// GARIS TEPI (outline) — RONDE 39: DIPAKAI LAGI.
+// Ronde 19 user minta "jangan berikan outline untuk objek"; ronde 39 user
+// minta gaya seperti gambar referensi, dan di referensi SETIAP bidang punya
+// garis tepi 1 px yang lebih gelap dari isinya.
+// Warnanya = `tinta(isian)` dari palet-retro.ts: turun 2+ langkah di tangga
+// nada sampai luma <= 55%, jadi tetap anggota 51 warna palet (bukan hitam rata).
 // ---------------------------------------------------------------------------
-// Tinta gelap HANGAT (cokelat-marun) — diambil dari garis tepi pada gambar
-// referensi tema diorama. Tinta ungu dingin tidak dipakai lagi.
 const CAMPUR = 0.42        // 0 = tanpa garis, 1 = banyak tingkat turun
-const TEBAL_TEPI = 2       // piksel internal (resolusi naik 1,775x 2026-10-29)
+const TEBAL_TEPI = 1       // 1 px internal = 2,25 px di tablet (cukup tipis)
 
-// Permintaan user (2026-10-29): "jangan berikan outline untuk objek".
-// GARIS_TEPI = false -> TIDAK ADA stroke sama sekali pada objek: warna bidang
-// polos, hanya dibedakan oleh tangga nada (pita nada) antar wajah.
-// Field lama `tepi: true` di scene/preset diabaikan (tidak perlu migrasi data).
-const GARIS_TEPI = false
+// Permintaan user ronde 39: outline YA (membatalkan ronde 19).
+const GARIS_TEPI = true
 
 /**
  * GARIS TEPI & SHADING — 2026-10-29
@@ -32,14 +30,12 @@ const GARIS_TEPI = false
  * pada palet referensi 16x12, jadi SEMUA warna tetap anggota palet dan
  * bayangannya bergaya cell-shading (tangga, bukan gradasi).
  */
-/** tinta garis tepi: cokelat sangat tua dari palet (bukan warna turunan) */
-const TINTA = warna(17, 18)   // #341b10
+/** tinta garis tepi cadangan (pola dither / gradien tidak punya warna isian) */
+const TINTA = GELAP_MAKS   // #2b1a12
 
 function gelapkan(warna: string, f = CAMPUR): string {
-  // f >= 0.4 dipakai oleh GARIS TEPI: selalu tinta gelap yang sama, supaya
-  // tepi tetap terbaca di atas bidang terang maupun gelap (dan tidak pernah
-  // berubah jadi pink/salmon seperti saat memakai "turun 2 tingkat").
-  if (f >= 0.4) return TINTA
+  // f >= 0.4 dipakai oleh GARIS TEPI: tinta = versi gelap dari warna isian.
+  if (f >= 0.4) return tinta(warna)
   return gelapPalet(kePalet(warna), Math.max(1, Math.round(f * 5)))
 }
 
@@ -62,14 +58,15 @@ function poly(
   ctx.closePath()
   ctx.fill()
   if (!garis || !GARIS_TEPI) return
-  ctx.strokeStyle = typeof color === 'string' ? gelapkan(color) : TINTA
+  const warnaTepi = typeof color === 'string' ? tinta(color) : TINTA
+  ctx.strokeStyle = warnaTepi
   ctx.lineWidth = TEBAL_TEPI
   ctx.lineJoin = 'round'
   ctx.stroke()
 }
 
-/** garis tepi objek — MATI total sejak permintaan "jangan berikan outline" */
-function tepiOf(o: SceneObject): boolean {
+/** garis tepi objek — HIDUP lagi sejak ronde 39 (gaya referensi) */
+export function tepiOf(o: SceneObject): boolean {
   return GARIS_TEPI && o.tepi !== false
 }
 

@@ -58,10 +58,14 @@ try {
     'perak', 'perak-tua', 'buku-gelap', 'zaitun-tua', 'buku-zaitun-tepi', 'kusen-putih',
     'papan-putih', 'kertas-putih',
   ]
+  // RONDE 39: palet referensi memang punya hijau/zaitun yang kanal birunya
+  // sedikit di atas merah. "Dingin" sekarang = BIRU benar-benar mendominasi
+  // (kanal biru paling tinggi), bukan sekadar b > r.
   const dingin = Object.entries(P.MATERIALS).filter(([k, m]) => {
     if (k.startsWith('pastel-') || DINGIN_SAH.includes(k)) return false
     const n = parseInt(m.top.slice(1), 16)
-    return (n & 255) > ((n >> 16 & 255) + 10)   // biru > merah = dingin
+    const r = (n >> 16) & 255, g = (n >> 8) & 255, b = n & 255
+    return b > r + 10 && b > g + 10
   })
   cek('material tema tidak kebiruan', dingin.length === 0, dingin.map(([k]) => k).join(','))
 
@@ -77,8 +81,8 @@ try {
     !['ubin', 'papan'].includes(f.pattern) || f.tones.length !== 3
     || !f.tones.every(t => HEX.test(t)) || !HEX.test(f.grout))
   cek('semua lantai sah', lantaiBuruk.length === 0, lantaiBuruk.map(([k]) => k).join(','))
-  cek('lantai bawaan terakota', P.FLOOR_DEFAULT === 'lantai-terakota', P.FLOOR_DEFAULT)
-  cek('dinding bawaan hangat', P.WALL_DEFAULT === 'dinding-hangat', P.WALL_DEFAULT)
+  cek('lantai bawaan papan-batu', P.FLOOR_DEFAULT === 'lantai-papan-batu', P.FLOOR_DEFAULT)
+  cek('dinding bawaan Tudor', P.WALL_DEFAULT === 'dinding-tudor', P.WALL_DEFAULT)
 
   console.log('5. docs/04-palet.json = palette.ts')
   const json = JSON.parse(readFileSync('../docs/04-palet.json', 'utf8'))

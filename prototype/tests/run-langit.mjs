@@ -31,7 +31,7 @@ const bangun = (entri, nama) => {
 try {
   const L = await bangun('src/iso/langit.ts', 'langit.mjs')
   const R = await bangun('src/iso/palet-referensi.ts', 'palet.mjs')
-  const palet = new Set(R.PALET_REF.flat())
+  const palet = new Set(R.SEMUA)   // 51 warna referensi (ronde 39)
 
   console.log('1. fase waktu dari jam perangkat')
   const harap = [
@@ -48,7 +48,7 @@ try {
   cek('jam di luar 0..24 tetap dinormalkan', L.faseDariJam(25.5) === L.faseDariJam(1.5),
     `${L.faseDariJam(25.5)}`)
 
-  console.log('2. semua warna langit dari palet Endesga 32')
+  console.log('2. semua warna langit dari palet 51 warna')
   const fase = ['fajar', 'pagi', 'siang', 'senja', 'malam']
   let semuaPalet = true
   const detailBuruk = []
@@ -83,7 +83,7 @@ try {
     rencana.dither.every((d, i) => d.level === (i % 2 === 0 ? 0.25 : 0.75)))
   cek('semua jalur berada di dalam kaca (v 0..1)',
     rencana.dither.every(d => d.v0 >= 0 && d.v1 <= 1 && d.v0 < d.v1))
-  cek('semua warna pita + dither ada di palet Endesga',
+  cek('semua warna pita + dither ada di palet referensi',
     [...rencana.pita.map(b => b.warna), ...rencana.dither.flatMap(d => [d.a, d.b])]
       .every(h => palet.has(h)))
   const mint = L.rencanaLangit(['#000000', '#ffffff'])

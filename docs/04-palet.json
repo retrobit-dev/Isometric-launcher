@@ -1,630 +1,658 @@
 {
  "versi": 4,
  "dibuat": "2026-10-29",
- "tema": "ENDESGA 32 (retro 16-bit) · dithering Bayer 4x4 · latar hitam OLED",
- "sumberReferensi": "Endesga 32 palette (EDG32) — 32 warna; aturan \"342 warna\" ronde 13 dibatalkan user di ronde 38",
+ "tema": "PALET REFERENSI 51 WARNA (diorama Tudor) · outline 1px · dithering Bayer 4x4 · latar hitam OLED",
+ "sumberReferensi": "51 warna hasil ekstrak dua gambar referensi diorama (ronde 39); Endesga 32 (ronde 38) tidak dipakai lagi",
  "warnaDasar": {
   "void": "#000000",
-  "voidGlow": "#000000",
-  "wallB": "#b86f50",
-  "wallT": "#e4a672",
-  "wallHi": "#ead4aa",
-  "trimB": "#733e39",
-  "trimT": "#b86f50",
-  "seam": "#3e2731",
-  "floorBase": "#d77643",
-  "floorAlt": "#b86f50",
-  "floorC": "#c28569",
-  "grout": "#733e39",
-  "skirtL": "#733e39",
-  "skirtR": "#3e2731",
-  "deckSeam": "#3e2731",
-  "deckLight": "#e4a672",
-  "beam": "#733e39",
-  "beamTop": "#b86f50",
-  "beamDark": "#3e2731",
-  "post": "#b86f50",
-  "postLit": "#e4a672",
-  "peg": "#e8b796",
-  "hud": "#ead4aa",
-  "ao": "rgba(24,20,37,0.42)",
-  "grid": "rgba(139,155,180,0.35)",
-  "zone": "rgba(254,231,97,0.90)",
-  "tinta": "#3e2731"
+  "wallB": "#dadab8",
+  "wallT": "#f7f2cd",
+  "wallHi": "#fff9e3",
+  "trimB": "#5f3d28",
+  "trimT": "#8a5a3a",
+  "seam": "#391d0b",
+  "floorBase": "#dadab8",
+  "floorAlt": "#c5c7a4",
+  "floorC": "#f1e1bb",
+  "grout": "#8e8a6d",
+  "skirtL": "#8a5a3a",
+  "skirtR": "#5f3d28",
+  "deckSeam": "#391d0b",
+  "deckLight": "#c99b6a",
+  "beam": "#5f3d28",
+  "beamTop": "#8a5a3a",
+  "beamDark": "#391d0b",
+  "post": "#8a5a3a",
+  "postLit": "#a8764f",
+  "peg": "#e4b98a",
+  "hud": "#f7f2cd",
+  "ao": "rgba(43,26,18,0.42)",
+  "grid": "rgba(142,138,109,0.45)",
+  "zone": "rgba(201,221,65,0.90)",
+  "tinta": "#391d0b"
  },
  "materi": {
   "wood": {
-   "top": "#c28569",
-   "left": "#733e39",
-   "right": "#b86f50"
+   "top": "#c99b6a",
+   "left": "#8a5a3a",
+   "right": "#a8764f"
   },
   "wood-dark": {
-   "top": "#b86f50",
-   "left": "#3e2731",
-   "right": "#733e39"
+   "top": "#8a5a3a",
+   "left": "#452d1e",
+   "right": "#5f3d28"
   },
   "metal": {
-   "top": "#feae34",
-   "left": "#d77643",
-   "right": "#f77622"
+   "top": "#f0ce92",
+   "left": "#d8894a",
+   "right": "#ef9762"
   },
   "paper": {
-   "top": "#ead4aa",
-   "left": "#e4a672",
-   "right": "#e8b796"
+   "top": "#fff9e3",
+   "left": "#f1e1bb",
+   "right": "#f7f2cd"
   },
   "teal": {
-   "top": "#2ce8f5",
-   "left": "#124e89",
-   "right": "#0099db"
+   "top": "#a9f3f2",
+   "left": "#2b8fa8",
+   "right": "#51dce1"
   },
   "cream": {
-   "top": "#e8b796",
-   "left": "#c28569",
-   "right": "#e4a672"
+   "top": "#f1e1bb",
+   "left": "#c5c7a4",
+   "right": "#dadab8"
   },
   "amber": {
-   "top": "#feae34",
-   "left": "#d77643",
-   "right": "#f77622"
+   "top": "#fdd792",
+   "left": "#ef9762",
+   "right": "#f0ce92"
   },
   "slate": {
-   "top": "#733e39",
-   "left": "#181425",
-   "right": "#3e2731"
+   "top": "#8e8a6d",
+   "left": "#3d432a",
+   "right": "#574d36"
   },
   "crimson": {
-   "top": "#e43b44",
-   "left": "#181425",
-   "right": "#a22633"
+   "top": "#ee734c",
+   "left": "#a8412b",
+   "right": "#c95b3f"
   },
   "sage": {
-   "top": "#3e8948",
-   "left": "#193c3e",
-   "right": "#265c42"
+   "top": "#7ad46f",
+   "left": "#2f8a52",
+   "right": "#4cb45c"
   },
   "night-wood": {
-   "top": "#b86f50",
-   "left": "#3e2731",
-   "right": "#733e39"
+   "top": "#a8764f",
+   "left": "#5f3d28",
+   "right": "#8a5a3a"
   },
   "board": {
-   "top": "#ead4aa",
-   "left": "#e4a672",
-   "right": "#e8b796"
+   "top": "#f7f2cd",
+   "left": "#dadab8",
+   "right": "#f1e1bb"
   },
   "cork": {
-   "top": "#c28569",
-   "left": "#733e39",
-   "right": "#b86f50"
+   "top": "#c99b6a",
+   "left": "#8a5a3a",
+   "right": "#a8764f"
   },
   "metal-light": {
-   "top": "#fee761",
-   "left": "#f77622",
-   "right": "#feae34"
+   "top": "#fdd792",
+   "left": "#ef9762",
+   "right": "#f0ce92"
   },
   "curtain": {
-   "top": "#e8b796",
-   "left": "#c28569",
-   "right": "#e4a672"
+   "top": "#f1e1bb",
+   "left": "#c5c7a4",
+   "right": "#dadab8"
   },
   "plant": {
-   "top": "#3e8948",
-   "left": "#193c3e",
-   "right": "#265c42"
+   "top": "#4cb45c",
+   "left": "#1c5e40",
+   "right": "#2f8a52"
   },
   "terracotta": {
-   "top": "#d77643",
-   "left": "#181425",
-   "right": "#be4a2f"
+   "top": "#ef9762",
+   "left": "#a05a2a",
+   "right": "#d8894a"
   },
   "chair-dark": {
-   "top": "#3a4466",
-   "left": "#181425",
-   "right": "#262b44"
+   "top": "#452d1e",
+   "left": "#2b1a12",
+   "right": "#391d0b"
   },
   "lamp-amber": {
-   "top": "#fee761",
-   "left": "#f77622",
-   "right": "#feae34"
+   "top": "#fdd792",
+   "left": "#ef9762",
+   "right": "#f0ce92"
   },
   "book-red": {
-   "top": "#f6757a",
-   "left": "#a22633",
-   "right": "#e43b44"
+   "top": "#fb836b",
+   "left": "#c95b3f",
+   "right": "#ee734c"
   },
   "book-green": {
-   "top": "#63c74d",
-   "left": "#265c42",
-   "right": "#3e8948"
+   "top": "#a3ed75",
+   "left": "#4cb45c",
+   "right": "#7ad46f"
   },
   "book-blue": {
-   "top": "#5a6988",
-   "left": "#262b44",
-   "right": "#3a4466"
+   "top": "#66b6cf",
+   "left": "#2e4a63",
+   "right": "#3f7fa3"
   },
   "paper-night": {
-   "top": "#ead4aa",
-   "left": "#e4a672",
-   "right": "#e8b796"
+   "top": "#fff9e3",
+   "left": "#f1e1bb",
+   "right": "#f7f2cd"
   },
   "pastel-mint": {
-   "top": "#c0cbdc",
-   "right": "#8b9bb4",
-   "left": "#5a6988"
+   "top": "#cef4e5",
+   "right": "#8dd8a5",
+   "left": "#70c297"
   },
   "pastel-peach": {
-   "top": "#e8b796",
-   "right": "#e4a672",
-   "left": "#c28569"
+   "top": "#f0ce92",
+   "right": "#ef9762",
+   "left": "#d8894a"
   },
   "pastel-lavender": {
-   "top": "#b55088",
-   "right": "#68386c",
-   "left": "#3a4466"
+   "top": "#a9e0ea",
+   "right": "#66b6cf",
+   "left": "#3f7fa3"
   },
   "pastel-blue": {
-   "top": "#c0cbdc",
-   "right": "#8b9bb4",
-   "left": "#5a6988"
+   "top": "#a9e0ea",
+   "right": "#66b6cf",
+   "left": "#3f7fa3"
   },
   "pastel-butter": {
-   "top": "#fee761",
-   "right": "#feae34",
-   "left": "#f77622"
+   "top": "#fdd792",
+   "right": "#f0ce92",
+   "left": "#ef9762"
   },
   "pastel-rose": {
-   "top": "#f6757a",
-   "right": "#e43b44",
-   "left": "#a22633"
+   "top": "#fb836b",
+   "right": "#ee734c",
+   "left": "#c95b3f"
   },
   "pastel-sage": {
-   "top": "#63c74d",
-   "right": "#3e8948",
-   "left": "#265c42"
+   "top": "#a3ed75",
+   "right": "#7ad46f",
+   "left": "#4cb45c"
   },
   "pastel-clay": {
-   "top": "#e4a672",
-   "right": "#c28569",
-   "left": "#b86f50"
+   "top": "#e4b98a",
+   "right": "#c99b6a",
+   "left": "#a8764f"
   },
   "kayu-terakota": {
-   "top": "#d77643",
-   "left": "#181425",
-   "right": "#be4a2f"
+   "top": "#c99b6a",
+   "left": "#8a5a3a",
+   "right": "#a8764f"
   },
   "kayu-tua": {
-   "top": "#b86f50",
-   "left": "#3e2731",
-   "right": "#733e39"
+   "top": "#8a5a3a",
+   "left": "#452d1e",
+   "right": "#5f3d28"
   },
   "tirai-putih": {
-   "top": "#ead4aa",
-   "left": "#e4a672",
-   "right": "#e8b796"
+   "top": "#fff9e3",
+   "left": "#f1e1bb",
+   "right": "#f7f2cd"
   },
   "kaca-langit": {
-   "top": "#c0cbdc",
-   "left": "#5a6988",
-   "right": "#8b9bb4"
+   "top": "#a9e0ea",
+   "left": "#3f7fa3",
+   "right": "#66b6cf"
   },
   "kaca-terang": {
-   "top": "#fee761",
-   "left": "#f77622",
-   "right": "#feae34"
+   "top": "#fdd792",
+   "left": "#ef9762",
+   "right": "#f0ce92"
   },
   "daun-sage": {
-   "top": "#63c74d",
-   "left": "#265c42",
-   "right": "#3e8948"
+   "top": "#7ad46f",
+   "left": "#2f8a52",
+   "right": "#4cb45c"
   },
   "daun-gelap": {
-   "top": "#3e8948",
-   "left": "#193c3e",
-   "right": "#265c42"
+   "top": "#4cb45c",
+   "left": "#1c5e40",
+   "right": "#2f8a52"
   },
   "buku-biru": {
-   "top": "#0099db",
-   "left": "#181425",
-   "right": "#124e89"
+   "top": "#66b6cf",
+   "left": "#2e4a63",
+   "right": "#3f7fa3"
   },
   "buku-lav": {
-   "top": "#b55088",
-   "left": "#181425",
-   "right": "#68386c"
+   "top": "#70c297",
+   "left": "#1b865f",
+   "right": "#2fa56e"
   },
   "buku-salmon": {
-   "top": "#f6757a",
-   "left": "#a22633",
-   "right": "#e43b44"
+   "top": "#fb836b",
+   "left": "#c95b3f",
+   "right": "#ee734c"
   },
   "buku-krem": {
-   "top": "#ead4aa",
-   "left": "#e4a672",
-   "right": "#e8b796"
+   "top": "#f1e1bb",
+   "left": "#c5c7a4",
+   "right": "#dadab8"
   },
   "papan-krem": {
-   "top": "#ead4aa",
-   "left": "#e4a672",
-   "right": "#e8b796"
+   "top": "#f7f2cd",
+   "left": "#dadab8",
+   "right": "#f1e1bb"
   },
   "kertas-putih": {
-   "top": "#ffffff",
-   "left": "#8b9bb4",
-   "right": "#c0cbdc"
+   "top": "#fff9e3",
+   "left": "#f1e1bb",
+   "right": "#f7f2cd"
   },
   "gabus-tanah": {
-   "top": "#d77643",
-   "left": "#181425",
-   "right": "#be4a2f"
+   "top": "#c99b6a",
+   "left": "#8a5a3a",
+   "right": "#a8764f"
   },
   "buku-bata": {
-   "top": "#e43b44",
-   "left": "#181425",
-   "right": "#a22633"
+   "top": "#c95b3f",
+   "left": "#833422",
+   "right": "#a8412b"
   },
   "buku-zaitun": {
-   "top": "#3e8948",
-   "left": "#193c3e",
-   "right": "#265c42"
+   "top": "#c9dd41",
+   "left": "#566b32",
+   "right": "#9aa84e"
   },
   "jati": {
-   "top": "#b86f50",
-   "left": "#3e2731",
-   "right": "#733e39"
+   "top": "#8a5a3a",
+   "left": "#452d1e",
+   "right": "#5f3d28"
   },
   "jati-muda": {
-   "top": "#c28569",
-   "left": "#733e39",
-   "right": "#b86f50"
+   "top": "#a8764f",
+   "left": "#5f3d28",
+   "right": "#8a5a3a"
   },
   "walnut": {
-   "top": "#733e39",
-   "left": "#181425",
-   "right": "#3e2731"
+   "top": "#452d1e",
+   "left": "#2b1a12",
+   "right": "#391d0b"
   },
   "bata": {
-   "top": "#d77643",
-   "left": "#181425",
-   "right": "#be4a2f"
+   "top": "#c95b3f",
+   "left": "#833422",
+   "right": "#a8412b"
   },
   "lilin": {
-   "top": "#fee761",
-   "left": "#f77622",
-   "right": "#feae34"
+   "top": "#fdd792",
+   "left": "#ef9762",
+   "right": "#f0ce92"
   },
   "tembaga": {
-   "top": "#d77643",
-   "left": "#181425",
-   "right": "#be4a2f"
+   "top": "#ef9762",
+   "left": "#a05a2a",
+   "right": "#d8894a"
   },
   "kain-merah": {
-   "top": "#e43b44",
-   "left": "#181425",
-   "right": "#a22633"
+   "top": "#ee734c",
+   "left": "#a8412b",
+   "right": "#c95b3f"
   },
   "kaca-jendela": {
-   "top": "#fee761",
-   "left": "#f77622",
-   "right": "#feae34"
+   "top": "#fdd792",
+   "left": "#ef9762",
+   "right": "#f0ce92"
   },
   "papan-putih": {
-   "top": "#ffffff",
-   "left": "#8b9bb4",
-   "right": "#c0cbdc"
+   "top": "#fff9e3",
+   "left": "#f1e1bb",
+   "right": "#f7f2cd"
   },
   "perak": {
-   "top": "#c0cbdc",
-   "left": "#5a6988",
-   "right": "#8b9bb4"
+   "top": "#dadab8",
+   "left": "#8e8a6d",
+   "right": "#c5c7a4"
   },
   "perak-tua": {
-   "top": "#8b9bb4",
-   "left": "#3a4466",
-   "right": "#5a6988"
+   "top": "#c5c7a4",
+   "left": "#574d36",
+   "right": "#8e8a6d"
   },
   "abu-tua": {
-   "top": "#3a4466",
-   "left": "#181425",
-   "right": "#262b44"
+   "top": "#574d36",
+   "right": "#3d432a",
+   "left": "#2b1a12"
   },
   "abu": {
-   "top": "#5a6988",
-   "left": "#262b44",
-   "right": "#3a4466"
+   "top": "#8e8a6d",
+   "right": "#574d36",
+   "left": "#3d432a"
   },
   "kayu-meja": {
-   "top": "#e4a672",
-   "left": "#b86f50",
-   "right": "#c28569"
+   "top": "#e4b98a",
+   "left": "#a8764f",
+   "right": "#c99b6a"
   },
   "kayu-tepi": {
-   "top": "#c28569",
-   "left": "#733e39",
-   "right": "#b86f50"
+   "top": "#c99b6a",
+   "left": "#8a5a3a",
+   "right": "#a8764f"
   },
   "kayu-gelap": {
-   "top": "#b86f50",
-   "left": "#3e2731",
-   "right": "#733e39"
+   "top": "#8a5a3a",
+   "left": "#452d1e",
+   "right": "#5f3d28"
   },
   "buku-gelap": {
-   "top": "#3a4466",
-   "left": "#181425",
-   "right": "#262b44"
+   "top": "#452d1e",
+   "right": "#391d0b",
+   "left": "#2b1a12"
   },
   "buku-zaitun-tepi": {
-   "top": "#265c42",
-   "left": "#181425",
-   "right": "#193c3e"
+   "top": "#566b32",
+   "right": "#3d432a",
+   "left": "#2b1a12"
   },
   "kusen-putih": {
-   "top": "#ffffff",
-   "left": "#8b9bb4",
-   "right": "#c0cbdc"
+   "top": "#f7f2cd",
+   "left": "#dadab8",
+   "right": "#f1e1bb"
   },
   "matahari": {
-   "top": "#fee761",
-   "left": "#f77622",
-   "right": "#feae34"
+   "top": "#fdd792",
+   "left": "#ef9762",
+   "right": "#f0ce92"
   },
   "tirai-gorden": {
-   "top": "#e8b796",
-   "left": "#c28569",
-   "right": "#e4a672"
+   "top": "#f1e1bb",
+   "left": "#c5c7a4",
+   "right": "#dadab8"
   },
   "tirai-lipat": {
-   "top": "#c28569",
-   "left": "#733e39",
-   "right": "#b86f50"
+   "top": "#dadab8",
+   "left": "#8e8a6d",
+   "right": "#c5c7a4"
   },
   "pastel-awan": {
    "top": "#ffffff",
-   "right": "#c0cbdc",
-   "left": "#c0cbdc"
+   "right": "#f4fefb",
+   "left": "#f4fefb"
   },
   "zaitun": {
-   "top": "#3e8948",
-   "left": "#193c3e",
-   "right": "#265c42"
+   "top": "#c9dd41",
+   "left": "#566b32",
+   "right": "#9aa84e"
   },
   "zaitun-tua": {
-   "top": "#265c42",
-   "left": "#181425",
-   "right": "#193c3e"
+   "top": "#9aa84e",
+   "right": "#566b32",
+   "left": "#3d432a"
   },
   "krem-hangat": {
-   "top": "#e8b796",
-   "left": "#c28569",
-   "right": "#e4a672"
+   "top": "#f1e1bb",
+   "left": "#c5c7a4",
+   "right": "#dadab8"
   },
   "terakota-muda": {
-   "top": "#d77643",
-   "left": "#181425",
-   "right": "#be4a2f"
+   "top": "#ef9762",
+   "left": "#a05a2a",
+   "right": "#d8894a"
   }
  },
  "lantai": {
+  "lantai-papan-batu": {
+   "pattern": "papan",
+   "tones": [
+    "#c99b6a",
+    "#e4b98a",
+    "#c99b6a"
+   ],
+   "grout": "#8a5a3a",
+   "skirtL": "#8a5a3a",
+   "skirtR": "#5f3d28",
+   "plank": 4
+  },
   "lantai-terakota": {
    "pattern": "ubin",
    "tones": [
-    "#d77643",
-    "#be4a2f",
-    "#c28569"
+    "#ef9762",
+    "#d8894a",
+    "#c95b3f"
    ],
-   "grout": "#733e39",
-   "skirtL": "#733e39",
-   "skirtR": "#3e2731"
+   "grout": "#5f3d28",
+   "skirtL": "#8a5a3a",
+   "skirtR": "#5f3d28"
+  },
+  "lantai-batu": {
+   "pattern": "ubin",
+   "tones": [
+    "#dadab8",
+    "#c5c7a4",
+    "#f1e1bb"
+   ],
+   "grout": "#8e8a6d",
+   "skirtL": "#8a5a3a",
+   "skirtR": "#5f3d28"
   },
   "lantai-kayu": {
    "pattern": "papan",
    "tones": [
-    "#b86f50",
-    "#c28569",
-    "#733e39"
+    "#c99b6a",
+    "#e4b98a",
+    "#8a5a3a"
    ],
-   "grout": "#3e2731",
-   "skirtL": "#733e39",
-   "skirtR": "#3e2731",
+   "grout": "#5f3d28",
+   "skirtL": "#8a5a3a",
+   "skirtR": "#5f3d28",
    "plank": 4,
-   "grain": "#3e2731"
+   "grain": "#5f3d28"
   },
   "lantai-kayu-terang": {
    "pattern": "papan",
    "tones": [
-    "#e4a672",
-    "#c28569",
-    "#e8b796"
+    "#e4b98a",
+    "#c99b6a",
+    "#a8764f"
    ],
-   "grout": "#b86f50",
-   "skirtL": "#c28569",
-   "skirtR": "#733e39",
+   "grout": "#8a5a3a",
+   "skirtL": "#c99b6a",
+   "skirtR": "#8a5a3a",
    "plank": 4,
-   "grain": "#b86f50"
+   "grain": "#8a5a3a"
   },
   "lantai-kayu-gelap": {
    "pattern": "papan",
    "tones": [
-    "#733e39",
-    "#3e2731",
-    "#b86f50"
+    "#8a5a3a",
+    "#5f3d28",
+    "#a8764f"
    ],
-   "grout": "#181425",
-   "skirtL": "#3e2731",
-   "skirtR": "#181425",
+   "grout": "#391d0b",
+   "skirtL": "#5f3d28",
+   "skirtR": "#391d0b",
    "plank": 4,
-   "grain": "#3e2731"
+   "grain": "#391d0b"
   },
   "lantai-ubin": {
    "pattern": "ubin",
    "tones": [
-    "#d77643",
-    "#b86f50",
-    "#c28569"
+    "#dadab8",
+    "#c5c7a4",
+    "#f1e1bb"
    ],
-   "grout": "#733e39",
-   "skirtL": "#733e39",
-   "skirtR": "#3e2731"
+   "grout": "#8e8a6d",
+   "skirtL": "#8a5a3a",
+   "skirtR": "#5f3d28"
   },
   "lantai-pastel-krem": {
    "pattern": "papan",
    "tones": [
-    "#ead4aa",
-    "#e8b796",
-    "#e4a672"
+    "#f1e1bb",
+    "#e4b98a",
+    "#c99b6a"
    ],
-   "grout": "#c28569",
-   "skirtL": "#d77643",
-   "skirtR": "#b86f50",
+   "grout": "#8a5a3a",
+   "skirtL": "#c99b6a",
+   "skirtR": "#8a5a3a",
    "plank": 4,
-   "grain": "#c28569"
+   "grain": "#8a5a3a"
   },
   "lantai-pastel-sakura": {
    "pattern": "papan",
    "tones": [
-    "#f6757a",
-    "#e43b44",
-    "#b55088"
+    "#fb836b",
+    "#ee734c",
+    "#c95b3f"
    ],
-   "grout": "#a22633",
-   "skirtL": "#e43b44",
-   "skirtR": "#a22633",
+   "grout": "#833422",
+   "skirtL": "#c95b3f",
+   "skirtR": "#a8412b",
    "plank": 4,
-   "grain": "#a22633"
+   "grain": "#833422"
   },
   "lantai-pastel-mint": {
    "pattern": "papan",
    "tones": [
-    "#63c74d",
-    "#3e8948",
-    "#8b9bb4"
+    "#7ad46f",
+    "#4cb45c",
+    "#2fa56e"
    ],
-   "grout": "#265c42",
-   "skirtL": "#3e8948",
-   "skirtR": "#265c42",
+   "grout": "#1c5e40",
+   "skirtL": "#4cb45c",
+   "skirtR": "#1c5e40",
    "plank": 4,
-   "grain": "#265c42"
+   "grain": "#1c5e40"
   },
   "lantai-pastel-lavender": {
    "pattern": "papan",
    "tones": [
-    "#b55088",
-    "#68386c",
-    "#8b9bb4"
+    "#a9e0ea",
+    "#66b6cf",
+    "#3f7fa3"
    ],
-   "grout": "#3a4466",
-   "skirtL": "#68386c",
-   "skirtR": "#3a4466",
+   "grout": "#2e4a63",
+   "skirtL": "#66b6cf",
+   "skirtR": "#2e4a63",
    "plank": 4,
-   "grain": "#3a4466"
+   "grain": "#2e4a63"
   },
   "lantai-pastel-biru": {
    "pattern": "papan",
    "tones": [
-    "#c0cbdc",
-    "#8b9bb4",
-    "#5a6988"
+    "#a9e0ea",
+    "#66b6cf",
+    "#2b8fa8"
    ],
-   "grout": "#3a4466",
-   "skirtL": "#8b9bb4",
-   "skirtR": "#5a6988",
+   "grout": "#2e4a63",
+   "skirtL": "#66b6cf",
+   "skirtR": "#2b8fa8",
    "plank": 4,
-   "grain": "#5a6988"
+   "grain": "#2e4a63"
   },
   "lantai-pastel-ijo": {
    "pattern": "papan",
    "tones": [
-    "#63c74d",
-    "#3e8948",
-    "#265c42"
+    "#a3ed75",
+    "#7ad46f",
+    "#4cb45c"
    ],
-   "grout": "#193c3e",
-   "skirtL": "#3e8948",
-   "skirtR": "#265c42",
+   "grout": "#1c5e40",
+   "skirtL": "#7ad46f",
+   "skirtR": "#1c5e40",
    "plank": 4,
-   "grain": "#265c42"
+   "grain": "#1c5e40"
   }
  },
  "dinding": {
+  "dinding-tudor": {
+   "kiri": "#f1e1bb",
+   "kanan": "#f7f2cd",
+   "trimKiri": "#5f3d28",
+   "trimKanan": "#8a5a3a"
+  },
   "dinding-hangat": {
-   "kiri": "#b86f50",
-   "kanan": "#e4a672",
-   "trimKiri": "#733e39",
-   "trimKanan": "#b86f50"
+   "kiri": "#f1e1bb",
+   "kanan": "#f7f2cd",
+   "trimKiri": "#5f3d28",
+   "trimKanan": "#8a5a3a"
   },
   "dinding-bata": {
-   "kiri": "#be4a2f",
-   "kanan": "#d77643",
-   "trimKiri": "#733e39",
-   "trimKanan": "#a22633"
+   "kiri": "#c95b3f",
+   "kanan": "#ee734c",
+   "trimKiri": "#833422",
+   "trimKanan": "#a8412b"
   },
   "dinding-kayu": {
-   "kiri": "#733e39",
-   "kanan": "#b86f50",
-   "trimKiri": "#3e2731",
-   "trimKanan": "#733e39"
+   "kiri": "#8a5a3a",
+   "kanan": "#a8764f",
+   "trimKiri": "#391d0b",
+   "trimKanan": "#5f3d28"
   },
   "dinding-krem": {
-   "kiri": "#e4a672",
-   "kanan": "#ead4aa",
-   "trimKiri": "#733e39",
-   "trimKanan": "#b86f50"
+   "kiri": "#e4b98a",
+   "kanan": "#f1e1bb",
+   "trimKiri": "#5f3d28",
+   "trimKanan": "#8a5a3a"
   },
   "dinding-teal": {
-   "kiri": "#265c42",
-   "kanan": "#3e8948",
-   "trimKiri": "#193c3e",
-   "trimKanan": "#265c42"
+   "kiri": "#1b865f",
+   "kanan": "#2fa56e",
+   "trimKiri": "#0f4f42",
+   "trimKanan": "#1c5e40"
   },
   "dinding-kertas": {
-   "kiri": "#c28569",
-   "kanan": "#e8b796",
-   "trimKiri": "#733e39",
-   "trimKanan": "#b86f50"
+   "kiri": "#c99b6a",
+   "kanan": "#e4b98a",
+   "trimKiri": "#5f3d28",
+   "trimKanan": "#8a5a3a"
   },
   "dinding-navy": {
-   "kiri": "#3a4466",
-   "kanan": "#5a6988",
-   "trimKiri": "#262b44",
-   "trimKanan": "#3a4466"
+   "kiri": "#2e4a63",
+   "kanan": "#3f7fa3",
+   "trimKiri": "#1a3121",
+   "trimKanan": "#2e4a63"
   },
   "dinding-pastel-krem": {
-   "kiri": "#e4a672",
-   "kanan": "#ead4aa",
-   "trimKiri": "#b86f50",
-   "trimKanan": "#c28569"
+   "kiri": "#e4b98a",
+   "kanan": "#f1e1bb",
+   "trimKiri": "#a8764f",
+   "trimKanan": "#c99b6a"
   },
   "dinding-pastel-sakura": {
-   "kiri": "#e43b44",
-   "kanan": "#f6757a",
-   "trimKiri": "#a22633",
-   "trimKanan": "#e43b44"
+   "kiri": "#ee734c",
+   "kanan": "#fb836b",
+   "trimKiri": "#a8412b",
+   "trimKanan": "#c95b3f"
   },
   "dinding-pastel-mint": {
-   "kiri": "#3e8948",
-   "kanan": "#63c74d",
-   "trimKiri": "#265c42",
-   "trimKanan": "#3e8948"
+   "kiri": "#4cb45c",
+   "kanan": "#7ad46f",
+   "trimKiri": "#1c5e40",
+   "trimKanan": "#2f8a52"
   },
   "dinding-pastel-lavender": {
-   "kiri": "#68386c",
-   "kanan": "#b55088",
-   "trimKiri": "#3a4466",
-   "trimKanan": "#68386c"
+   "kiri": "#66b6cf",
+   "kanan": "#a9e0ea",
+   "trimKiri": "#2e4a63",
+   "trimKanan": "#3f7fa3"
   },
   "dinding-pastel-biru": {
-   "kiri": "#8b9bb4",
-   "kanan": "#c0cbdc",
-   "trimKiri": "#5a6988",
-   "trimKanan": "#8b9bb4"
+   "kiri": "#3f7fa3",
+   "kanan": "#66b6cf",
+   "trimKiri": "#2e4a63",
+   "trimKanan": "#3f7fa3"
   },
   "dinding-pastel-kuning": {
-   "kiri": "#feae34",
-   "kanan": "#fee761",
-   "trimKiri": "#d77643",
-   "trimKanan": "#f77622"
+   "kiri": "#f0ce92",
+   "kanan": "#fdd792",
+   "trimKiri": "#d8894a",
+   "trimKanan": "#ef9762"
   }
  },
- "lantaiBawaan": "lantai-terakota",
- "dindingBawaan": "dinding-hangat"
+ "lantaiBawaan": "lantai-papan-batu",
+ "dindingBawaan": "dinding-tudor"
 }

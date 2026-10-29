@@ -102,7 +102,7 @@ Wajib dieksekusi persis dalam urutan ini. Nomor tidak boleh ditukar.
 | 9 | Balok `main` | `latar !== true && layer === 'main'` |
 | 10 | Balok `overlay` | `latar !== true && layer === 'overlay'` |
 | 11 | Sorotan seleksi | hanya editor — **tidak** ikut ke APK |
-| 12 | Pantulan | `pantulan !== false`, tanpa latar/underlay/lantai/dinding |
+| 12 | ~~Pantulan~~ | **DIHAPUS 2026-10-29** — tidak ada lapisan pantulan lagi |
 | 13 | HUD/chip | hanya editor — **tidak** ikut ke APK |
 
 **Urutan di dalam setiap kelompok (8–11)** — `sortedObjects()`:
@@ -143,7 +143,8 @@ Aturan wajib:
 
 - **Dilarang** menginterpolasi, menggelapkan, atau memberi tint tambahan pada
   warna material. Efek cahaya sudah "dibakar" ke ketiga tone.
-- **Dilarang** menambah bayangan otomatis (drop shadow) selain pantulan §3.
+- **Dilarang** menambah bayangan otomatis (drop shadow) atau pantulan cermin di
+  lantai: keduanya dihapus 2026-10-29 atas permintaan user.
 - `refleksi: true` = **tukar** tone `left` ⇄ `right` (cermin objek), bukan
   membalik geometri.
 - Warna di luar palet hanya boleh lewat `style: {top, left, right}` eksplisit
@@ -320,8 +321,8 @@ Transform **hanya saat menggambar** (`ctx.save` → transform → gambar →
 | `putar` | `rotate(besar · 8° · s)` di titik tumpu |
 | `kedip` | bila `s < −0.55` objek **tidak digambar** (30% siklus) |
 
-`DENS = 1.775` (lihat §0 di bawah). `refleksi` tetap memakai transform yang
-sama, jadi pantulan ikut bergerak.
+`DENS = 1.775` (lihat §0 di bawah). `refleksi` (cermin warna kiri/kanan) tetap
+memakai transform yang sama; tidak ada lagi pantulan lantai.
 
 ## 4b-1. Langit dinamis (diperhalus 2026-10-29)
 

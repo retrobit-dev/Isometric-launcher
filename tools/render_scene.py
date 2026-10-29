@@ -289,14 +289,29 @@ def _elips_pola(box, spec):
     im.paste(lapis, (0, 0), topeng)
 
 
-TINTA = BASE.get('tinta') or '#341b10'   # cokelat sangat tua dari palet
+TINTA = BASE.get('tinta') or GELAP_MAKS   # cokelat paling tua dari palet
+
+
+def tinta(warna):
+    """Garis tepi 1px (ronde 39) — cermin tinta() di iso/palet-retro.ts:
+    mulai 2 langkah lebih gelap, lalu turun terus sampai luma <= 55% aslinya."""
+    if not (isinstance(warna, str) and len(warna) == 7 and warna.startswith('#')):
+        return _hex(TINTA)
+    c = ke_palet(warna)
+    i, k0 = _tangga_dari(c)
+    ramp = TANGGA[i]
+    target = _luma(c) * 0.55
+    k = max(0, k0 - 2)
+    while k > 0 and _luma(ramp[k]) > target:
+        k -= 1
+    return _hex(ramp[k])
 
 
 def gelapkan(warna, f=CAMPUR):
     if not (isinstance(warna, str) and len(warna) == 7 and warna.startswith('#')):
         return None
-    if f >= 0.4:                       # garis tepi: tinta tetap
-        return _hex(TINTA)
+    if f >= 0.4:                       # garis tepi: tinta dari warna isian
+        return tinta(warna)
     return _hex(gelap(warna, max(1, round(f * 5))))
 
 
@@ -306,8 +321,10 @@ def terangkan(warna, f=0.30):
     return _hex(terang(warna, max(1, round(f * 4))))
 
 
-# Permintaan user: "jangan berikan outline untuk objek" -> semua objek polos.
-GARIS_TEPI = False
+# RONDE 39: outline DIPAKAI lagi (membatalkan ronde 19) — 1 px, warna =
+# versi gelap dari warna isian (`tinta`), seperti gambar referensi.
+GARIS_TEPI = True
+TEBAL_TEPI = 1
 
 
 def poly(pts, warna, garis=True):
@@ -321,13 +338,13 @@ def poly(pts, warna, garis=True):
     if garis and GARIS_TEPI:
         g = gelapkan(warna)
         if g:
-            d.line(p + [p[0]], fill=g, width=2)
+            d.line(p + [p[0]], fill=g, width=TEBAL_TEPI)
 
 
 def colors(style):
     if isinstance(style, dict):
         return style
-    return MAT.get(style, {'top': '#ff00ff', 'left': '#cc00cc', 'right': '#990099'})
+    return MAT.get(style, {'top': '#fb836b', 'left': GELAP_MAKS, 'right': GELAP_MAKS})
 
 
 def tone(o):
@@ -649,19 +666,19 @@ def fase_dari_jam(j):
 def fase_warna(f):
     """6 pita langit (cermin langitFase di iso/langit.ts) — palet Endesga."""
     if f == 'fajar':
-        return (['#262b44', '#3a4466', '#5a6988', '#b55088', '#d77643', '#feae34'],
-                'matahari', False, '#e8b796')
+        return (['#2e4a63', '#3f7fa3', '#66b6cf', '#c95b3f', '#ef9762', '#f0ce92'],
+                'matahari', False, '#f1e1bb')
     if f == 'pagi':
-        return (['#124e89', '#0099db', '#2ce8f5', '#c0cbdc', '#ead4aa', '#e8b796'],
+        return (['#2e4a63', '#3f7fa3', '#66b6cf', '#a9e0ea', '#f1e1bb', '#fdd792'],
                 'matahari', False, '#ffffff')
     if f == 'siang':
-        return (['#124e89', '#0099db', '#0099db', '#2ce8f5', '#c0cbdc', '#ead4aa'],
+        return (['#2e4a63', '#3f7fa3', '#66b6cf', '#a9e0ea', '#cef4e5', '#fff9e3'],
                 'matahari', False, '#ffffff')
     if f == 'senja':
-        return (['#3a4466', '#68386c', '#be4a2f', '#f77622', '#feae34', '#fee761'],
-                'matahari', False, '#f6757a')
-    return (['#181425', '#181425', '#262b44', '#262b44', '#3a4466', '#5a6988'],
-            'bulan', True, '#5a6988')
+        return (['#3f7fa3', '#2e4a63', '#833422', '#ee734c', '#ef9762', '#fdd792'],
+                'matahari', False, '#fb836b')
+    return (['#1a3121', '#1a3121', '#2e4a63', '#2e4a63', '#3f7fa3', '#66b6cf'],
+            'bulan', True, '#66b6cf')
 
 
 def efek_cuaca(c):
@@ -670,13 +687,13 @@ def efek_cuaca(c):
         return (3, 0, False, False, None)
     if c == 'gerimis':
         return (4, 20, False, True,
-                ['#8b9bb4', '#8b9bb4', '#5a6988', '#5a6988', '#3a4466', '#3a4466'])
+                ['#8e8a6d', '#8e8a6d', '#574d36', '#574d36', '#3d432a', '#3d432a'])
     if c == 'hujan':
         return (5, 46, False, False,
-                ['#5a6988', '#5a6988', '#3a4466', '#3a4466', '#262b44', '#262b44'])
+                ['#574d36', '#574d36', '#3d432a', '#3d432a', '#2b1a12', '#2b1a12'])
     if c == 'badai':
         return (6, 70, True, False,
-                ['#3a4466', '#3a4466', '#262b44', '#262b44', '#181425', '#181425'])
+                ['#3d432a', '#3d432a', '#2b1a12', '#2b1a12', '#1a3121', '#1a3121'])
     return (1, 0, False, False, None)
 
 
@@ -814,7 +831,7 @@ def draw_langit(o):
     if pelangi and fase in ('pagi', 'siang'):
         # busur setengah lingkaran, tiga pita (sama dengan pelangi() di TS)
         SEG = 9
-        for pi, c in enumerate(['#f6757a', '#fee761', '#2ce8f5']):
+        for pi, c in enumerate(['#fb836b', '#fdd792', '#a9f3f2']):
             rl = 0.62 - pi * 0.05
             rd = rl - 0.045
             pts = []
@@ -831,20 +848,20 @@ def draw_langit(o):
         t = (JAM - 18) / 11 if JAM >= 18 else (JAM + 6) / 11
         u, v = 0.14 + 0.72 * t, 0.62 - 0.42 * math.sin(math.pi * t)
         sekitar = langit_di(v)
-        _cakram(k, u, v, 0.128, 0.225, dither(sekitar, '#c0cbdc', 0.18), 20)
-        _cakram(k, u, v, 0.104, 0.182, dither(sekitar, '#c0cbdc', 0.48), 20)
-        _cakram(k, u, v, 0.082, 0.142, '#8b9bb4')
-        _cakram(k, u - 0.012, v - 0.018, 0.058, 0.100, '#c0cbdc')
+        _cakram(k, u, v, 0.128, 0.225, dither(sekitar, '#dadab8', 0.18), 20)
+        _cakram(k, u, v, 0.104, 0.182, dither(sekitar, '#dadab8', 0.48), 20)
+        _cakram(k, u, v, 0.082, 0.142, '#c5c7a4')
+        _cakram(k, u - 0.012, v - 0.018, 0.058, 0.100, '#dadab8')
         # kawah
-        _cakram(k, u + 0.021, v + 0.017, 0.014, 0.025, '#5a6988', 8)
-        _cakram(k, u - 0.016, v + 0.045, 0.010, 0.018, '#5a6988', 8)
-        _cakram(k, u + 0.004, v - 0.042, 0.008, 0.014, '#5a6988', 8)
+        _cakram(k, u + 0.021, v + 0.017, 0.014, 0.025, '#8e8a6d', 8)
+        _cakram(k, u - 0.016, v + 0.045, 0.010, 0.018, '#8e8a6d', 8)
+        _cakram(k, u + 0.004, v - 0.042, 0.008, 0.014, '#8e8a6d', 8)
     elif not mendung or jml_hujan == 0:
         t = min(1.0, max(0.0, (JAM - 5) / 13))
         u, v = 0.14 + 0.72 * t, 0.62 - 0.46 * math.sin(math.pi * t)
         hangat = fase in ('fajar', 'senja')
-        tepi = '#f77622' if hangat else '#feae34'
-        inti = '#feae34' if hangat else '#fee761'
+        tepi = '#d8894a' if hangat else '#ef9762'
+        inti = '#ef9762' if hangat else '#fdd792'
         sekitar = langit_di(v)
         # halo SEMPIT berlapis BER-DITHER (cermin iso/langit.ts)
         _cakram(k, u, v, 0.138, 0.238, dither(sekitar, tepi, 0.14), 20)
@@ -872,7 +889,7 @@ def draw_langit(o):
         lebat = jml_hujan > 40
         tinggi = 0.07 if lebat else 0.045
         lebar_tetes = 0.010 if lebat else 0.008
-        warna_hujan = '#8b9bb4' if mendung else '#c0cbdc'
+        warna_hujan = '#8e8a6d' if mendung else '#a9f3f2'
         for i in range(jml_hujan):
             uu = _acak(i, 11)
             fasa = _acak(i, 12)
@@ -887,7 +904,7 @@ def draw_langit(o):
             [(0.52, 0.50), (0.58, 0.58), (0.62, 0.62), (0.57, 0.54), (0.51, 0.47)],
         ]
         for bentuk in petir:
-            _isi([_titik(k, u, v) for u, v in bentuk], '#fee761')
+            _isi([_titik(k, u, v) for u, v in bentuk], '#fdd792')
 
 
 def draw_obj(o):
@@ -938,30 +955,81 @@ def draw_obj_pekat(o):
 def draw_floor(o):
     e0, w0, z = o['pos']['e'], o['pos']['w'], o['pos']['z']
     e1, w1 = e0 + o['size']['e'], w0 + o['size']['w']
-    mat = FLOOR.get(o['style'], FLOOR[PALET.get('lantaiBawaan', 'lantai-terakota')])
-    tones, grout = mat['tones'], mat.get('grout', '#a8541c')
+    mat = FLOOR.get(o['style'], FLOOR[PALET.get('lantaiBawaan', 'lantai-papan-batu')])
+    tones, grout = mat['tones'], mat.get('grout', '#8e8a6d')
     poly([px(e0, w0, z), px(e1, w0, z), px(e1, w1, z), px(e0, w1, z)], tones[0], False)
-    ee, n = e0, 0
-    while ee < e1 - 1e-6:
-        ww = w0
-        while ww < w1 - 1e-6:
-            a, b = px(ee, ww, z), px(min(ee + 1, e1), ww, z)
-            c, dd = px(min(ee + 1, e1), min(ww + 1, w1), z), px(ee, min(ww + 1, w1), z)
-            poly([a, b, c, dd], tones[(n + int(ww)) % len(tones)], False)
-            n += 1
-            ww += 1
-        ee += 1
-    ee = e0
-    while ee <= e1 + 1e-6:
-        d.line([px(ee, w0, z), px(ee, w1, z)], fill=grout, width=1)
-        ee += 1
-    ww = w0
-    while ww <= w1 + 1e-6:
-        d.line([px(e0, ww, z), px(e1, ww, z)], fill=grout, width=1)
-        ww += 1
 
-    # BAYANGAN di kaki dinding = DITHER Bayer 4x4 (ronde 38, cermin room.ts).
-    # Dulu rgba semi-transparan -> warna di luar palet.
+    if mat.get('pattern') == 'papan':
+        # PAPAN PANJANG (cermin drawFloorObjects di iso/room.ts): baris papan
+        # dengan sambungan digeser setengah papan tiap baris.
+        L = max(2, round(mat.get('plank', 4)))
+        stagger = round(L / 2)
+        rot90 = o.get('polaRot') == 1
+        R0, R1 = (e0, e1) if rot90 else (w0, w1)
+        P0, P1 = (w0, w1) if rot90 else (e0, e1)
+
+        def at(r, p):
+            return px(r, p, z) if rot90 else px(p, r, z)
+
+        def quad(pA, pB, rA, rB, tone):
+            poly([at(rA, pA), at(rA, pB), at(rB, pB), at(rB, pA)], tone, False)
+
+        rr = math.floor(R0)
+        while rr < math.ceil(R1):
+            rA, rB = max(rr, R0), min(rr + 1, R1)
+            if rB > rA:
+                off = 0 if ((rr % 2) + 2) % 2 == 0 else stagger
+                p0 = math.floor((P0 - off) / L) * L + off
+                while p0 < P1:
+                    pA, pB = max(p0, P0), min(p0 + L, P1)
+                    if pB > pA:
+                        ti = (abs(round(p0 / L)) * 5 + rr * 3) % 3
+                        quad(pA, pB, rA, rB, tones[ti])
+                        grain = mat.get('grain')
+                        if grain and (rr * 7 + ti * 5 + round(pA)) % 3 != 0:
+                            h = rB - rA
+                            g1 = rA + h * (0.42 + ((rr * 5 + ti) % 3) * 0.12)
+                            d.line([tuple(map(round, at(g1, pA))), tuple(map(round, at(g1, pB)))],
+                                   fill=grain, width=1)
+                    p0 += L
+            rr += 1
+        rr = math.ceil(R0)
+        while rr <= R1:
+            d.line([tuple(map(round, at(rr, P0))), tuple(map(round, at(rr, P1)))], fill=grout, width=1)
+            rr += 1
+        rr = math.floor(R0)
+        while rr < math.ceil(R1):
+            rA, rB = max(rr, R0), min(rr + 1, R1)
+            if rB > rA:
+                off = 0 if ((rr % 2) + 2) % 2 == 0 else stagger
+                pp = math.floor((P0 - off) / L) * L + off + L
+                while pp < P1:
+                    if pp > P0:
+                        d.line([tuple(map(round, at(rA, pp))), tuple(map(round, at(rB, pp)))],
+                               fill=grout, width=1)
+                    pp += L
+            rr += 1
+    else:
+        # UBIN PERSEGI 1x1 tile
+        ee = e0
+        while ee < e1 - 1e-6:
+            ww = w0
+            while ww < w1 - 1e-6:
+                a, b = px(ee, ww, z), px(min(ee + 1, e1), ww, z)
+                c, dd = px(min(ee + 1, e1), min(ww + 1, w1), z), px(ee, min(ww + 1, w1), z)
+                poly([a, b, c, dd], tones[(int(ee) * 7 + int(ww) * 13) % 3], False)
+                ww += 1
+            ee += 1
+        ee = e0
+        while ee <= e1 + 1e-6:
+            d.line([px(ee, w0, z), px(ee, w1, z)], fill=grout, width=1)
+            ee += 1
+        ww = w0
+        while ww <= w1 + 1e-6:
+            d.line([px(e0, ww, z), px(e1, ww, z)], fill=grout, width=1)
+            ww += 1
+
+    # BAYANGAN di kaki dinding = DITHER Bayer 4x4 (cermin room.ts).
     leb = min(1.8, (e1 - e0) * 0.22, (w1 - w0) * 0.22)
     if leb > 0.15:
         for f, kuat in ((1.0, 0.14), (0.66, 0.34), (0.33, 0.60)):
@@ -1006,7 +1074,16 @@ def wall_warna(style, sisi):
     if not style or style in ('dinding-kiri', 'dinding-kanan'):
         return ((BASE['wallB'] if sisi == 'kiri' else BASE['wallT']),
                 (BASE['trimB'] if sisi == 'kiri' else BASE['trimT']))
-    return '#ff00ff', '#990099'
+    return '#fb836b', GELAP_MAKS
+
+
+def is_tudor(style):
+    """cermin isTudor() di iso/palette.ts: gaya bawaan ruangan = Tudor"""
+    if not isinstance(style, str) or not style:
+        return True
+    if style in ('dinding-kiri', 'dinding-kanan'):
+        return True
+    return style == 'dinding-tudor'
 
 
 def draw_wall(o):
@@ -1064,6 +1141,29 @@ def draw_wall(o):
         kotak(0, 1, zd, zd - 0.04, BASE['beamDark'])
 
     hb = min(0.5, sz * 0.4)
+    # ---- RANGKA BALOK TUDOR (ronde 39, cermin room.ts langkah 2c) ----
+    if is_tudor(o.get('style')) and sz > 1:
+        kayu = BASE['trimT'] if sisi == 'kanan' else BASE['beam']
+        kayu_muda = BASE['postLit'] if sisi == 'kanan' else BASE['post']
+        lebar_t = max(0.045, 0.34 / panj)
+        z_atas = sz - hb
+        z_bawah = min(0.26, sz * 0.5)
+        z_lis = min(1.15, sz * 0.4) if sz > 1.8 else (z_bawah + z_atas) / 2
+
+        for t in (0.25, 0.5, 0.75):
+            kotak(t - lebar_t, t + lebar_t, z_atas, z_bawah, kayu)
+            kotak(t - lebar_t, t - lebar_t * 0.25, z_atas, z_bawah, kayu_muda)
+            d.line([tuple(map(round, at(t + lebar_t, z_atas))),
+                    tuple(map(round, at(t + lebar_t, z_bawah)))],
+                   fill=BASE['beamDark'], width=1)
+        jarak_lis = 5
+        zh = z_lis + jarak_lis
+        while zh < z_atas - 1:
+            kotak(0, 1, zh + 0.28, zh, kayu)
+            kotak(0, 1, zh + 0.28, zh + 0.19, kayu_muda)
+            kotak(0, 1, zh, zh - 0.09, BASE['beamDark'])
+            zh += jarak_lis
+
     if sz > 1:
         kotak(0, 1, sz, sz - hb, BASE['beam'])
         kotak(0, 1, sz, sz - min(0.07, hb * 0.3), BASE['beamTop'])

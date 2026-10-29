@@ -27,8 +27,8 @@ try {
   const data = {
     versi: 4,
     dibuat: '2026-10-29',
-    tema: 'ENDESGA 32 (retro 16-bit) · dithering Bayer 4x4 · latar hitam OLED',
-    sumberReferensi: 'Endesga 32 palette (EDG32) — 32 warna; aturan "342 warna" ronde 13 dibatalkan user di ronde 38',
+    tema: 'PALET REFERENSI 51 WARNA (diorama Tudor) · outline 1px · dithering Bayer 4x4 · latar hitam OLED',
+    sumberReferensi: '51 warna hasil ekstrak dua gambar referensi diorama (ronde 39); Endesga 32 (ronde 38) tidak dipakai lagi',
     warnaDasar: P.PAL,
     materi: P.MATERIALS,
     lantai: P.FLOOR_MATERIALS,
@@ -39,7 +39,7 @@ try {
   const ref = {
     versi: 2,
     dibuat: '2026-10-29',
-    catatan: 'grid DESAIN 18x19 dari gambar referensi ronde 13, tiap sel SUDAH dibulatkan ke palet Endesga 32 (bukan daftar warna sah)',
+    catatan: 'grid DESAIN 18x19 dari gambar referensi ronde 13, tiap sel SUDAH dibulatkan ke palet referensi 51 warna (bukan daftar warna sah)',
     jumlah: R.SEMUA.length,
     kolom: R.KOLOM,
     tingkat: R.TINGKAT,
@@ -49,12 +49,12 @@ try {
   const retro = {
     versi: 1,
     dibuat: '2026-10-29',
-    nama: 'ENDESGA 32',
-    catatan: 'satu-satunya warna yang boleh muncul di kanvas (ronde 38)',
+    nama: 'REFERENSI 51',
+    catatan: 'satu-satunya warna yang boleh muncul di kanvas (ronde 39)',
     jumlah: R.PALET_RETRO.length,
     palet: R.PALET_RETRO,
     tangga: R.TANGGA,
-    gelapMaks: R.GELAP_MAKS ?? '#181425',
+    gelapMaks: R.GELAP_MAKS ?? '#2b1a12',
     bayer4: BAYER4,
   }
   writeFileSync(join(AKAR, 'docs', '04-palet-retro.json'), JSON.stringify(retro, null, 1) + '\n')

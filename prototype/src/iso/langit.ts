@@ -143,30 +143,30 @@ export function langitFase(f: Fase): LangitFase {
     case 'fajar':
       // biru malam -> ungu -> jingga -> kuning (matahari baru naik)
       return {
-        pita: ['#262b44', '#3a4466', '#5a6988', '#b55088', '#d77643', '#feae34'],
-        benda: 'matahari', bintang: false, awan: '#e8b796',
+        pita: ['#2e4a63', '#3f7fa3', '#66b6cf', '#c95b3f', '#ef9762', '#f0ce92'],
+        benda: 'matahari', bintang: false, awan: '#f1e1bb',
       }
     case 'pagi':
       return {
-        pita: ['#124e89', '#0099db', '#2ce8f5', '#c0cbdc', '#ead4aa', '#e8b796'],
+        pita: ['#2e4a63', '#3f7fa3', '#66b6cf', '#a9e0ea', '#f1e1bb', '#fdd792'],
         benda: 'matahari', bintang: false, awan: '#ffffff',
       }
     case 'siang':
       return {
-        pita: ['#124e89', '#0099db', '#0099db', '#2ce8f5', '#c0cbdc', '#ead4aa'],
+        pita: ['#2e4a63', '#3f7fa3', '#66b6cf', '#a9e0ea', '#cef4e5', '#fff9e3'],
         benda: 'matahari', bintang: false, awan: '#ffffff',
       }
     case 'senja':
       // kuning -> jingga -> merah bata -> ungu -> malam
       return {
-        pita: ['#3a4466', '#68386c', '#be4a2f', '#f77622', '#feae34', '#fee761'],
-        benda: 'matahari', bintang: false, awan: '#f6757a',
+        pita: ['#3f7fa3', '#2e4a63', '#833422', '#ee734c', '#ef9762', '#fdd792'],
+        benda: 'matahari', bintang: false, awan: '#fb836b',
       }
     default:
       // malam: biru paling gelap di zenith, sedikit lebih terang di horizon
       return {
-        pita: ['#181425', '#181425', '#262b44', '#262b44', '#3a4466', '#5a6988'],
-        benda: 'bulan', bintang: true, awan: '#5a6988',
+        pita: ['#1a3121', '#1a3121', '#2e4a63', '#2e4a63', '#3f7fa3', '#66b6cf'],
+        benda: 'bulan', bintang: true, awan: '#66b6cf',
       }
   }
 }
@@ -195,17 +195,17 @@ export function efekCuaca(c: Cuaca): EfekCuaca {
     case 'gerimis':
       return {
         awan: 4, hujan: 20, kilat: false, pelangi: true, label: 'GERIMIS',
-        mendung: ['#8b9bb4', '#8b9bb4', '#5a6988', '#5a6988', '#3a4466', '#3a4466'],
+        mendung: ['#8e8a6d', '#8e8a6d', '#574d36', '#574d36', '#3d432a', '#3d432a'],
       }
     case 'hujan':
       return {
         awan: 5, hujan: 46, kilat: false, pelangi: false, label: 'HUJAN',
-        mendung: ['#5a6988', '#5a6988', '#3a4466', '#3a4466', '#262b44', '#262b44'],
+        mendung: ['#574d36', '#574d36', '#3d432a', '#3d432a', '#2b1a12', '#2b1a12'],
       }
     case 'badai':
       return {
         awan: 6, hujan: 70, kilat: true, pelangi: false, label: 'BADAI',
-        mendung: ['#3a4466', '#3a4466', '#262b44', '#262b44', '#181425', '#181425'],
+        mendung: ['#3d432a', '#3d432a', '#2b1a12', '#2b1a12', '#1a3121', '#1a3121'],
       }
     default:
       return { awan: 1, hujan: 0, kilat: false, pelangi: false, mendung: null, label: 'CERAH' }
@@ -404,7 +404,7 @@ function hujan(ctx: CanvasRenderingContext2D, k: Bidang, n: number, warnaI: stri
 function pelangi(ctx: CanvasRenderingContext2D, k: Bidang) {
   // BUSUR setengah lingkaran, tiga pita (bukan garis lurus yang terlihat
   // seperti bendera). Pusat di bawah kaca, jari-jari mengecil ke dalam.
-  const warnaPita = ['#f6757a', '#fee761', '#2ce8f5']   // merah · kuning · sian
+  const warnaPita = ['#fb836b', '#fdd792', '#a9f3f2']   // merah · kuning · sian
   const SEG = 9
   for (let p = 0; p < warnaPita.length; p++) {
     const rLuar = 0.62 - p * 0.05
@@ -470,19 +470,19 @@ export function drawLangit(ctx: CanvasRenderingContext2D, k: Bidang, opsi: OpsiL
     const sekitar = langitDi(b.v)
     // halo sempit ber-DITHER: makin ke luar makin jarang piksel bulan, jadi
     // menyatu dengan langit tanpa perlu mencampur warna (tetap 32 warna)
-    cakram(ctx, k, b.u, b.v, 0.128, 0.225, polaDither(ctx, sekitar, '#c0cbdc', 0.18), 20)
-    cakram(ctx, k, b.u, b.v, 0.104, 0.182, polaDither(ctx, sekitar, '#c0cbdc', 0.48), 20)
-    cakram(ctx, k, b.u, b.v, 0.082, 0.142, '#8b9bb4')
-    cakram(ctx, k, b.u - 0.012, b.v - 0.018, 0.058, 0.100, '#c0cbdc')
+    cakram(ctx, k, b.u, b.v, 0.128, 0.225, polaDither(ctx, sekitar, '#dadab8', 0.18), 20)
+    cakram(ctx, k, b.u, b.v, 0.104, 0.182, polaDither(ctx, sekitar, '#dadab8', 0.48), 20)
+    cakram(ctx, k, b.u, b.v, 0.082, 0.142, '#c5c7a4')
+    cakram(ctx, k, b.u - 0.012, b.v - 0.018, 0.058, 0.100, '#dadab8')
     // kawah: tiga bintik gelap
-    cakram(ctx, k, b.u + 0.021, b.v + 0.017, 0.014, 0.025, '#5a6988', 8)
-    cakram(ctx, k, b.u - 0.016, b.v + 0.045, 0.010, 0.018, '#5a6988', 8)
-    cakram(ctx, k, b.u + 0.004, b.v - 0.042, 0.008, 0.014, '#5a6988', 8)
+    cakram(ctx, k, b.u + 0.021, b.v + 0.017, 0.014, 0.025, '#8e8a6d', 8)
+    cakram(ctx, k, b.u - 0.016, b.v + 0.045, 0.010, 0.018, '#8e8a6d', 8)
+    cakram(ctx, k, b.u + 0.004, b.v - 0.042, 0.008, 0.014, '#8e8a6d', 8)
   } else if (!e.mendung || e.hujan === 0) {
     // matahari: kekuningan; saat fajar/senja lebih jingga
     const hangat = fase === 'senja' || fase === 'fajar'
-    const tepi = hangat ? '#f77622' : '#feae34'
-    const inti = hangat ? '#feae34' : '#fee761'
+    const tepi = hangat ? '#d8894a' : '#ef9762'
+    const inti = hangat ? '#ef9762' : '#fdd792'
     const sekitar = langitDi(b.v)
     // halo SEMPIT berlapis (dither 18% lalu 48% lalu tepi pekat)
     cakram(ctx, k, b.u, b.v, 0.138, 0.238, polaDither(ctx, sekitar, tepi, 0.14), 20)
@@ -498,7 +498,7 @@ export function drawLangit(ctx: CanvasRenderingContext2D, k: Bidang, opsi: OpsiL
   if (e.awan > 0) awan(ctx, k, awanCuaca, e.awan)
 
   // 6) hujan
-  if (e.hujan > 0) hujan(ctx, k, e.hujan, e.mendung ? '#8b9bb4' : '#c0cbdc')
+  if (e.hujan > 0) hujan(ctx, k, e.hujan, e.mendung ? '#8e8a6d' : '#a9f3f2')
 
   // 7) kilat: setiap ±7 detik menyala 0,12 detik
   if (e.kilat) {
@@ -524,7 +524,7 @@ export function drawLangit(ctx: CanvasRenderingContext2D, k: Bidang, opsi: OpsiL
           titik(k, 0.57, 0.54), titik(k, 0.51, 0.47),
         ],
       ]
-      for (const bentuk of petir) isiPoligon(ctx, bentuk, '#fee761')
+      for (const bentuk of petir) isiPoligon(ctx, bentuk, '#fdd792')
     }
   }
 

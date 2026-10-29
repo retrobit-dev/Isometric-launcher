@@ -1,7 +1,7 @@
 // UJI PALET RETRO ENDESGA 32 (ronde 38, 2026-10-29).
 // Permintaan user: "style dan palette warna dibuat lebih ke arah retro pixel
 // art" -> palet = ENDESGA 32, ciri = DITHERING.
-// Uji ini memastikan: (a) paletnya benar 32 warna, (b) tangga nada konsisten,
+// Uji ini memastikan: (a) paletnya benar 51 warna referensi, (b) tangga nada konsisten,
 // (c) SEMUA warna di palette.ts anggota palet, (d) cadangan JSON sinkron.
 //   cd prototype && node tests/run-palet.mjs
 import { execFileSync } from 'node:child_process'
@@ -33,11 +33,11 @@ try {
   const P = await bangun('src/iso/palette.ts', 'palette.mjs')
   const D = await bangun('src/iso/dither.ts', 'dither.mjs')
 
-  console.log('1. bentuk palet Endesga 32')
-  cek('32 warna unik', R.PALET_RETRO.length === 32 && new Set(R.PALET_RETRO).size === 32,
+  console.log('1. bentuk palet referensi 51 warna')
+  cek('51 warna unik', R.PALET_RETRO.length === 51 && new Set(R.PALET_RETRO).size === 51,
     String(R.PALET_RETRO.length))
   cek('semua hex 6 digit', R.PALET_RETRO.every(c => HEX.test(c)))
-  cek('SEMUA = 32 warna (satu-satunya warna sah)', R.SEMUA.length === 32)
+  cek('SEMUA = 51 warna (satu-satunya warna sah)', R.SEMUA.length === 51)
   cek('latar OLED murni tetap #000000', R.OLED === '#000000')
   cek('grid desain 19 tingkat x 18 kolom tetap ada',
     R.PALET_REF.length === 19 && R.PALET_REF.every(r => r.length === 18))
@@ -46,7 +46,8 @@ try {
 
   console.log('2. tangga nada')
   cek('setiap warna palet masuk tepat satu tangga',
-    R.TANGGA.flat().length === 32 && new Set(R.TANGGA.flat()).size === 32,
+    R.TANGGA.flat().length === 51 && new Set(R.TANGGA.flat()).size === 51
+      && R.TANGGA.length === 10,
     `${R.TANGGA.length} tangga`)
   cek('tiap tangga urut dari gelap ke terang',
     R.TANGGA.every(t => t.every((c, i) => i === 0 || luma(c) > luma(t[i - 1]))))
@@ -67,7 +68,7 @@ try {
   const uji = ['#dd8b3f', '#f2c17b', '#d9822f', '#a8541c', '#4d3a35', '#f7e6c4', '#8a9a4a', '#4c8f8a']
   cek('semua hasil pemetaan ada di palet', uji.every(h => R.diPalet(R.kePalet(h))),
     uji.map(h => `${h}->${R.kePalet(h)}`).join(' '))
-  cek('warna yang sudah di palet tidak diubah', R.kePalet('#e4a672') === '#e4a672')
+  cek('warna yang sudah di palet tidak diubah', R.kePalet('#e4b98a') === '#e4b98a')
   cek('warna di luar palet selalu digeser', !R.diPalet('#123457') && R.diPalet(R.kePalet('#123457')),
     R.kePalet('#123457'))
 
@@ -93,7 +94,7 @@ try {
   }
   kumpul(P.PAL); kumpul(P.MATERIALS); kumpul(P.FLOOR_MATERIALS); kumpul(P.WALL_MATERIALS)
   const luar = nilaiHex.filter(h => !R.diPalet(h) && h !== '#000000')
-  cek('warna dasar/material/lantai/dinding semuanya dari 32 warna', luar.length === 0,
+  cek('warna dasar/material/lantai/dinding semuanya dari 51 warna', luar.length === 0,
     `${nilaiHex.length} warna, luar palet: ${luar.slice(0, 5).join(' ')}`)
   cek('tidak ada material magenta (penanda bug) di katalog',
     !Object.values(P.MATERIALS).some(m => m.top === '#ff0044'))
@@ -103,7 +104,7 @@ try {
   cek('docs/04-palet-referensi.json = grid desain modul',
     JSON.stringify(ref.baris) === JSON.stringify(R.PALET_REF))
   const retro = JSON.parse(readFileSync('../docs/04-palet-retro.json', 'utf8'))
-  cek('docs/04-palet-retro.json = 32 warna + tangga',
+  cek('docs/04-palet-retro.json = 51 warna + tangga',
     JSON.stringify(retro.palet) === JSON.stringify(R.PALET_RETRO)
     && JSON.stringify(retro.tangga) === JSON.stringify(R.TANGGA))
   cek('docs/04-palet-retro.json memuat matriks Bayer',

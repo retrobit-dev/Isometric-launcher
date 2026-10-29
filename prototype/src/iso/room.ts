@@ -1,5 +1,5 @@
 import { CAM, CY, DENS, EXT_E, EXT_W, HH, IH, IW, ROOM, ROOM_VISIBLE, TILE_W, ZH, dindingTersembunyi, px, type P } from './space'
-import { PAL, floorMat, gelapkanWarna, wallColors } from './palette'
+import { PAL, floorMat, gelapkanWarna, isTudor, wallColors } from './palette'
 import { drawObject, footprintOf, sortedObjects } from './box'
 import { polaBayang, polaDither } from './dither'
 import { gelap } from './palet-referensi'
@@ -178,52 +178,6 @@ export interface DrawOpts {
   latarGambar?: CanvasImageSource | null
   /** 'isi' = memenuhi kanvas (crop, bawaan) · 'muat' = utuh di tengah */
   latarMode?: 'isi' | 'muat'
-}
-
-// Refleksi lantai: bayangan cermin objek di bawah bidang lantai,
-// dipadatkan 60% dan samar (alpha 12%), dipotong persis ke bentuk lantai.
-function drawReflections(ctx: CanvasRenderingContext2D, objects: SceneObject[]) {
-  const E = ROOM.E + EXT_E
-  const W = ROOM.W + EXT_W
-  ctx.save()
-  ctx.beginPath()
-  const floors = objects.filter(x => x.role === 'lantai' && x.size.e > 0 && x.size.w > 0)
-  if (floors.length) {
-    // bidang pantul = batas objek lantai
-    for (const f of floors) {
-      const a = px(f.pos.e, f.pos.w, f.pos.z)
-      const b = px(f.pos.e + f.size.e, f.pos.w, f.pos.z)
-      const c = px(f.pos.e + f.size.e, f.pos.w + f.size.w, f.pos.z)
-      const d = px(f.pos.e, f.pos.w + f.size.w, f.pos.z)
-      ctx.moveTo(a.x, a.y); ctx.lineTo(b.x, b.y); ctx.lineTo(c.x, c.y); ctx.lineTo(d.x, d.y)
-      ctx.closePath()
-    }
-  } else {
-    const f0 = px(0, 0), f1 = px(E, 0), f2 = px(E, W), f3 = px(0, W)
-    ctx.moveTo(f0.x, f0.y)
-    ctx.lineTo(f1.x, f1.y)
-    ctx.lineTo(f2.x, f2.y)
-    ctx.lineTo(f3.x, f3.y)
-    ctx.closePath()
-  }
-  ctx.clip()
-  ctx.globalAlpha = 0.12
-  // refleksi kini PER OBJEK (diatur dari editor objek), default ON
-  const reflectable = objects.filter(
-    x => x.latar !== true
-      && (x.layer ?? 'main') !== 'underlay'
-      && x.role !== 'lantai' && x.role !== 'dinding'
-      && x.pantulan !== false,
-  )
-  for (const obj of sortedObjects(reflectable)) {
-    const zh = obj.size.z * 0.6
-    drawObject(ctx, {
-      ...obj,
-      pos: { ...obj.pos, z: -(obj.pos.z + zh) },
-      size: { ...obj.size, z: zh },
-    })
-  }
-  ctx.restore()
 }
 
 // Objek ber-role 'lantai': digambar sebagai bidang lantai datar (bukan balok).
@@ -451,8 +405,39 @@ export function drawWallObjects(ctx: CanvasRenderingContext2D, objects: SceneObj
       kotak(0, 1, zd, zd - 0.04, PAL.beamDark)
     }
 
-    // 3) CORNICE — balok kayu gelap di puncak dinding (ciri khas referensi)
+    // 2c) RANGKA BALOK TUDOR (ronde 39) — plester krem + balok kayu gelap
+    //     seperti gambar referensi: tiang tegak tiap 1/4 dinding, lis mendatar
+    //     di atas panel (dari lis dado), dan DUA PENOPANG MIRING per tiang.
+    //     Balok digambar sebelum cornice supaya ujung atasnya tertutup balok
+    //     puncak, persis seperti konstruksi aslinya.
     const hb = Math.min(0.5, Z * 0.4)
+    if (isTudor(o.style) && Z > 1) {
+      const kayu = side === 'kanan' ? PAL.trimT : PAL.beam
+      const kayuMuda = side === 'kanan' ? PAL.postLit : PAL.post
+      const lebarT = Math.max(0.045, 0.34 / panj)          // lebar tiang (≈0,34 tile)
+      const zAtas = Z - hb
+      const zBawah = Math.min(0.26, Z * 0.5)
+      // bidang panel = dari plint/lis sampai balok puncak
+      const zLis = Z > 1.8 ? Math.min(1.15, Z * 0.4) : (zBawah + zAtas) / 2
+
+      // tiang tegak: dua tepi dinding sudah dipakai TIANG di langkah 4
+      for (const t of [0.25, 0.5, 0.75]) {
+        kotak(t - lebarT, t + lebarT, zAtas, zBawah, kayu)
+        // sisi kena cahaya (balok terasa punya volume, bukan garis tempel)
+        kotak(t - lebarT, t - lebarT * 0.25, zAtas, zBawah, kayuMuda)
+        line(ctx, at(t + lebarT, zAtas), at(t + lebarT, zBawah), PAL.beamDark)
+      }
+      // LIS MENDATAR: satu balok setiap ~5 z, jadi dinding terbagi kisi balok
+      // (persis rangka Tudor di gambar referensi), bukan satu garis nyasar.
+      const JARAK_LIS = 5
+      for (let zh = zLis + JARAK_LIS; zh < zAtas - 1; zh += JARAK_LIS) {
+        kotak(0, 1, zh + 0.28, zh, kayu)
+        kotak(0, 1, zh + 0.28, zh + 0.19, kayuMuda)
+        kotak(0, 1, zh, zh - 0.09, PAL.beamDark)
+      }
+    }
+
+    // 3) CORNICE — balok kayu gelap di puncak dinding (ciri khas referensi)
     if (Z > 1) {
       kotak(0, 1, Z, Z - hb, PAL.beam)
       // rim terang di bibir atas balok
@@ -564,10 +549,7 @@ export function drawScene(ctx: CanvasRenderingContext2D, o: DrawOpts) {
     line(ctx, px(e, w + sw), px(e, w), PAL.zone)
   }
 
+  // PANTULAN DIHAPUS TOTAL (permintaan user 2026-10-29): tidak ada lagi
+  // bayangan cermin objek di lantai. Dulu di sini dipanggil drawReflections().
   crispify(ctx)
-
-  // refleksi digambar SETELAH crispify agar alpha samar tidak ikut ter-threshold
-  // (butuh lantai sebagai bidang pantul; tanpa lantai refleksi dilewati)
-  const hasFloorObj = objek.some(x => x.role === 'lantai')
-  if (ROOM_VISIBLE || hasFloorObj) drawReflections(ctx, objek)
 }

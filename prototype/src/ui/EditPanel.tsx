@@ -65,7 +65,6 @@ export default function EditPanel(p: Props) {
   const posisiGaya = labelPosisiGaya(o.role, styleName)
   const sudut = o.rotasi ?? 0
   const cermin = o.refleksi === true          // objek dicerminkan (mirror)
-  const pantul = o.pantulan !== false         // bayangan objek di lantai
   // KUNCI per objek (permintaan user): 'warna' = semua mati kecuali material,
   // 'semua' = mati total. `frozen` mematikan geometri, `noColor` mematikan warna.
   const kunci = o.kunci
@@ -229,17 +228,6 @@ export default function EditPanel(p: Props) {
           disabled={frozen}
           onChange={v => p.onChange({ opasitas: normalOpasitas(Math.min(1, v)) })}
         />
-      </div>
-      <div className="row">
-        <span className="rl">pantulan</span>
-        <button
-          className={pantul ? 'sbtn wide on' : 'sbtn wide'}
-          disabled={frozen}
-          onClick={() => p.onChange({ pantulan: !pantul })}
-          title="bayangan cermin OBJEK INI di permukaan lantai"
-        >
-          {pantul ? 'AKTIF ✓' : 'MATI'}
-        </button>
       </div>
       {o.role === 'dinding' && (
         <div className="row">

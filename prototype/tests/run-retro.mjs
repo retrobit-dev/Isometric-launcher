@@ -36,17 +36,17 @@ try {
   const dither = baca('src/iso/dither.ts')
   const py = baca('../tools/render_scene.py')
 
-  console.log('1. palet tunggal: Endesga 32')
+  console.log('1. palet tunggal: referensi 51 warna')
   const D = await import(pathToFileURL(join(tmp, 'd.mjs')).href, { with: {} }).catch(() => null)
   void D
   execFileSync('npx', ['esbuild', 'src/iso/palet-retro.ts', '--bundle', '--format=esm',
     '--platform=node', `--outfile=${join(tmp, 'retro.mjs')}`], { stdio: 'pipe' })
   const RT = await import(pathToFileURL(join(tmp, 'retro.mjs')).href)
-  cek('palet 32 warna', RT.PALET_RETRO.length === 32)
+  cek('palet 51 warna', RT.PALET_RETRO.length === 51)
   cek('latar luar tetap hitam OLED (aturan ronde 13 masih berlaku)',
     /OLED = '#000000'/.test(palet), '#000000')
-  cek('modul palet menyebut Endesga 32', /ENDESGA 32/.test(retro))
-  cek('aturan "342 warna" ditandai DIBATALKAN (ronde 38)',
+  cek('modul palet menyebut palet referensi 51 warna', /51 warna/i.test(retro))
+  cek('aturan "342 warna" sudah tidak dipakai (diganti 51 warna ronde 39)',
     /DIBATALKAN|dibatalkan/.test(palet) || /DIBATALKAN|dibatalkan/.test(retro))
 
   console.log('2. dithering wajib, pencampuran warna dilarang')

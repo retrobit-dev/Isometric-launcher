@@ -160,8 +160,6 @@ export interface SceneObject {
   // bertukar sehingga arah cahaya/bentuk objek terbalik. Berlaku untuk OBJEK
   // ini saja, bukan kamera atau ruangan. Default OFF.
   refleksi?: boolean
-  // PANTULAN = bayangan cermin objek ini di permukaan lantai. Default ON.
-  pantulan?: boolean
   // SUDUT (derajat) untuk bentuk 'daun': 90 = tegak, 0 = mendatar ke +e.
   miring?: number
   // KEBULATAN DAUN 0..1 untuk bentuk 'daun' (permintaan user 2026-10-29:
