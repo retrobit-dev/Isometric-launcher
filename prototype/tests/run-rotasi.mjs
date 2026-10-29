@@ -28,19 +28,24 @@ try {
   const T = await bangun('src/scene/types.ts', 'types.mjs')
   const S = await bangun('src/scene/store.ts', 'store.mjs')
 
-  console.log('1. langkah 30°')
-  cek('ROTASI_LANGKAH = 30', T.ROTASI_LANGKAH === 30)
+  console.log('1. grid 15°, tombol objek 30°')
+  cek('ROTASI_LANGKAH (tombol objek) = 30', T.ROTASI_LANGKAH === 30)
+  cek('ROTASI_FOLDER (tombol folder) = 15', T.ROTASI_FOLDER === 15)
+  cek('ROTASI_GRID (grid simpan) = 15', T.ROTASI_GRID === 15)
   cek('0 tetap 0', T.normalRotasi(0) === 0)
   cek('30 tetap 30', T.normalRotasi(30) === 30)
-  cek('45 dibulatkan ke 60', T.normalRotasi(45) === 60, String(T.normalRotasi(45)))
-  cek('44 dibulatkan ke 30', T.normalRotasi(44) === 30, String(T.normalRotasi(44)))
+  // grid 15° sejak rotasi folder 15°: sudut ganjil TIDAK boleh dibulatkan ke 30°
+  cek('15 tetap 15', T.normalRotasi(15) === 15, String(T.normalRotasi(15)))
+  cek('45 tetap 45', T.normalRotasi(45) === 45, String(T.normalRotasi(45)))
+  cek('44 dibulatkan ke 45', T.normalRotasi(44) === 45, String(T.normalRotasi(44)))
+  cek('52 dibulatkan ke 45', T.normalRotasi(52) === 45, String(T.normalRotasi(52)))
   cek('360 -> 0', T.normalRotasi(360) === 0, String(T.normalRotasi(360)))
   cek('390 -> 30', T.normalRotasi(390) === 30, String(T.normalRotasi(390)))
   cek('-30 -> 330', T.normalRotasi(-30) === 330, String(T.normalRotasi(-30)))
   cek('NaN -> 0', T.normalRotasi(NaN) === 0)
   const semua = []
-  for (let d = 0; d < 360; d += 30) semua.push(T.normalRotasi(d))
-  cek('12 posisi berbeda 0..330', new Set(semua).size === 12 && Math.max(...semua) === 330, semua.join(','))
+  for (let d = 0; d < 360; d += 15) semua.push(T.normalRotasi(d))
+  cek('24 posisi berbeda 0..345', new Set(semua).size === 24 && Math.max(...semua) === 345, `${semua.length} posisi`)
 
   console.log('2. data lama (rot 0..3) dimigrasi')
   const adegan = (extra) => ({
@@ -62,10 +67,10 @@ try {
   const r30 = S.normalisasiScene(adegan({ rotasi: 30 }))
   cek('rotasi 30 bertahan', r30.objects[0].rotasi === 30, String(r30.objects[0].rotasi))
   const rSpur = S.normalisasiScene(adegan({ rotasi: 47 }))
-  cek('rotasi 47 dibulatkan ke 60 saat normalisasi', rSpur.objects[0].rotasi === 60, String(rSpur.objects[0].rotasi))
+  cek('rotasi 47 dibulatkan ke 45 saat normalisasi', rSpur.objects[0].rotasi === 45, String(rSpur.objects[0].rotasi))
   const rTinggi = S.normalisasiScene(adegan({ rotasi: 400 }))
   // 400° = 40° -> kelipatan 30 terdekat = 30
-  cek('rotasi 400 -> 30', rTinggi.objects[0].rotasi === 30, String(rTinggi.objects[0].rotasi))
+  cek('rotasi 400 -> 45', rTinggi.objects[0].rotasi === 45, String(rTinggi.objects[0].rotasi))
 
   console.log('4. geometri footprint terputar')
   // hitung 4 sudut alas seperti iso/box.ts, lalu bandingkan dengan harapan

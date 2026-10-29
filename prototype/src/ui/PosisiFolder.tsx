@@ -1,66 +1,21 @@
-import { useEffect, useRef, useState } from 'react'
+import { useEffect, useRef } from 'react'
+import { UKURAN_MIN } from '../scene/types'
+import NumField from './NumField'
 
 /**
- * POSISI FOLDER (permintaan user 2026-10-29)
- * ---------------------------------------------------------------------------
- * "tambahkan juga fitur untuk memindahkan folder objek sesuai posisi z" dan
- * "untuk posisi E, W, Z jangan gunakan -1, 0, +1 tetapi angka koordinat saja".
+ * KARTU FOLDER — dibuat SEMIRIP mungkin dengan panel editor objek
+ * (permintaan user 2026-10-29: "atau bisakah fiturnya disamakan dengan editor
+ * objek?"). Isinya:
  *
- * Jadi: TIDAK ADA tombol langkah (−1 / −0.1 / +0.1 / +1). Yang ada hanya tiga
- * kolom angka yang bisa DIKETIK: e, w, z. Nilai yang diketik = KOORDINAT
- * TUJUAN, dihitung dari sudut minimum (bbox) folder — sama seperti arti `pos`
- * pada satu objek, supaya angkanya bisa dibandingkan langsung dengan panel
- * editor objek.
+ *   POSISI  e / w / z   angka bisa diketik, tombol − / + kelipatan 0,1
+ *   UKURAN  panjang / lebar / tinggi (e / w / z) — mengubah SELURUH isi folder
+ *           sebagai satu kesatuan (diskalakan dari sudut minimum folder)
+ *   ROTASI  ⟲ 15° / 15° ⟳ — kelipatan 15 derajat (permintaan user)
  *
- * Contoh: folder jendela punya sudut minimum e 12,00 z 2,06. Mengetik z 4,00
- * menggeser SELURUH isi folder naik 1,94 sehingga dasarnya kini di z 4,00.
+ * Arti angka posisi = KOORDINAT SUDUT MINIMUM kotak pembatas folder (sama
+ * seperti `pos` pada satu objek). Arti angka ukuran = UKURAN kotak pembatas
+ * folder, bukan ukuran satu bagian.
  */
-
-const snap = (v: number) => Math.round(v * 1000) / 1000
-
-/** satu kolom angka koordinat (tanpa tombol ±, murni ketik) */
-function Kolom(p: {
-  label: string
-  nilai: number
-  onSet: (v: number) => void
-  disabled?: boolean
-}) {
-  const [teks, setTeks] = useState(p.nilai.toFixed(2))
-  const [fokus, setFokus] = useState(false)
-
-  // ikuti nilai dari luar (mis. setelah USER menggeser objek lewat jalur lain)
-  useEffect(() => {
-    if (!fokus) setTeks(p.nilai.toFixed(2))
-  }, [p.nilai, fokus])
-
-  const commit = (raw?: string) => {
-    const n = parseFloat((raw ?? teks).replace(',', '.'))
-    if (!Number.isFinite(n)) { setTeks(p.nilai.toFixed(2)); return }
-    const v = snap(n)
-    p.onSet(v)
-    setTeks(v.toFixed(2))
-  }
-
-  return (
-    <div className="row">
-      <span className="rl">{p.label}</span>
-      <input
-        className="rinput"
-        inputMode="decimal"
-        value={teks}
-        disabled={p.disabled}
-        onFocus={ev => { setFokus(true); ev.currentTarget.select() }}
-        onChange={ev => setTeks(ev.target.value)}
-        onBlur={() => { setFokus(false); commit() }}
-        onKeyDown={ev => {
-          if (ev.key === 'Enter') { commit(); ev.currentTarget.blur() }
-          if (ev.key === 'Escape') { setTeks(p.nilai.toFixed(2)); ev.currentTarget.blur() }
-        }}
-        aria-label={`${p.label} folder (ketik angka koordinat)`}
-      />
-    </div>
-  )
-}
 
 interface Props {
   nama: string
@@ -68,10 +23,12 @@ interface Props {
   nilai: { e: number; w: number; z: number }
   /** ukuran kotak pembatas folder */
   ukuran: { e: number; w: number; z: number }
-  /** jumlah anggota yang terkunci (tidak ikut bergeser) */
+  /** jumlah anggota yang terkunci (tidak ikut berubah) */
   terkunci: number
+  anggota: number
   onSet: (sumbu: 'e' | 'w' | 'z', nilai: number) => void
-  /** putar seluruh isi folder 30° (arah −1 = kiri, +1 = kanan) */
+  onSetUkuran: (sumbu: 'e' | 'w' | 'z', nilai: number) => void
+  /** putar seluruh isi folder 15° (arah −1 = kiri, +1 = kanan) */
   onPutar: (arah: 1 | -1) => void
   onClose: () => void
 }
@@ -85,41 +42,73 @@ export default function PosisiFolder(p: Props) {
     p.onClose()
   }
 
+  useEffect(() => {
+    const onKey = (ev: KeyboardEvent) => { if (ev.key === 'Escape') tutup() }
+    window.addEventListener('keydown', onKey)
+    return () => window.removeEventListener('keydown', onKey)
+  })
+
   return (
     <div className="modal" onClick={tutup}>
       <div className="mcard geser" ref={box} onClick={ev => ev.stopPropagation()}>
         <div className="mhead">
-          <span>POSISI FOLDER · {p.nama}</span>
+          <span>FOLDER · {p.nama}</span>
           <button className="sbtn" onClick={tutup}>✕</button>
         </div>
-        <div className="phint">
-          ketik angka KOORDINAT (bukan langkah). Nilai = sudut minimum folder;
-          seluruh isi folder (termasuk sub-folder) ikut bergeser.
-        </div>
-        <Kolom label="e" nilai={p.nilai.e} onSet={v => p.onSet('e', v)} />
-        <Kolom label="w" nilai={p.nilai.w} onSet={v => p.onSet('w', v)} />
-        <Kolom label="z" nilai={p.nilai.z} onSet={v => p.onSet('z', v)} />
-        <div className="row">
-          <span className="rl">rotasi</span>
-          <button
-            className="sbtn wide"
-            onClick={() => p.onPutar(-1)}
-            title="putar SELURUH isi folder 30° ke kiri mengelilingi poros tengah folder"
-          >
-            ⟲ 30°
-          </button>
-          <button
-            className="sbtn wide"
-            onClick={() => p.onPutar(1)}
-            title="putar SELURUH isi folder 30° ke kanan mengelilingi poros tengah folder"
-          >
-            30° ⟳
-          </button>
-        </div>
-        <div className="phint">
-          ukuran folder: {p.ukuran.e.toFixed(2)} × {p.ukuran.w.toFixed(2)} ×{' '}
-          {p.ukuran.z.toFixed(2)} (e × w × z)
-          {p.terkunci > 0 ? ` · ${p.terkunci} objek terkunci tidak ikut bergeser` : ''}
+        <div className="pbody">
+          <div className="phint">
+            {p.anggota} bagian{p.terkunci > 0 ? ` · ${p.terkunci} terkunci tidak ikut` : ''}
+          </div>
+
+          <div className="pgrid">
+            <NumField
+              label="posisi e" value={p.nilai.e} min={-99}
+              onChange={v => p.onSet('e', v)}
+            />
+            <NumField
+              label="posisi w" value={p.nilai.w} min={-99}
+              onChange={v => p.onSet('w', v)}
+            />
+            <NumField
+              label="posisi z" value={p.nilai.z} min={0}
+              onChange={v => p.onSet('z', v)}
+            />
+            <NumField
+              label="panjang" value={p.ukuran.e} min={UKURAN_MIN}
+              onChange={v => p.onSetUkuran('e', v)}
+            />
+            <NumField
+              label="lebar" value={p.ukuran.w} min={UKURAN_MIN}
+              onChange={v => p.onSetUkuran('w', v)}
+            />
+            <NumField
+              label="tinggi" value={p.ukuran.z} min={UKURAN_MIN}
+              onChange={v => p.onSetUkuran('z', v)}
+            />
+          </div>
+
+          <div className="row">
+            <span className="rl">rotasi</span>
+            <button
+              className="sbtn wide"
+              onClick={() => p.onPutar(-1)}
+              title="putar SELURUH isi folder 15° ke kiri mengelilingi poros tengah folder"
+            >
+              ⟲ 15°
+            </button>
+            <button
+              className="sbtn wide"
+              onClick={() => p.onPutar(1)}
+              title="putar SELURUH isi folder 15° ke kanan mengelilingi poros tengah folder"
+            >
+              15° ⟳
+            </button>
+          </div>
+
+          <div className="phint">
+            posisi & ukuran = kotak pembatas folder, semua bagian ikut sebagai
+            satu kesatuan. Angka boleh diketik; tombol − / + melangkah 0,1.
+          </div>
         </div>
       </div>
     </div>

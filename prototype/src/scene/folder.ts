@@ -1,4 +1,4 @@
-import { ROTASI_LANGKAH, normalRotasi, type SceneObject } from './types'
+import { ROTASI_FOLDER, UKURAN_MIN, normalRotasi, type SceneObject } from './types'
 
 /**
  * OPERASI FOLDER (grup) — dipisah dari App.tsx supaya bisa diuji tanpa React.
@@ -115,7 +115,7 @@ export function putarFolder(
   if (bb.ukuran.e === 0 && bb.ukuran.w === 0) return objects
   const pe = bulat(bb.nilai.e + bb.ukuran.e / 2)
   const pw = bulat(bb.nilai.w + bb.ukuran.w / 2)
-  const th = (arah * ROTASI_LANGKAH * Math.PI) / 180
+  const th = (arah * ROTASI_FOLDER * Math.PI) / 180
   const co = Math.cos(th)
   const si = Math.sin(th)
   const ids = new Set(
@@ -137,7 +137,45 @@ export function putarFolder(
         e: bulat(ne - o.size.e / 2),
         w: bulat(nw - o.size.w / 2),
       },
-      rotasi: normalRotasi((o.rotasi ?? 0) + arah * ROTASI_LANGKAH),
+      rotasi: normalRotasi((o.rotasi ?? 0) + arah * ROTASI_FOLDER),
+    }
+  })
+}
+
+/**
+ * UBAH UKURAN FOLDER — "panjangkan / lebarkan / tinggikan seluruh isi folder
+ * sebagai satu kesatuan" (permintaan user 2026-10-29).
+ *
+ * `nilai` = UKURAN KOTAK PEMBATAS folder pada sumbu itu (bukan ukuran satu
+ * objek). Semua anggota diskalakan dengan faktor yang sama terhadap SUDUT
+ * MINIMUM sebagai jangkar, jadi:
+ *   • jarak antar bagian ikut membesar/mengecil secara proporsional;
+ *   • susunan folder tidak berubah bentuk;
+ *   • posisi & ukuran tiap bagian tetap angka 3 desimal yang sah.
+ * Objek terkunci tidak ikut.
+ */
+export function skalaFolder(
+  objects: SceneObject[],
+  gid: string,
+  sumbu: Sumbu,
+  nilai: number,
+): SceneObject[] {
+  const bb = bboxFolder(objects, gid)
+  const dasar = bb.ukuran[sumbu]
+  if (dasar <= 0) return objects
+  const f = nilai / dasar
+  if (!Number.isFinite(f) || f <= 0 || Math.abs(f - 1) < 1e-9) return objects
+  const jangkar = bb.nilai[sumbu]
+  const ids = new Set(
+    anggotaFolder(objects, gid).filter(o => !o.kunci).map(o => o.id),
+  )
+  if (ids.size === 0) return objects
+  return objects.map(o => {
+    if (!ids.has(o.id)) return o
+    return {
+      ...o,
+      pos: { ...o.pos, [sumbu]: bulat(jangkar + (o.pos[sumbu] - jangkar) * f) },
+      size: { ...o.size, [sumbu]: Math.max(UKURAN_MIN, bulat(o.size[sumbu] * f)) },
     }
   })
 }

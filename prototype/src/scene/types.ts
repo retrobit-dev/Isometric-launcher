@@ -64,12 +64,28 @@ export const UKURAN_MIN = 0.001
  * Data lama memakai `rot` 0..3 (= 90° per langkah) dan tetap dibaca: saat
  * normalisasi `rot` diubah menjadi `rotasi` = rot*90.
  */
+/** langkah tombol rotasi PADA SATU OBJEK (panel editor objek) */
 export const ROTASI_LANGKAH = 30
 
-/** derajat rotasi yang sah: kelipatan 30, dibungkus ke 0..330 */
+/**
+ * Langkah tombol rotasi FOLDER (permintaan user 2026-10-29: "untuk rotasi
+ * folder kelipatan 15 derajat saja"). Lebih halus dari rotasi objek karena
+ * seluruh isi folder ikut berputar.
+ */
+export const ROTASI_FOLDER = 15
+
+/**
+ * GRID rotasi yang disimpan: 15°. Dipakai normalisasi supaya hasil rotasi
+ * folder 15° TIDAK dibulatkan balik ke 30° (kalau grid 30°, sudut 15 hilang).
+ * Tombol objek tetap melangkah 30°, jadi nilai ganjil (15, 45, …) hanya lahir
+ * dari rotasi folder.
+ */
+export const ROTASI_GRID = 15
+
+/** derajat rotasi yang sah: kelipatan grid 15°, dibungkus ke 0..345 */
 export function normalRotasi(deg: number): number {
   const n = Number.isFinite(deg) ? deg : 0
-  const b = Math.round(n / ROTASI_LANGKAH) * ROTASI_LANGKAH
+  const b = Math.round(n / ROTASI_GRID) * ROTASI_GRID
   return ((b % 360) + 360) % 360
 }
 

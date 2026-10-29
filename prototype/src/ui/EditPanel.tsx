@@ -2,6 +2,7 @@ import { useEffect, useRef, useState } from 'react'
 import { UKURAN_MIN } from '../scene/types'
 import { FLOOR_DEFAULT, FLOOR_KEYS, MATERIAL_KEYS, WALL_STYLE_KEYS, floorMat } from '../iso/palette'
 import type { SceneObject } from '../scene/types'
+import NumField from './NumField'
 
 interface Props {
   obj: SceneObject
@@ -38,118 +39,6 @@ const snap = (v: number) => Math.round(v * 1000) / 1000
  * Nilai diketik disimpan sebagai teks lokal supaya mengetik "1." atau "-"
  * tidak langsung dipaksa; commit terjadi saat Enter, blur, atau tombol ±.
  */
-/**
- * Tombol − / + yang bisa DITAHAN (permintaan user 2026-10-29: "buat tombol +
- * dan − bisa ditahan agar tidak perlu klik satu-satu berulang").
- * Ketuk = satu langkah 0.1. Tahan > 320 ms = berulang otomatis tiap 70 ms.
- * Memakai pointer capture supaya tetap berhenti walau jari bergeser keluar.
- */
-function HoldBtn(p: {
-  dir: 1 | -1
-  onStep: (dir: 1 | -1) => void
-  disabled?: boolean
-}) {
-  const tunda = useRef<number | null>(null)
-  const ulang = useRef<number | null>(null)
-  const stop = () => {
-    if (tunda.current !== null) { window.clearTimeout(tunda.current); tunda.current = null }
-    if (ulang.current !== null) { window.clearInterval(ulang.current); ulang.current = null }
-  }
-  useEffect(() => stop, [])
-  return (
-    <button
-      className="sbtn hold"
-      disabled={p.disabled}
-      aria-label={p.dir > 0 ? 'tambah 0.1 (tahan untuk berulang)' : 'kurangi 0.1 (tahan untuk berulang)'}
-      onPointerDown={ev => {
-        ev.preventDefault()
-        try { (ev.currentTarget as HTMLElement).setPointerCapture(ev.pointerId) } catch { /* abaikan */ }
-        p.onStep(p.dir)
-        tunda.current = window.setTimeout(() => {
-          ulang.current = window.setInterval(() => p.onStep(p.dir), 70)
-        }, 320)
-      }}
-      onPointerUp={stop}
-      onPointerCancel={stop}
-      onPointerLeave={stop}
-      onBlur={stop}
-      onContextMenu={ev => ev.preventDefault()}
-    >
-      {p.dir > 0 ? '+' : '−'}
-    </button>
-  )
-}
-
-function NumField(p: {
-  label: string
-  value: number
-  min: number
-  onChange: (v: number) => void
-  disabled?: boolean
-  /** langkah tombol ± (bawaan 0.1) */
-  step?: number
-  /** jumlah desimal yang ditampilkan (bawaan 3 = presisi 0,001) */
-  desimal?: number
-  /** true = HANYA kolom ketik, tanpa tombol − / + (dipakai untuk posisi E/W/Z) */
-  tanpaTombol?: boolean
-}) {
-  const langkah = p.step ?? 0.1
-  const desimal = p.desimal ?? 3
-  const [text, setText] = useState(p.value.toFixed(desimal))
-  const [focused, setFocused] = useState(false)
-  // nilai acuan untuk penambahan berulang: prop bisa tertinggal satu render,
-  // jadi langkah dihitung dari ref ini supaya tahan-tombol tidak "macet".
-  const nilaiRef = useRef(p.value)
-
-  // sinkron dari luar (drag objek, tombol ±, ganti objek terpilih)
-  useEffect(() => {
-    nilaiRef.current = p.value
-    if (!focused) setText(p.value.toFixed(desimal))
-  }, [p.value, focused, desimal])
-
-  /** satu langkah untuk tombol tahan (posisi 0.001, ukuran 0.001) */
-  const step = (dir: 1 | -1) => {
-    const diketik = parseFloat(text.replace(',', '.'))
-    const dasar = focused && Number.isFinite(diketik) ? snap(diketik) : nilaiRef.current
-    const v = Math.max(p.min, snap(dasar + dir * langkah))
-    nilaiRef.current = v
-    p.onChange(v)
-    setText(v.toFixed(desimal))
-  }
-
-  const commit = (raw?: string) => {
-    const src = raw ?? text
-    const n = parseFloat(src.replace(',', '.'))
-    const v = Number.isFinite(n) ? snap(n) : p.value
-    const clamped = Math.max(p.min, v)
-    p.onChange(clamped)
-    setText(clamped.toFixed(desimal))
-  }
-
-  return (
-    <div className="row">
-      <span className="rl">{p.label}</span>
-      {!p.tanpaTombol && <HoldBtn dir={-1} disabled={p.disabled} onStep={step} />}
-      <input
-        className="rinput"
-        inputMode="decimal"
-        value={text}
-        onFocus={ev => { setFocused(true); ev.currentTarget.select() }}
-        onChange={ev => setText(ev.target.value)}
-        onBlur={() => { setFocused(false); commit() }}
-        onKeyDown={ev => {
-          if (ev.key === 'Enter') { commit(); ev.currentTarget.blur() }
-          if (ev.key === 'Escape') { setText(p.value.toFixed(1)); ev.currentTarget.blur() }
-          if (ev.key === 'ArrowUp') { ev.preventDefault(); commit(String(p.value + 0.1)) }
-          if (ev.key === 'ArrowDown') { ev.preventDefault(); commit(String(p.value - 0.1)) }
-        }}
-        aria-label={`${p.label} objek (bisa diketik)`}
-      />
-      {!p.tanpaTombol && <HoldBtn dir={1} disabled={p.disabled} onStep={step} />}
-    </div>
-  )
-}
-
 export default function EditPanel(p: Props) {
   const o = p.obj
   const isFloor = o.role === 'lantai'
@@ -244,32 +133,32 @@ export default function EditPanel(p: Props) {
       <div className="pbody">
       <div className="pgrid">
         <NumField
-          label="posisi e" value={o.pos.e} min={-99} step={0.001} desimal={3} tanpaTombol
+          label="posisi e" value={o.pos.e} min={-99} desimal={3}
           onChange={v => p.onChange({ pos: { ...o.pos, e: v } })}
           disabled={frozen}
         />
         <NumField
-          label="posisi w" value={o.pos.w} min={-99} step={0.001} desimal={3} tanpaTombol
+          label="posisi w" value={o.pos.w} min={-99} desimal={3}
           onChange={v => p.onChange({ pos: { ...o.pos, w: v } })}
           disabled={frozen}
         />
         <NumField
-          label="posisi z" value={o.pos.z} min={0} step={0.001} desimal={3} tanpaTombol
+          label="posisi z" value={o.pos.z} min={0} desimal={3}
           onChange={v => p.onChange({ pos: { ...o.pos, z: v } })}
           disabled={frozen}
         />
         <NumField
-          label="panjang" value={o.size.e} min={UKURAN_MIN} step={0.001} desimal={3}
+          label="panjang" value={o.size.e} min={UKURAN_MIN} desimal={3}
           onChange={v => p.onChange({ size: { ...o.size, e: v } })}
           disabled={frozen}
         />
         <NumField
-          label="lebar" value={o.size.w} min={UKURAN_MIN} step={0.001} desimal={3}
+          label="lebar" value={o.size.w} min={UKURAN_MIN} desimal={3}
           onChange={v => p.onChange({ size: { ...o.size, w: v } })}
           disabled={frozen}
         />
         <NumField
-          label="tinggi" value={o.size.z} min={UKURAN_MIN} step={0.001} desimal={3}
+          label="tinggi" value={o.size.z} min={UKURAN_MIN} desimal={3}
           onChange={v => p.onChange({ size: { ...o.size, z: v } })}
           disabled={frozen}
         />

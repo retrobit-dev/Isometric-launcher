@@ -76,7 +76,7 @@ try {
   cek('bagian yang akan < 0 tetap di tempatnya', zOf(bawah, 'w1') === 2.5, String(zOf(bawah, 'w1')))
   cek('tidak ada nilai z negatif', bawah.every(x => x.pos.z >= 0))
 
-  console.log('6. putar folder 30 derajat')
+  console.log('6. putar folder 15 derajat')
   // dua objek berjarak 2 satuan pada sumbu e, poros di tengah kotak pembatas
   const p0 = [
     o('a', { e: -1, w: -0.5, z: 1 }, { e: 2, w: 1, z: 1 }, { grup: 'g-p' }),
@@ -86,8 +86,7 @@ try {
   const p1 = F.putarFolder(p0, 'g-p', 1)
   const pA = p1.find(x => x.id === 'a')
   const pB = p1.find(x => x.id === 'b')
-  cek('rotasi tiap anggota +30', pA.rotasi === 30 && pB.rotasi === 30, `${pA.rotasi},${pB.rotasi}`)
-  // jarak antar pusat harus tetap sama walau diputar
+  cek('rotasi tiap anggota +15', pA.rotasi === 15 && pB.rotasi === 15, `${pA.rotasi},${pB.rotasi}`)
   const jarak = (x, y) => Math.hypot(
     (x.pos.e + x.size.e / 2) - (y.pos.e + y.size.e / 2),
     (x.pos.w + x.size.w / 2) - (y.pos.w + y.size.w / 2),
@@ -97,17 +96,46 @@ try {
   cek('objek terkunci tidak berputar/bergeser',
     p1.find(x => x.id === 'k').pos.e === 5 && p1.find(x => x.id === 'k').rotasi === undefined)
   cek('z tidak berubah', pA.pos.z === 1)
-  // 12 langkah = kembali ke posisi awal (toleransi pembulatan 0,001)
+  // 24 langkah x 15 derajat = 360 derajat -> kembali ke posisi awal
   let p2 = p0
-  for (let i = 0; i < 12; i++) p2 = F.putarFolder(p2, 'g-p', 1)
+  for (let i = 0; i < 24; i++) p2 = F.putarFolder(p2, 'g-p', 1)
   const p2a = p2.find(x => x.id === 'a')
-  cek('12 x 30 derajat kembali ke awal',
+  cek('24 x 15 derajat kembali ke awal',
     Math.abs(p2a.pos.e - (-1)) < 0.002 && Math.abs(p2a.pos.w - (-0.5)) < 0.002,
     `${p2a.pos.e},${p2a.pos.w}`)
-  cek('rotasi kembali 0 setelah 12 langkah', p2a.rotasi === undefined || p2a.rotasi === 0,
+  cek('rotasi kembali 0 setelah 24 langkah', p2a.rotasi === undefined || p2a.rotasi === 0,
     String(p2a.rotasi))
 
-  console.log('7. aman untuk nilai aneh')
+  console.log('7. ubah ukuran folder sebagai satu kesatuan')
+  const s0 = [
+    o('u1', { e: 0, w: 0, z: 2 }, { e: 1, w: 0.4, z: 1 }, { grup: 'g-u' }),
+    o('u2', { e: 2, w: 0, z: 2 }, { e: 1, w: 0.4, z: 3 }, { grup: 'g-u' }),
+  ]
+  const lebarE = F.skalaFolder(s0, 'g-u', 'e', 6)   // semula 3 -> 6 (x2)
+  cek('panjang folder jadi 6', F.bboxFolder(lebarE, 'g-u').ukuran.e === 6,
+    String(F.bboxFolder(lebarE, 'g-u').ukuran.e))
+  cek('ukuran tiap bagian ikut x2',
+    lebarE.find(x => x.id === 'u1').size.e === 2 && lebarE.find(x => x.id === 'u2').size.e === 2)
+  cek('sudut minimum tetap (jangkar di sudut)', F.bboxFolder(lebarE, 'g-u').nilai.e === 0)
+  cek('jarak antar bagian ikut x2',
+    lebarE.find(x => x.id === 'u2').pos.e - lebarE.find(x => x.id === 'u1').pos.e === 4,
+    String(lebarE.find(x => x.id === 'u2').pos.e - lebarE.find(x => x.id === 'u1').pos.e))
+
+  const tinggi = F.skalaFolder(s0, 'g-u', 'z', 6)   // semula 3 -> 6 (x2)
+  cek('tinggi folder jadi 6', F.bboxFolder(tinggi, 'g-u').ukuran.z === 6)
+  cek('dasar folder tetap di z 2', F.bboxFolder(tinggi, 'g-u').nilai.z === 2)
+
+  const lebarW = F.skalaFolder(s0, 'g-u', 'w', 0.2)
+  cek('lebar folder jadi 0.2', F.bboxFolder(lebarW, 'g-u').ukuran.w === 0.2)
+
+  const denganKunci = F.skalaFolder(
+    [...s0, o('uk', { e: 5, w: 0, z: 0 }, { e: 1, w: 1, z: 1 }, { grup: 'g-u', kunci: 'semua' })],
+    'g-u', 'e', 9,
+  )
+  cek('objek terkunci tidak ikut diskalakan',
+    denganKunci.find(x => x.id === 'uk').size.e === 1)
+
+  console.log('8. aman untuk nilai aneh')
   cek('delta 0 -> objek tidak berubah', F.pindahFolder(objects, 'g-j', 'z', 2.5) === objects)
   cek('folder tak dikenal -> tidak berubah', F.pindahFolder(objects, 'tidak-ada', 'z', 9) === objects)
 } catch (e) {

@@ -13,7 +13,7 @@ import { LATAR_TAG, gabungLatar, geserTumpukan, hapusLatarImage, latarImageUrl, 
 import { type JenisAnim, type Scene, type SceneObject } from './scene/types'
 import EditPanel from './ui/EditPanel'
 import ObjectList from './ui/ObjectList'
-import { bboxFolder, pindahFolder, putarFolder, type Sumbu } from './scene/folder'
+import { anggotaFolder, bboxFolder, pindahFolder, putarFolder, skalaFolder, type Sumbu } from './scene/folder'
 import PosisiFolder from './ui/PosisiFolder'
 import Confirm, { type ConfirmReq } from './ui/Confirm'
 
@@ -598,7 +598,15 @@ export default function App() {
     setPanelDirty(true)
   }
 
-  // PUTAR FOLDER: seluruh isi folder berputar 30° mengelilingi poros tengahnya.
+  const anggotaFolderCount = (gid: string) => anggotaFolder(scene.objects, gid).length
+
+  // UKURAN FOLDER: panjang / lebar / tinggi seluruh isi folder sebagai satu kesatuan.
+  const ukuranFolder = (gid: string, sumbu: Sumbu, nilai: number) => {
+    setScene(sc => ({ ...sc, objects: skalaFolder(sc.objects, gid, sumbu, nilai) }))
+    setPanelDirty(true)
+  }
+
+  // PUTAR FOLDER: seluruh isi folder berputar 15° mengelilingi poros tengahnya.
   const putarGrup = (gid: string, arah: 1 | -1) => {
     setScene(sc => ({ ...sc, objects: putarFolder(sc.objects, gid, arah) }))
     setPanelDirty(true)
@@ -1158,7 +1166,9 @@ export default function App() {
             nilai={info.nilai}
             ukuran={info.ukuran}
             terkunci={info.terkunci}
+            anggota={anggotaFolderCount(geserGrup.gid)}
             onSet={(sumbu, v) => posisiFolder(geserGrup.gid, sumbu, v)}
+            onSetUkuran={(sumbu, v) => ukuranFolder(geserGrup.gid, sumbu, v)}
             onPutar={arah => putarGrup(geserGrup.gid, arah)}
             onClose={() => setGeserGrup(null)}
           />

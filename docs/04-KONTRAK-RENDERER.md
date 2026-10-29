@@ -155,6 +155,12 @@ Aturan wajib:
 
 Field `bentuk` pada objek: `balok` (default) · `silinder` · `kerucut` · `bola` · `cakram` · `daun`.
 
+**Grid rotasi 15°.** Semua sudut objek disimpan sebagai kelipatan **15°** (`ROTASI_GRID = 15`,
+`normalRotasi()` di `scene/types.ts`). Tombol di panel editor objek tetap melangkah **30°**
+(`ROTASI_LANGKAH`), sedangkan tombol rotasi folder melangkah **15°** (`ROTASI_FOLDER`) — kalau grid
+disimpan 30°, hasil rotasi folder 15° akan dibulatkan balik dan geometri melompat. Renderer wajib
+memakai nilai `rotasi` apa adanya (derajat), tanpa membulatkan.
+
 **Garis tepi (outline) — DIMATIKAN.** Permintaan user 2026-10-29: *"jangan
 berikan outline untuk objek"*. Objek digambar **tanpa stroke sama sekali**
 (`GARIS_TEPI = false` di `iso/box.ts`; renderer offline `tools/render_scene.py`
