@@ -302,6 +302,7 @@ dan tidak boleh crash pada data lama.
 | Tipe & build | `npx tsc --noEmit`, `npx vite build` | tanpa error |
 | Skema + katalog + urutan | `node tests/run-kontrak.mjs` | semua baris `OK` |
 | Tabel warna | `node tests/export-palet.mjs` | `docs/04-palet.json` diperbarui |
+| Paritas langit | `node tests/run-paritas.mjs` | `campur()`, `pitaHalus()` (5 fase) dan pita mendung (3 cuaca) **identik** antara `iso/langit.ts` dan `render_scene.py` |
 | Visual | `docs/04-contoh-scene.json` | APK memuat scene contoh (96 objek: ruangan + semua preset) dan tampak sama dengan pratinjau web (uji berdampingan manual) |
 
 ## 4b. Animasi
