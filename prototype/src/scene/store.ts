@@ -258,6 +258,7 @@ export function normalisasiScene(scene: Scene): Scene {
       // cap waktu simpan WAJIB ikut saat scene dibaca dari file, kalau tidak
       // perbandingan "mana yang lebih baru" saat boot selalu kalah ke draf.
       ...(typeof scene.meta?.updatedAt === 'string' ? { updatedAt: scene.meta.updatedAt } : {}),
+      ...(scene.meta?.paksaMuat === true ? { paksaMuat: true } : {}),
       ...(typeof scene.meta?.latarGambar === 'string' ? { latarGambar: scene.meta.latarGambar } : {}),
       ...(scene.meta?.latarMode === 'muat' || scene.meta?.latarMode === 'isi'
         ? { latarMode: scene.meta.latarMode } : {}),

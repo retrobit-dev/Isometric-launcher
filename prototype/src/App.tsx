@@ -267,14 +267,19 @@ export default function App() {
       const fileLebihBaru = (capFile > 0 || capLokal > 0)
         ? capFile > capLokal
         : (dariFile?.objects.length ?? 0) > lokal.objects.length
-      if (dariFile && dariFile.objects.length > 0 && fileLebihBaru) {
+      // PAKSA MUAT: file bertanda `meta.paksaMuat` selalu menang, berapa pun
+      // cap waktunya. Penanda dibuang setelah dimuat (autosave berikutnya
+      // menulis scene baru tanpa penanda), jadi hanya berlaku sekali.
+      const paksaMuat = dariFile?.meta?.paksaMuat === true
+      if (dariFile && dariFile.objects.length > 0 && (paksaMuat || fileLebihBaru)) {
         setUndo({ scene: lokal, label: 'scene sebelum dimuat dari file' })
         setLocked(false)
         const sc = gabungLatar(dariFile, lokal)
         // tidak ada salinan TERKUNCI -> scene ini draf, jangan bawa meta.locked lama
-        setScene(loadLocked()
-          ? sc
-          : { ...sc, meta: { ...(sc.meta ?? { locked: false, savedAt: null }), locked: false } })
+        const metaBaru = { ...(sc.meta ?? { locked: false, savedAt: null }), locked: false }
+        delete (metaBaru as { paksaMuat?: boolean }).paksaMuat
+        setScene(loadLocked() ? sc : { ...sc, meta: metaBaru })
+        if (paksaMuat) setDipulihkan(dariFile.objects.length)
         setDipulihkan(dariFile.objects.length)
         // KOMPOSISI: seluruh diorama masuk bingkai (tema gambar referensi)
         fitToScene(sc.objects)

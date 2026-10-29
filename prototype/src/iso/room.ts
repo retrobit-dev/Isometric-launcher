@@ -253,19 +253,26 @@ function drawFloorObjects(ctx: CanvasRenderingContext2D, objects: SceneObject[])
         }
       }
     } else {
-      // UBIN PERSEGI 1x1 tile
-      for (let wr = Math.floor(w0); wr < Math.ceil(w1); wr++) {
-        for (let ee = Math.floor(e0); ee < Math.ceil(e1); ee++) {
-          const a = Math.max(ee, e0), b = Math.min(ee + 1, e1)
-          const c = Math.max(wr, w0), d = Math.min(wr + 1, w1)
+      // UBIN PERSEGI — ukuran ubin bisa >1 tile (gaya interior game)
+      const U = Math.max(1, Math.round(mat.ubinUkuran ?? 1))
+      for (let wr = Math.floor(w0 / U) * U; wr < w1; wr += U) {
+        for (let ee = Math.floor(e0 / U) * U; ee < e1; ee += U) {
+          const a = Math.max(ee, e0), b = Math.min(ee + U, e1)
+          const c = Math.max(wr, w0), d = Math.min(wr + U, w1)
           if (b <= a || d <= c) continue
-          piece(a, b, c, d, mat.tones[(ee * 7 + wr * 13) % 3])
+          const ix = Math.round(ee / U), iw = Math.round(wr / U)
+          // pola 'cek': papan catur 2 nada + 1 ubin aksen tiap 4x4 ubin
+          const nada = mat.pola === 'cek'
+            ? (((ix + iw) % 2 === 0) ? 0 : 1)
+            : (ix * 7 + iw * 13) % 3
+          const aksen = false   // ronde 42: ubin aksen dihapus, papan catur bersih
+          piece(a, b, c, d, mat.tones[aksen ? 2 : nada])
         }
       }
-      for (let ww = Math.ceil(w0); ww < w1; ww++) line(ctx, px(e0, ww, z), px(e1, ww, z), mat.grout)
+      for (let ww = Math.ceil(w0 / U) * U; ww < w1; ww += U) line(ctx, px(e0, ww, z), px(e1, ww, z), mat.grout)
       line(ctx, px(e0, w1, z), px(e1, w1, z), mat.grout)
       line(ctx, px(e0, w0, z), px(e1, w0, z), mat.grout)
-      for (let ee = Math.ceil(e0); ee < e1; ee++) line(ctx, px(ee, w0, z), px(ee, w1, z), mat.grout)
+      for (let ee = Math.ceil(e0 / U) * U; ee < e1; ee += U) line(ctx, px(ee, w0, z), px(ee, w1, z), mat.grout)
       line(ctx, px(e1, w0, z), px(e1, w1, z), mat.grout)
     }
 

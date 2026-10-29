@@ -199,12 +199,28 @@ export interface FloorMat {
   skirtR: string
   plank?: number
   grain?: string
+  /** pola ubin: 'cek' = papan catur dua nada (gaya NDS) · 'acak' = bawaan */
+  pola?: 'cek' | 'acak'
+  /** ukuran ubin dalam tile (bawaan 1). 2 = ubin besar khas interior game. */
+  ubinUkuran?: number
 }
 
 export const FLOOR_MATERIALS: Record<string, FloorMat> = {
   // ---- RONDE 39: LANTAI PAPAN + BATU seperti gambar referensi -------------
   // Papan kayu terang (sama dengan badan rumah di referensi) dengan nat batu
   // krem. Ini gaya lantai utama ruangan sekarang.
+  // ---- RONDE 42: UBIN KREM GAYA INTERIOR NDS (bawaan) ---------------------
+  // Permintaan user: "saya tidak suka lantainya" -> papan panjang diganti
+  // ubin persegi 1x1 pola PAPAN CATUR dua nada + nat kayu gelap.
+  'lantai-ubin-nds': {
+    pattern: 'ubin',
+    tones: ['#f1e1bb', '#e4b98a', '#dadab8'],
+    grout: '#c99b6a',
+    skirtL: '#8a5a3a',
+    skirtR: '#5f3d28',
+    pola: 'cek',
+    ubinUkuran: 2,
+  },
   'lantai-papan-batu': {
     pattern: 'papan',
     tones: ['#c99b6a', '#e4b98a', '#c99b6a'],
@@ -297,7 +313,7 @@ export const FLOOR_MATERIALS: Record<string, FloorMat> = {
   },
 }
 export const FLOOR_KEYS = Object.keys(FLOOR_MATERIALS)
-export const FLOOR_DEFAULT = 'lantai-papan-batu'
+export const FLOOR_DEFAULT = 'lantai-ubin-nds'
 
 export function floorMat(name: unknown): FloorMat {
   return (typeof name === 'string' && FLOOR_MATERIALS[name]) || FLOOR_MATERIALS[FLOOR_DEFAULT]

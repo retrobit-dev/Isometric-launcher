@@ -252,6 +252,11 @@ export interface SceneMeta {
   // penanda migrasi LATAR sekali jalan: bila terisi, objek lama TIDAK lagi
   // otomatis dipindahkan ke latar (supaya "BUKA LATAR" tidak terulang).
   latarMigrasi?: string
+  // PAKSA MUAT (2026-10-29): bila `true` di file, aplikasi WAJIB memakai isi
+  // file ini sekali, tanpa membandingkan cap waktu dengan draf browser.
+  // Dipakai saat pemilik proyek mengganti scene dari luar sementara sebuah tab
+  // masih terbuka dan terus menyimpan scene lamanya.
+  paksaMuat?: boolean
   // CAP WAKTU SIMPAN TERAKHIR (ISO). Dipakai saat aplikasi dibuka untuk
   // memilih mana yang lebih baru: draf browser atau file .isola-scene.json.
   // Tanpa ini, tab lama yang baru dibuka bisa menimpa file dengan scene usang.

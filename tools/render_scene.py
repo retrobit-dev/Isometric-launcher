@@ -1013,23 +1013,30 @@ def draw_floor(o):
             rr += 1
     else:
         # UBIN PERSEGI 1x1 tile
-        ee = e0
+        U = max(1, round(mat.get('ubinUkuran', 1)))
+        ee = math.floor(e0 / U) * U
         while ee < e1 - 1e-6:
-            ww = w0
+            ww = math.floor(w0 / U) * U
             while ww < w1 - 1e-6:
-                a, b = px(ee, ww, z), px(min(ee + 1, e1), ww, z)
-                c, dd = px(min(ee + 1, e1), min(ww + 1, w1), z), px(ee, min(ww + 1, w1), z)
-                poly([a, b, c, dd], tones[(int(ee) * 7 + int(ww) * 13) % 3], False)
-                ww += 1
-            ee += 1
-        ee = e0
+                a, b = px(ee, ww, z), px(min(ee + U, e1), ww, z)
+                c, dd = px(min(ee + U, e1), min(ww + U, w1), z), px(ee, min(ww + U, w1), z)
+                ix, iw = round(ee / U), round(ww / U)
+                if mat.get('pola') == 'cek':
+                    nada = 0 if (ix + iw) % 2 == 0 else 1
+                    aksen = False   # ronde 42: tanpa ubin aksen
+                    poly([a, b, c, dd], tones[2 if aksen else nada], False)
+                else:
+                    poly([a, b, c, dd], tones[(ix * 7 + iw * 13) % 3], False)
+                ww += U
+            ee += U
+        ee = math.ceil(e0 / U) * U
         while ee <= e1 + 1e-6:
             d.line([px(ee, w0, z), px(ee, w1, z)], fill=grout, width=1)
-            ee += 1
-        ww = w0
+            ee += U
+        ww = math.ceil(w0 / U) * U
         while ww <= w1 + 1e-6:
             d.line([px(e0, ww, z), px(e1, ww, z)], fill=grout, width=1)
-            ww += 1
+            ww += U
 
     # BAYANGAN di kaki dinding = DITHER Bayer 4x4 (cermin room.ts).
     leb = min(1.8, (e1 - e0) * 0.22, (w1 - w0) * 0.22)

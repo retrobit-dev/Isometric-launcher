@@ -121,3 +121,24 @@ hanya ingin style, warna, dan tema seperti gambar referensi atau buat saja
 seperti game Pokémon NDS"*. Yang dipakai sekarang: plester krem rata, wainscot
 kayu, lantai papan, batas nada keras, outline 2 px, kanvas 568×355.
 Lihat `docs/08` §4.
+
+---
+
+## Ronde 42 — latar diulang dari nol, lantai diganti ubin
+
+User 2026-10-29: *"Hapus semua objek dan buat ulang latar, saya tidak suka
+lantainya."* Tindakan:
+
+- 71 objek lama (meja kerja, rak buku, tanaman pot, jendela) **dihapus**. Scene
+  sekarang hanya 3 objek latar: `lantai` (20×20, z 0.2), `dinding-db` (0.2×20,
+  z 25), `dinding-dt` (20×0.2, z 25).
+- Lantai papan (`lantai-papan-batu`) **ditolak**; diganti material baru
+  **`lantai-ubin-nds`**: `pattern:'ubin'`, nada `#f1e1bb / #e4b98a / #dadab8`,
+  nat `#c99b6a`, `pola:'cek'`, `ubinUkuran:2` → papan catur 10×10 ubin besar
+  (bukan 20×20 yang terlalu ramai di 568 px). Ubin aksen dihapus.
+- Material baru ini jadi `FLOOR_DEFAULT`; `render_scene.py` ikut menghormati
+  `pola` + `ubinUkuran` supaya pratinjau Python identik dengan aplikasi.
+- `meta.paksaMuat` ditambahkan agar scene kosong dari file menang atas draf
+  lama di tab browser yang masih terbuka.
+- Yang **tidak** berubah: ukuran kanvas 568×355, `PIKSEL`, `DENS`, `SCALE`,
+  serta seluruh sistem koordinat (`TILE_W/H`, `Z_PX`, origin `(e,w,z)`).

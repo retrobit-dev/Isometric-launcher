@@ -404,6 +404,19 @@
   }
  },
  "lantai": {
+  "lantai-ubin-nds": {
+   "pattern": "ubin",
+   "tones": [
+    "#f1e1bb",
+    "#e4b98a",
+    "#dadab8"
+   ],
+   "grout": "#c99b6a",
+   "skirtL": "#8a5a3a",
+   "skirtR": "#5f3d28",
+   "pola": "cek",
+   "ubinUkuran": 2
+  },
   "lantai-papan-batu": {
    "pattern": "papan",
    "tones": [
@@ -659,6 +672,6 @@
    "trimKanan": "#ef9762"
   }
  },
- "lantaiBawaan": "lantai-papan-batu",
+ "lantaiBawaan": "lantai-ubin-nds",
  "dindingBawaan": "dinding-nds"
 }
