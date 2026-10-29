@@ -182,14 +182,14 @@ const rafel = (x: unknown) => {
 export function normalisasiScene(scene: Scene): Scene {
   const snap = (v: number) => Math.round((Number.isFinite(v) ? v : 0) * 1000) / 1000
   const dipakai = new Set<string>()
-  // BERSIH-BERSIH RONDE 17 (2026-10-29): seluruh preset hasil jiplak gambar
-  // referensi sudah dihapus dari katalog. Objek yang masih menunjuk ke preset
-  // yang tidak ada lagi (sisa scene/draf lama) ikut DIBUANG saat dimuat, kecuali
-  // LATAR (lantai & dinding) yang sengaja dipertahankan.
-  const sisaPreset = (o: SceneObject) =>
-    !!o.preset && !presetOf(o.preset) && o.latar !== true
-    && o.role !== 'lantai' && o.role !== 'dinding'
-  const objects = scene.objects.filter(o => !sisaPreset(o)).map((o0, i) => {
+  // OBJEK TIDAK LAGI DIBUANG (perbaikan 2026-10-29).
+  // Dulu objek yang menunjuk preset yang sudah tidak ada di katalog (sisa
+  // katalog lama) DIHAPUS diam-diam saat normalisasi — termasuk saat autosave
+  // menulis ke file. Akibatnya objek bisa "hilang ketika refresh": begitu file
+  // ditulis tanpa objek itu, refresh berikutnya memuat scene yang sudah
+  // kehilangan objek tersebut. Sekarang objeknya TETAP ADA; hanya penanda
+  // presetnya yang dibuang (geometri, posisi, warna tidak berubah).
+  const objects = scene.objects.map((o0, i) => {
     let id = (o0.id ?? '').trim() || `objek-${i + 1}`
     while (dipakai.has(id)) id = `${id}-${i + 1}`
     dipakai.add(id)
@@ -198,6 +198,8 @@ export function normalisasiScene(scene: Scene): Scene {
     // di sini supaya data tidak menggelembung dengan kunci mati.
     const { sprite: _buangSprite, ...o } = o0 as SceneObject & { sprite?: string }
     void _buangSprite
+    // preset yang tidak dikenal katalog -> penanda dibuang, objek dipertahankan
+    if (o.preset && !presetOf(o.preset)) delete (o as { preset?: string }).preset
     return {
       ...o,
       id,
@@ -254,6 +256,41 @@ export function normalisasiScene(scene: Scene): Scene {
 }
 
 /** scene terakhir di file server (null bila belum ada / gagal) */
+/**
+ * SIMPAN DARURAT (perbaikan "objek hilang ketika refresh", 2026-10-29).
+ * Autosave ke file server memakai jeda 600 ms; kalau halaman di-refresh/
+ * ditutup sebelum jeda itu habis, permintaan POST biasa dibatalkan browser dan
+ * objek terakhir tidak pernah sampai ke file. Fungsi ini menulis LANGSUNG saat
+ * halaman ditinggalkan: sendBeacon (tidak dibatalkan) atau fetch keepalive.
+ */
+export function simpanDarurat(scene: Scene) {
+  if (!scene || !Array.isArray(scene.objects) || scene.objects.length === 0) return
+  let body: string
+  try {
+    body = JSON.stringify({ savedAt: new Date().toISOString(), scene: normalisasiScene(scene) })
+  } catch {
+    return
+  }
+  try {
+    if (typeof navigator !== 'undefined' && typeof navigator.sendBeacon === 'function') {
+      const blob = new Blob([body], { type: 'application/json' })
+      if (navigator.sendBeacon(API_SCENE, blob)) return
+    }
+  } catch {
+    /* lanjut ke fetch keepalive */
+  }
+  try {
+    void fetch(API_SCENE, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body,
+      keepalive: true,
+    })
+  } catch {
+    /* offline — draf browser tetap menyimpan */
+  }
+}
+
 export async function loadSceneFile(): Promise<Scene | null> {
   try {
     const r = await fetch(API_SCENE, { cache: 'no-store' })
@@ -452,6 +489,67 @@ export function loadCandidates(): { label: string; n: number; scene: Scene }[] {
 /** true bila ada data yang bisa dipulihkan (dipakai untuk peringatan "objek 0") */
 export function hasRecoverable(): boolean {
   return loadCandidates().length > 0
+}
+
+// ---------------------------------------------------------------------------
+// KANDIDAT PEMULIHAN (fitur PULIHKAN — permintaan user 2026-10-29:
+// "buatkan fitur untuk mengembalikan objek yg hilang ketika refresh localhost")
+// ---------------------------------------------------------------------------
+export interface Kandidat {
+  label: string
+  /** jumlah objek dalam kandidat */
+  n: number
+  /** cap waktu (epoch ms); 0 bila tidak ada */
+  waktu: number
+  scene: Scene
+  /** dari mana asalnya: penyimpanan browser atau file server */
+  sumber: 'browser' | 'file'
+}
+
+/**
+ * Semua sumber yang bisa dipulihkan, digabung:
+ *   1. penyimpanan browser (cadangan, riwayat, scene terkunci, draf, key lain)
+ *   2. file scene di server (/api/scene)
+ * Duplikat isi dibuang. Urutan: objek TERBANYAK dulu (paling mungkin berisi
+ * objek yang hilang), lalu yang paling baru.
+ */
+export async function kandidatPulihkan(
+  opsi: { berkas?: () => Promise<Scene | null> } = {},
+): Promise<Kandidat[]> {
+  const out: Kandidat[] = []
+  const sudah = new Set<string>()
+  const tambah = (label: string, sc: Scene | null, sumber: Kandidat['sumber']) => {
+    if (!sc || !Array.isArray(sc.objects) || sc.objects.length === 0) return
+    const kunci = JSON.stringify(sc.objects)
+    if (sudah.has(kunci)) return
+    sudah.add(kunci)
+    const cap = String(sc.meta?.updatedAt ?? sc.meta?.savedAt ?? '')
+    out.push({
+      label,
+      n: sc.objects.length,
+      waktu: Date.parse(cap) || 0,
+      scene: sc,
+      sumber,
+    })
+  }
+
+  for (const c of loadCandidates()) tambah(c.label, c.scene, 'browser')
+  try {
+    const berkas = await (opsi.berkas ?? loadSceneFile)()
+    tambah('file di server', berkas, 'file')
+  } catch {
+    /* server tidak bisa dihubungi — kandidat browser tetap ditawarkan */
+  }
+
+  out.sort((a, b) => b.n - a.n || b.waktu - a.waktu)
+  return out
+}
+
+/** jumlah objek TERBANYAK yang masih bisa dipulihkan (dipakai peringatan boot) */
+export function objekTerbanyakKandidat(): number {
+  let max = 0
+  for (const c of loadCandidates()) if (c.n > max) max = c.n
+  return max
 }
 
 

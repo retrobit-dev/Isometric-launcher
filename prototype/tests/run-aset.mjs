@@ -63,8 +63,10 @@ const o = scene.objects[0]
 cek('field sprite dari scene lama dibuang', o && !('sprite' in o), o ? Object.keys(o).join(',') : 'objek hilang')
 cek('objek tetap ada setelah dibersihkan', !!o)
 
-// objek sisa preset referensi (katalog kosong) harus dibuang saat dimuat,
-// tetapi LATAR (lantai & dinding) dipertahankan
+// OBJEK TIDAK BOLEH DIBUANG (perbaikan 2026-10-29, "objek hilang ketika
+// refresh"): dulu objek yang menunjuk preset lama DIHAPUS saat normalisasi,
+// sehingga objek lenyap setelah file ditulis & halaman dimuat ulang. Sekarang
+// objeknya dipertahankan; hanya penanda preset yang tidak dikenal dibuang.
 const scene2 = S.normalisasiScene({
   version: 1,
   objects: [
@@ -74,9 +76,12 @@ const scene2 = S.normalisasiScene({
       style: 'wood', preset: 'meja-guru' },
   ],
 })
-cek('objek sisa preset referensi dibuang',
-  scene2.objects.length === 1 && scene2.objects[0].id === 'l',
+cek('objek berpreset lama TETAP ADA (tidak hilang saat refresh)',
+  scene2.objects.length === 2 && scene2.objects.some(x => x.id === 'm'),
   scene2.objects.map(x => x.id).join(','))
+cek('penanda preset lama dibuang',
+  scene2.objects.every(x => x.preset === undefined),
+  scene2.objects.map(x => x.preset ?? '-').join(','))
 cek('LATAR tidak ikut terbuang', scene2.objects.some(x => x.latar === true))
 
 console.log(gagal === 0 ? '\nSEMUA UJI ASET LULUS' : `\n${gagal} UJI GAGAL`)

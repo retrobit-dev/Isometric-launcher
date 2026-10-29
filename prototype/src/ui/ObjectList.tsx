@@ -1,7 +1,6 @@
-import { useEffect, useRef, useState } from 'react'
+import { useRef, useState } from 'react'
 import { MATERIALS, UNKNOWN_STYLE, floorMat, wallColors } from '../iso/palette'
-import { loadCandidates } from '../scene/store'
-import type { Scene, SceneObject } from '../scene/types'
+import type { SceneObject } from '../scene/types'
 
 interface Props {
   objects: SceneObject[]
@@ -27,7 +26,8 @@ interface Props {
   /** turunkan objek ke bawah objek berikutnya (underlay) */
   onLower: (id: string) => void
   /** pasang kembali scene dari cadangan/riwayat (objek yang hilang) */
-  onRestore: (scene: Scene) => void
+  /** buka kartu PULIHKAN (satu-satunya tempat memulihkan salinan scene) */
+  onPulihkan: () => void
   /** jumlah objek LATAR (background kanvas) — tidak tampil sebagai baris */
   latarCount: number
   /** posisi folder: buka kartu koordinat e / w / z */
@@ -70,8 +70,6 @@ export default function ObjectList(p: Props) {
   const [pos, setPos] = useState({ x: Math.max(10, window.innerWidth - 262), y: 10 })
   const [openFolders, setOpenFolders] = useState<string[]>([])
   const [editing, setEditing] = useState<string | null>(null)   // gid yang sedang di-rename
-  const [showRescue, setShowRescue] = useState(false)
-  const [rescue, setRescue] = useState<{ label: string; n: number; scene: any }[]>([])
   const [draft, setDraft] = useState('')
   const dragRef = useRef<{ dx: number; dy: number } | null>(null)
 
@@ -109,19 +107,6 @@ export default function ObjectList(p: Props) {
   // objek lepas (tidak masuk grup) tetap tampil sebagai baris biasa
   const lepas = p.objects.filter(o => !o.grup)
 
-  // scene kosong = kemungkinan objek hilang -> langsung tawarkan pemulihan
-  useEffect(() => {
-    if (p.objects.length > 0 || p.latarCount > 0) return
-    const c = loadCandidates()
-    if (c.length > 0) { setRescue(c); setShowRescue(true) }
-    // hanya saat panel pertama dibuka
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [])
-
-  const openRescue = () => {
-    setRescue(loadCandidates())
-    setShowRescue(v => !v)
-  }
 
   const toggleFolder = (gid: string) =>
     setOpenFolders(f => (f.includes(gid) ? f.filter(x => x !== gid) : [...f, gid]))
@@ -226,9 +211,9 @@ export default function ObjectList(p: Props) {
           LEPAS
         </button>
         <button
-          className={showRescue ? 'sbtn on' : 'sbtn'}
-          onClick={openRescue}
-          title="pulihkan objek yang hilang dari cadangan/riwayat"
+          className="sbtn"
+          onClick={p.onPulihkan}
+          title="buka kartu PULIHKAN: cadangan, riwayat, draf, dan file server"
         >
           ⟲
         </button>
@@ -258,29 +243,10 @@ export default function ObjectList(p: Props) {
       </div>
       {grupCount > 0 && <div className="olhint">{grupCount} folder ({gids.filter(g => indukOf(g)).length} sub-folder)</div>}
 
-      {showRescue && (
-        <div className="olrescue">
-          <div className="olhint">PULIHKAN — ketuk untuk memasang kembali</div>
-          {rescue.length === 0 && (
-            <div className="olhint">belum ada cadangan. cadangan dibuat otomatis saat ada objek.</div>
-          )}
-          {rescue.map((c, i) => (
-            <button
-              key={i}
-              className="sbtn wide"
-              onClick={() => { p.onRestore(c.scene); setShowRescue(false) }}
-              title={c.label}
-            >
-              {c.n} objek · {c.label}
-            </button>
-          ))}
-        </div>
-      )}
-
       {p.locked && <div className="olhint">scene terkunci — buka kunci untuk mengedit</div>}
 
       {p.objects.length === 0 && p.latarCount === 0 && (
-        <button className="sbtn wide danger" onClick={openRescue} title="cari objek di cadangan & riwayat">
+        <button className="sbtn wide danger" onClick={p.onPulihkan} title="cari objek di cadangan, riwayat, draf, dan file server">
           OBJEK 0 — CARI CADANGAN ⟲
         </button>
       )}

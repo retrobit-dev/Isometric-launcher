@@ -9,7 +9,9 @@ import { FLOOR_DEFAULT } from './iso/palette'
 import PresetPicker from './ui/PresetPicker'
 import { buatPreset, type Preset } from './scene/presets'
 import { ROTASI_LANGKAH, UKURAN_MIN, normalRotasi, ukuranSah } from './scene/types'
-import { LATAR_TAG, gabungLatar, geserTumpukan, hapusLatarImage, latarImageUrl, loadCandidates, loadDraft, loadLocked, loadSceneFile, normalisasiScene, objekBiasa, objekLatar, saveDraftGuarded, saveLatarImage, saveLocked, saveSceneFile, storageWorks, validateScene } from './scene/store'
+import { kandidatPulihkan, objekTerbanyakKandidat, type Kandidat } from './scene/store'
+import Pulihkan from './ui/Pulihkan'
+import { LATAR_TAG, gabungLatar, geserTumpukan, hapusLatarImage, latarImageUrl, loadDraft, loadLocked, loadSceneFile, normalisasiScene, objekBiasa, objekLatar, saveDraftGuarded, saveLatarImage, saveLocked, saveSceneFile, simpanDarurat, storageWorks, validateScene } from './scene/store'
 import { type JenisAnim, type Scene, type SceneObject } from './scene/types'
 import { gayaBerikut } from './scene/gaya'
 import { SEMUA_CUACA, faseDariJam, getLangit, langitFase, efekCuaca, setLangit, type Cuaca } from './iso/langit'
@@ -65,6 +67,14 @@ export default function App() {
   const cuacaRef = useRef<Cuaca>(cuacaKini)
   const [jamKini, setJamKini] = useState(() => jamPerangkat())
   const [showCuaca, setShowCuaca] = useState(false)
+
+  // ---- PULIHKAN (permintaan user 2026-10-29: mengembalikan objek yang hilang
+  // ketika refresh). `saranPulih` = jumlah objek pada salinan terbanyak; bila
+  // lebih besar dari scene sekarang, muncul peringatan di layar.
+  const [showPulihkan, setShowPulihkan] = useState(false)
+  const [kandidat, setKandidat] = useState<Kandidat[]>([])
+  const [memuatKandidat, setMemuatKandidat] = useState(false)
+  const [saranPulih, setSaranPulih] = useState<number | null>(null)
   const jamRef = useRef<number>(jamKini)
   const [dimuat, setDimuat] = useState(false)
   // GAMBAR LATAR (background kanvas) — permintaan user 2026-10-29.
@@ -217,6 +227,30 @@ export default function App() {
     return () => clearTimeout(t)
   }, [scene, dimuat])
 
+  // SEBELUM HALAMAN DITINGGALKAN (refresh / tutup tab): simpan SEGERA.
+  // Tanpa ini, refresh dalam 600 ms setelah perubahan bisa membuang objek
+  // terakhir karena autosave ke file masih menunggu jeda.
+  useEffect(() => {
+    if (!dimuat) return
+    const simpanSekarang = () => {
+      const sc = sceneRef.current
+      if (!sc || sc.objects.length === 0) return
+      const stamped: Scene = {
+        ...sc,
+        meta: { ...(sc.meta ?? { locked: false, savedAt: null }), updatedAt: new Date().toISOString() },
+      }
+      try { saveDraftGuarded(stamped) } catch { /* storage penuh */ }
+      simpanDarurat(stamped)
+    }
+    const onHide = () => { if (document.visibilityState === 'hidden') simpanSekarang() }
+    window.addEventListener('pagehide', simpanSekarang)
+    document.addEventListener('visibilitychange', onHide)
+    return () => {
+      window.removeEventListener('pagehide', simpanSekarang)
+      document.removeEventListener('visibilitychange', onHide)
+    }
+  }, [dimuat])
+
   // SAAT DIBUKA: kalau draf browser kosong/tidak ada, ambil dari file server.
   // Ini yang membuat objek tidak lagi hilang setelah browser ditutup.
   useEffect(() => {
@@ -246,6 +280,11 @@ export default function App() {
         fitToScene(sc.objects)
         forceZoomLabel(v => v + 1)
       }
+      // PERINGATAN OBJEK HILANG: bandingkan dengan salinan terbanyak di
+      // penyimpanan browser. Kalau salinan itu punya objek LEBIH BANYAK,
+      // tampilkan tombol PULIHKAN (tidak mengubah apa pun tanpa diketuk).
+      const terbanyak = objekTerbanyakKandidat()
+      if (!batal && terbanyak > sceneRef.current.objects.length) setSaranPulih(terbanyak)
       setDimuat(true)
     })()
     return () => { batal = true }
@@ -323,6 +362,37 @@ export default function App() {
       simpanPengaturanCuaca(next)
       return next
     })
+  }
+
+  // PULIHKAN: baca semua salinan (browser + file server) lalu tampilkan kartu
+  const bukaPulihkan = () => {
+    setShowPulihkan(true)
+    void segarkanKandidat()
+  }
+
+  const segarkanKandidat = async () => {
+    setMemuatKandidat(true)
+    try {
+      const list = await kandidatPulihkan()
+      setKandidat(list)
+      setSaranPulih(list.length > 0 && list[0].n > sceneRef.current.objects.length ? list[0].n : null)
+    } finally {
+      setMemuatKandidat(false)
+    }
+  }
+
+  // muat kembali satu salinan; perubahan bisa dibatalkan lewat URUNGKAN
+  const pulihkanDari = (k: Kandidat) => {
+    setUndo({ scene: sceneRef.current, label: 'sebelum PULIHKAN' })
+    setLocked(false)
+    const sc = gabungLatar(k.scene, sceneRef.current)
+    setScene({ ...sc, meta: { ...(sc.meta ?? { locked: false, savedAt: null }), locked: false } })
+    setSelectedId(null)
+    fitToScene(sc.objects)
+    forceZoomLabel(v => v + 1)
+    setShowPulihkan(false)
+    setSaranPulih(null)
+    setPesanLatar(`dipulihkan ${k.n} objek dari ${k.label}`)
   }
 
   // ganti objek terpilih = mulai hitungan "belum disimpan" dari nol
@@ -819,14 +889,6 @@ export default function App() {
     patchObject(id, { kunci: next })
   }
 
-  // PULIHKAN: pasang kembali scene dari cadangan/riwayat (objek yang hilang)
-  const restoreScene = (sc: Scene) => {
-    // LATAR tidak ikut diganti oleh PULIHKAN
-    setScene(gabungLatar(sc, sceneRef.current))
-    setLocked(false)
-    setSelectedId(null)
-  }
-
   // TANYA DULU sebelum menghapus (permintaan user: jangan ada data hilang
   // tanpa peringatan). Dialog menyebut nama objek, peran, dan apakah dia
   // anggota grup / objek terakhir.
@@ -1029,6 +1091,16 @@ export default function App() {
                 <button className="sbtn" onClick={() => setDipulihkan(null)}>OK</button>
               </div>
             )}
+            {/* PERINGATAN: ada salinan dengan objek lebih banyak (mis. setelah
+                refresh memuat scene yang lebih sedikit). Tidak mengubah apa pun
+                sampai tombol PULIHKAN diketuk. */}
+            {saranPulih !== null && saranPulih > scene.objects.length && (
+              <div className="dipulihkan" style={{ top: 84 }}>
+                <span>ada salinan dengan {saranPulih} objek ({scene.objects.length} sekarang)</span>
+                <button className="sbtn on" onClick={bukaPulihkan}>PULIHKAN</button>
+                <button className="sbtn" onClick={() => setSaranPulih(null)}>✕</button>
+              </div>
+            )}
             {info && (() => {
               const o = scene.objects.find(x => x.id === info.id)
               if (!o) return null
@@ -1107,6 +1179,13 @@ export default function App() {
                 ✕ LATAR
               </button>
             )}
+            <button
+              className={showPulihkan ? 'tbtn on' : 'tbtn'}
+              onClick={() => (showPulihkan ? setShowPulihkan(false) : bukaPulihkan())}
+              title="pulihkan objek yang hilang: memuat kembali salinan scene (cadangan, riwayat, draf, file server)"
+            >
+              PULIHKAN
+            </button>
             <button
               className={showList ? 'tbtn on' : 'tbtn'}
               onClick={() => setShowList(v => !v)}
@@ -1217,6 +1296,17 @@ export default function App() {
         />
       )}
 
+      {showPulihkan && (
+        <Pulihkan
+          daftar={kandidat}
+          memuat={memuatKandidat}
+          aktif={scene.objects.length}
+          onPilih={pulihkanDari}
+          onSegarkan={() => void segarkanKandidat()}
+          onClose={() => setShowPulihkan(false)}
+        />
+      )}
+
       {showCuaca && (
         <KartuCuaca
           pengaturan={cuacaSet}
@@ -1261,7 +1351,7 @@ export default function App() {
             setGeserGrup({ gid, nama })
           }}
           onDeleteGroup={gid => hapusGrup(gid)}
-          onRestore={sc => restoreScene(sc)}
+          onPulihkan={bukaPulihkan}
           onClose={() => setShowList(false)}
         />
       )}
